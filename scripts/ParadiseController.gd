@@ -420,13 +420,19 @@ func _skill_2(cannon_idx: int) -> void:
 
 	# 飞出
 	var flight_time = maxf(flight_dist / 600.0, 1.0)
-	var rot_speed = randf_range(360.0, 480.0)
+	var rot_speed: float
+	var rot_total: float
+	if dock in [Dock.LEFT, Dock.RIGHT]:
+		rot_total = deg_to_rad(-30.0)
+	else:
+		rot_speed = randf_range(360.0, 480.0)
+		rot_total = deg_to_rad(rot_speed * flight_time)
 	var start_rot = cannon.rotation
 	var tw = _make_tween()
 	tw.set_parallel(true)
 	tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(cannon, "position", target_pos, flight_time)
-	tw.tween_property(cannon, "rotation", start_rot + deg_to_rad(rot_speed * flight_time), flight_time)
+	tw.tween_property(cannon, "rotation", start_rot + rot_total, flight_time)
 	var fire_cd = 0.0
 	while tw.is_running():
 		if dying: break
@@ -442,7 +448,7 @@ func _skill_2(cannon_idx: int) -> void:
 	tw.set_parallel(true)
 	tw.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(cannon, "position", origin, flight_time)
-	tw.tween_property(cannon, "rotation", cannon.rotation + deg_to_rad(rot_speed * flight_time), flight_time)
+	tw.tween_property(cannon, "rotation", cannon.rotation + rot_total, flight_time)
 	fire_cd = 0.0
 	while tw.is_running():
 		if dying: break
@@ -558,9 +564,7 @@ func _skill_4(cannon_idx: int) -> void:
 	await tw.finished
 
 	cannon.tracking = false
-	tw = _make_tween()
-	tw.tween_property(cannon, "rotation", deg_to_rad(135.0), 0.3)
-	await tw.finished
+	cannon.rotation = deg_to_rad(135.0)
 
 	if laser:
 		laser.width = 9.0
