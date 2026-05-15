@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://gate_eye_001"]
+
+[ext_resource type="Script" path="res://scripts/HellEyeGate.gd" id="1"]
+
+[node name="HellEye" type="Node2D"]
+script = ExtResource("1")
+mask_scale = Vector2(0.25, 0.1)
+mask_rotation_deg = 50.0
+mask_stroke_thickness = 30.0
+mask_stroke_color = Color(0.5172243, 0, 0.083567776, 1)
+spawn_y_ratio = 0.2
+orbiter_base_radius = 100.0
+orbiter_scale = 0.05
+body_scale_value = 0.18
+brown_max_dist = 100.0
+brown_dash_speed = 600.0
+brown_pause_min = 0.5

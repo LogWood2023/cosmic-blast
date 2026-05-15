@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://dfwhpdgkyke8q"]
+
+[ext_resource type="Script" uid="uid://dpnli0hibny1" path="res://scripts/HUD.gd" id="1_ahhtf"]
+[ext_resource type="Texture2D" uid="uid://bx6om4mybpios" path="res://assets/images/boss/hud_score_panel.png" id="2_6fi6k"]
+[ext_resource type="Script" uid="uid://dka54k5vuy735" path="res://scripts/LifeBar.gd" id="3_uo2fv"]
+[ext_resource type="Texture2D" uid="uid://bb70rkvl38qi4" path="res://assets/images/boss/hud_lifebar_frame.png" id="4_047uy"]
+
+[node name="HUD" type="CanvasLayer" unique_id=1880260508]
+script = ExtResource("1_ahhtf")
+
+[node name="ScorePanel" type="TextureRect" parent="." unique_id=481513499]
+offset_left = 1450.0
+offset_top = 965.0
+offset_right = 1770.0
+offset_bottom = 1063.0
+texture = ExtResource("2_6fi6k")
+expand_mode = 1
+
+[node name="ScoreLabel" type="Label" parent="." unique_id=1251250620]
+offset_left = 1486.0
+offset_top = 996.0
+offset_right = 1734.0
+offset_bottom = 1030.0
+theme_override_font_sizes/font_size = 24
+text = "分数：0"
+horizontal_alignment = 1
+
+[node name="LifeBar" type="Node2D" parent="." unique_id=837937734]
+position = Vector2(216, 1047)
+scale = Vector2(0.115, 0.07)
+script = ExtResource("3_uo2fv")
+
+[node name="YellowBar" type="ColorRect" parent="LifeBar" unique_id=1768318049]
+offset_left = -663.0
+offset_top = -115.0
+offset_right = 681.0
+offset_bottom = 132.0
+color = Color(1, 0.8509804, 0.2, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="RedBar" type="ColorRect" parent="LifeBar" unique_id=855178748]
+offset_left = -663.0
+offset_top = -115.0
+offset_right = 681.0
+offset_bottom = 132.0
+color = Color(0.9411765, 0.2, 0.2, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="FrameSprite" type="Sprite2D" parent="LifeBar" unique_id=1514432648]
+texture = ExtResource("4_047uy")

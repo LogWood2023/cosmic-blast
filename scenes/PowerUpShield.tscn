@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cmtxudo84de1v"]
+
+[ext_resource type="Script" uid="uid://ieqrqjihb77b" path="res://scripts/PowerUp.gd" id="1_0tnrv"]
+[ext_resource type="Texture2D" uid="uid://uhrwt7k1d56t" path="res://assets/images/powerup/powerup_shield_cutout.png" id="2_0tnrv"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_l12bd"]
+radius = 14.0
+
+[node name="PowerUpFireRate" type="Area2D" unique_id=183509243]
+script = ExtResource("1_0tnrv")
+power_type = 3
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1427305929]
+texture = ExtResource("2_0tnrv")
+scale = Vector2(0.031, 0.031)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=306820759]
+shape = SubResource("CircleShape2D_l12bd")

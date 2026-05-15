@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://lmjg0u0oo0w2" path="res://scripts/MainMenu.gd" id="1_menu"]
+
+[node name="MainMenu" type="CanvasLayer"]
+script = ExtResource("1_menu")
+
+[node name="TitleLabel" type="Label" parent="."]
+offset_left = 660.0
+offset_top = 285.0
+offset_right = 1260.0
+offset_bottom = 345.0
+text = "星际战机"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 56
+
+[node name="StartButton" type="Button" parent="."]
+offset_left = 860.0
+offset_top = 523.0
+offset_right = 1060.0
+offset_bottom = 573.0
+text = "开始游戏"
+theme_override_font_sizes/font_size = 24
+
+[node name="BossButton" type="Button" parent="."]
+offset_left = 820.0
+offset_top = 628.0
+offset_right = 1100.0
+offset_bottom = 678.0
+text = "Boss挑战"
+theme_override_font_sizes/font_size = 22
+
+[node name="QuitButton" type="Button" parent="."]
+offset_left = 860.0
+offset_top = 733.0
+offset_right = 1060.0
+offset_bottom = 783.0
+text = "退出游戏"
+theme_override_font_sizes/font_size = 24

@@ -1,0 +1,19 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/HealerEnemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/enemy/enemy_healer_cutout.png" id="2"]
+[sub_resource type="CapsuleShape2D" id="cap"]
+radius = 9.0
+height = 44.0
+[node name="Healer" type="Area2D"]
+script = ExtResource("1")
+move_speed = 300.0
+lifetime = 60.0
+move_cooldown = 10.0
+hp = 50
+damage = 2
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+centered = true
+scale = Vector2(0.0625, 0.0625)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("cap")
