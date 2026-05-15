@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://vtv3ybx5co3d"]
+
+[ext_resource type="Script" uid="uid://bw300lgpse1db" path="res://scripts/GameOver.gd" id="1_y26ei"]
+
+[node name="GameOver" type="CanvasLayer" unique_id=2033508356]
+script = ExtResource("1_y26ei")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=2096972073]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="TitleLabel" type="Label" parent="." unique_id=898036183]
+offset_left = 816.0
+offset_top = 233.0
+offset_right = 1008.0
+offset_bottom = 300.0
+theme_override_font_sizes/font_size = 48
+text = "游戏结束"
+
+[node name="FinalScoreLabel" type="Label" parent="." unique_id=1071170008]
+offset_left = 1076.0
+offset_top = 329.0
+offset_right = 1240.0
+offset_bottom = 374.0
+theme_override_font_sizes/font_size = 32
+text = "最终得分: 0"
+
+[node name="RestartButton" type="Button" parent="." unique_id=1226071542]
+offset_left = 896.0
+offset_top = 674.0
+offset_right = 1068.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 24
+text = "RestartButton"
+
+[connection signal="pressed" from="RestartButton" to="." method="_on_restart_button_pressed"]

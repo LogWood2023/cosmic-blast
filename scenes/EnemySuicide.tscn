@@ -1,0 +1,20 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/SuicideEnemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/enemy/enemy_suicide_cutout.png" id="2"]
+[sub_resource type="CapsuleShape2D" id="cap"]
+radius = 8.0
+height = 40.0
+[node name="Suicide" type="Area2D"]
+script = ExtResource("1")
+move_speed = 300.0
+lifetime = 30.0
+move_cooldown = 300.0
+hp = 10
+damage = 10
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+centered = true
+rotation = 3.14159
+scale = Vector2(0.0625, 0.0625)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("cap")

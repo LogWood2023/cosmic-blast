@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cqhtc7ksvnu1y"]
+
+[ext_resource type="Script" uid="uid://d0wl4fppaxnp0" path="res://scripts/ShooterEnemy.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://duyr8x81vvvlx" path="res://assets/images/enemy/enemy_shooter_cutout.png" id="2"]
+
+[sub_resource type="CapsuleShape2D" id="capsule"]
+radius = 8.0
+height = 40.0
+
+[node name="Shooter" type="Area2D" unique_id=1348511311]
+script = ExtResource("1")
+hp = 20
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1223992888]
+texture = ExtResource("2")
+centered = true
+scale = Vector2(0.0625, 0.0625)
+rotation = 3.14159
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1310961027]
+shape = SubResource("capsule")

@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ParadiseUtopia.gd" id="1"]
+
+[node name="Paradise" type="Node2D"]
+script = ExtResource("1")
+body_scale = Vector2(0.8, -0.8)
+pivot_offset = Vector2(0, -100)
+world_offset = Vector2(0, 100)
+cannon_0_pos = Vector2(-320, -80)
+cannon_1_pos = Vector2(-150, -30)
+cannon_2_pos = Vector2(150, -30)
+cannon_3_pos = Vector2(320, -80)
+cannon_scale = Vector2(-0.2, 0.2)
+show_pivot = false
+
+[node name="BodySprite" type="Sprite2D" parent="."]
+z_index = 50

@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://djxiasgs1tw8k"]
+
+[ext_resource type="Script" uid="uid://gaesq1pweeyr" path="res://scripts/StarColossusController.gd" id="1"]
+
+[node name="StarColossus" type="Node2D" unique_id=518765213]
+script = ExtResource("1")
+combo_interval = 2.0

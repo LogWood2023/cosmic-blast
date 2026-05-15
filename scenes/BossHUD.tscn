@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://ccp26eeykqso3"]
+
+[ext_resource type="Script" uid="uid://q83iftyaq4h7" path="res://scripts/BossHUD.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dtmotiumiva26" path="res://assets/images/boss/boss_hp_frame.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://hvl44rnj2bn3" path="res://assets/images/boss/boss_nameplate_cutout.png" id="3"]
+
+[node name="BossHUD" type="CanvasLayer" unique_id=284052350]
+layer = 10
+script = ExtResource("1")
+
+[node name="FlashBar" type="ColorRect" parent="." unique_id=1539104379]
+offset_left = 1591.0
+offset_top = 49.0
+offset_right = 1882.0
+offset_bottom = 69.0
+color = Color(1, 0.65, 0, 1)
+
+[node name="RedBar" type="ColorRect" parent="." unique_id=847091783]
+offset_left = 1591.0
+offset_top = 49.0
+offset_right = 1882.0
+offset_bottom = 69.0
+color = Color(0.85, 0.08, 0.08, 1)
+
+[node name="NamePlate" type="TextureRect" parent="." unique_id=2072831315]
+offset_left = 1821.0
+offset_top = 45.0
+offset_right = 2845.0
+offset_bottom = 1069.0
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("3")
+stretch_mode = 1
+
+[node name="NameLabel" type="Label" parent="." unique_id=1783196094]
+offset_left = 1804.0001
+offset_top = 72.0
+offset_right = 1944.0001
+offset_bottom = 102.0
+scale = Vector2(0.805, 0.805)
+text = "星间巨构"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Frame" type="TextureRect" parent="." unique_id=1662472736]
+offset_left = 1551.0
+offset_top = -23.0
+offset_right = 3343.0
+offset_bottom = 1001.0
+scale = Vector2(0.205, 0.16)
+texture = ExtResource("2")
+stretch_mode = 1

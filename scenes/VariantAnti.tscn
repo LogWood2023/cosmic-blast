@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/VariantAnti.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/warpedcore/anti_body_cutout.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/warpedcore/anti_orbiter_cutout.png" id="3"]
+
+[node name="VariantAnti" type="Node2D"]
+script = ExtResource("1")
+spawn_y_ratio = 0.2
+orbiter_base_radius = 100.0
+orbiter_scale = 0.05
+body_scale_value = 0.1
+brown_max_dist = 100.0
+brown_dash_speed = 600.0
+brown_pause_min = 0.5
+orbiter_chase_dist_mult = 0.0
+body_tex = ExtResource("2")
+orbiter_tex = ExtResource("3")

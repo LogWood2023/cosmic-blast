@@ -1,0 +1,17 @@
+# Godot — 导入缓存（会自动重建）
+.godot/
+
+# Python
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# 临时文件
+*.tmp
+*.log

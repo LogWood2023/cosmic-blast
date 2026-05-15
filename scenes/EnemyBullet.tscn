@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/EnemyBullet.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/enemy/enemy_bullet_cutout.png" id="2"]
+
+[sub_resource type="RectangleShape2D" id="rect"]
+size = Vector2(6, 18)
+
+[node name="EnemyBullet" type="Area2D"]
+script = ExtResource("1")
+speed = 500.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+scale = Vector2(0.046, 0.046)
+centered = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("rect")

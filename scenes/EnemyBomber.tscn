@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/BomberEnemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/enemy/enemy_bomber_cutout.png" id="2"]
+
+[sub_resource type="CapsuleShape2D" id="capsule"]
+radius = 9.0
+height = 44.0
+
+[node name="Bomber" type="Area2D"]
+script = ExtResource("1")
+move_speed = 800.0
+lifetime = 30.0
+move_cooldown = 10.0
+hp = 10
+damage = 10
+explosion_scale = 0.7
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+centered = true
+scale = Vector2(0.0625, 0.0625)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("capsule")

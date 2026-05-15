@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cysjl1e5u7ne6"]
+
+[ext_resource type="PackedScene" uid="uid://dvaelrsa8s8xw" path="res://scenes/player.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://b47u7rxfg3ndc" path="res://scenes/bullet.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://cllc1p58si7sw" path="res://scenes/enemyspawner.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://dfwhpdgkyke8q" path="res://scenes/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyRammer.tscn" id="6"]
+[ext_resource type="PackedScene" uid="uid://cqhtc7ksvnu1y" path="res://scenes/EnemyShooter.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyBomber.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyScatter.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/EnemySuicide.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyHealer.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyChain.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyMissile.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyThrower.tscn" id="14"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="15"]
+
+[node name="main" type="Node2D" unique_id=1133486175]
+script = ExtResource("15")
+
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1532942642]
+position = Vector2(960, 540)
+
+[node name="player" parent="." unique_id=699628355 instance=ExtResource("1")]
+position = Vector2(960, 540)
+rotation_speed = 16.0
+bullet_scene = ExtResource("2")
+
+[node name="enemyspawner" parent="." unique_id=638850194 instance=ExtResource("4")]
+enemy_scenes = Array[PackedScene]([ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14")])
+
+[node name="HUD" parent="." unique_id=134468566 instance=ExtResource("5")]
