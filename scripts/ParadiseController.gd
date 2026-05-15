@@ -88,6 +88,7 @@ var _skill_3_timer: float = 0.0
 const SKILL_3_CD_MIN: float = 20.0
 const SKILL_3_CD_MAX: float = 40.0
 var _skill_3_pending: bool = false
+var _skill_3_active: bool = false
 
 # 测试用：技能序号轮转
 var _test_skill_seq: Array[int] = [1, 2, 3, 4, 6]
@@ -241,11 +242,14 @@ func _process(delta: float) -> void:
 		for l in lasers:
 			_update_laser_line(l)
 
-	sway_phase += delta * sway_speed * 0.5
-	sway_phase_2 += delta * sway_speed * (1.0 / 3.0)
+	# 待机摆动（技能3换位期间暂停）
+	if not _skill_3_active:
+		sway_phase += delta * sway_speed * 0.5
+		sway_phase_2 += delta * sway_speed * (1.0 / 3.0)
 	var sway_x = sin(sway_phase) * sway_amplitude
 	var sway_y = sin(sway_phase_2) * sway_amplitude * 0.25
-	position = dock_pos + pivot_offset + world_offset + transform.x * sway_x + transform.y * sway_y
+	if not _skill_3_active:
+		position = dock_pos + pivot_offset + world_offset + transform.x * sway_x + transform.y * sway_y
 
 	# 每门炮独立技能冷却（技能3排队期间不发起新技能）
 	for i in cannons.size():
@@ -398,8 +402,8 @@ func _skill_2(cannon_idx: int) -> void:
 	if laser: laser.visible = false
 	cannon.tracking = false
 
-	# 根据停泊位计算飞出方向和距离（以机炮全局朝向飞行）
-	var global_dir = Vector2.RIGHT.rotated(cannon.global_rotation)
+	# 飞行方向 = 船的"正下方"（全局坐标），不受炮管实时旋转影响
+	var global_dir = Vector2(0, 1).rotated(self.rotation)
 	var flight_dist: float
 	match dock:
 		Dock.TOP:
@@ -462,6 +466,7 @@ func _skill_2(cannon_idx: int) -> void:
 func _skill_3() -> void:
 	if dying:
 		return
+	_skill_3_active = true
 	for c in cannons:
 		if is_instance_valid(c): c.tracking = true
 
@@ -497,9 +502,9 @@ func _skill_3() -> void:
 
 	var exit_target: Vector2
 	match dock:
-		Dock.TOP:    exit_target = Vector2(position.x, -400)
-		Dock.LEFT:   exit_target = Vector2(-400, position.y)
-		Dock.RIGHT:  exit_target = Vector2(screen_size.x + 400, position.y)
+		Dock.TOP:    exit_target = Vector2(position.x, -800)
+		Dock.LEFT:   exit_target = Vector2(-800, position.y)
+		Dock.RIGHT:  exit_target = Vector2(screen_size.x + 800, position.y)
 	var tw = _make_tween()
 	tw.set_ease(Tween.EASE_IN)
 	tw.tween_property(self, "position", exit_target, 1.2)
@@ -512,9 +517,9 @@ func _skill_3() -> void:
 	for i in cannons.size():
 		cannons[i].position = cannon_targets[i]
 	match dock:
-		Dock.TOP:    position.y = -400
-		Dock.LEFT:   position.x = -400
-		Dock.RIGHT:  position.x = screen_size.x + 400
+		Dock.TOP:    position.y = -800
+		Dock.LEFT:   position.x = -800
+		Dock.RIGHT:  position.x = screen_size.x + 800
 
 	_spawn_skill3_enemies(old_dock)
 
@@ -525,6 +530,7 @@ func _skill_3() -> void:
 	position = dock_pos + pivot_offset + world_offset
 	sway_phase = 0.0
 	sway_phase_2 = 0.0
+	_skill_3_active = false
 
 	var flash_end = Time.get_ticks_msec() / 1000.0 + 0.3
 	while Time.get_ticks_msec() / 1000.0 < flash_end:
