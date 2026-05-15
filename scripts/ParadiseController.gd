@@ -87,10 +87,7 @@ var cannon_skill_cd: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _skill_3_timer: float = 0.0
 const SKILL_3_CD_MIN: float = 20.0
 const SKILL_3_CD_MAX: float = 40.0
-
-# 每门炮独立执行状态
-var cannon_executing: Array[bool] = [false, false, false, false]
-var cannon_skill_cd: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _skill_3_pending: bool = false
 
 # 测试用：技能序号轮转
 var _test_skill_seq: Array[int] = [1, 2, 3, 4, 6]
@@ -250,9 +247,11 @@ func _process(delta: float) -> void:
 	var sway_y = sin(sway_phase_2) * sway_amplitude * 0.25
 	position = dock_pos + pivot_offset + world_offset + transform.x * sway_x + transform.y * sway_y
 
-	# 每门炮独立技能冷却
+	# 每门炮独立技能冷却（技能3排队期间不发起新技能）
 	for i in cannons.size():
 		if cannon_executing[i]:
+			continue
+		if _skill_3_pending:
 			continue
 		cannon_skill_cd[i] -= delta
 		if cannon_skill_cd[i] <= 0.0:
@@ -261,10 +260,11 @@ func _process(delta: float) -> void:
 			_dispatch_cannon_skill(i)
 
 	# 技能3 独立冷却
-	if has_skill_3 and not any_cannon_executing():
+	if has_skill_3 and not _skill_3_pending:
 		_skill_3_timer -= delta
 		if _skill_3_timer <= 0.0:
-			_exec_skill_3()
+			_skill_3_pending = true
+			_run_skill_3_async()
 
 
 func any_cannon_executing() -> bool:
@@ -286,7 +286,14 @@ func _dispatch_cannon_skill(cannon_idx: int) -> void:
 
 	var s = available[_test_seq_index % available.size()]
 	_test_seq_index += 1
-	_exec_cannon_skill(cannon_idx, s)
+	_run_cannon_skill_async(cannon_idx, s)
+
+
+func _run_cannon_skill_async(cannon_idx: int, s: int) -> void:
+	if not get_tree():
+		cannon_executing[cannon_idx] = false
+		return
+	await _exec_cannon_skill(cannon_idx, s)
 	cannon_executing[cannon_idx] = false
 
 
@@ -298,13 +305,23 @@ func _exec_cannon_skill(cannon_idx: int, s: int) -> void:
 		6: await _skill_6(cannon_idx)
 
 
-func _exec_skill_3() -> void:
+func _run_skill_3_async() -> void:
+	var t = get_tree()
+	if not t:
+		_skill_3_pending = false
+		return
 	while any_cannon_executing() and not dying:
-		await get_tree().process_frame
+		t = get_tree()
+		if not t:
+			_skill_3_pending = false
+			return
+		await t.process_frame
 	if dying:
+		_skill_3_pending = false
 		return
 	await _skill_3()
 	_skill_3_timer = randf_range(SKILL_3_CD_MIN, SKILL_3_CD_MAX)
+	_skill_3_pending = false
 
 
 # ═══════════ 技能 1: 全炮齐射（仅触发炮）═══════════
@@ -381,21 +398,19 @@ func _skill_2(cannon_idx: int) -> void:
 	if laser: laser.visible = false
 	cannon.tracking = false
 
-	# 根据停泊位计算飞出方向和目标
-	var flight_vec: Vector2
+	# 根据停泊位计算飞出方向和距离（以机炮全局朝向飞行）
+	var global_dir = Vector2.RIGHT.rotated(cannon.global_rotation)
 	var flight_dist: float
 	match dock:
 		Dock.TOP:
-			flight_vec = Vector2(0, 1)
 			flight_dist = screen_size.y - cannon.global_position.y + 200
 		Dock.LEFT:
-			flight_vec = Vector2(1, 0)
 			flight_dist = screen_size.x - cannon.global_position.x + 200
 		Dock.RIGHT:
-			flight_vec = Vector2(-1, 0)
 			flight_dist = cannon.global_position.x + 200
 
-	var target_pos = cannon.position + flight_vec * flight_dist
+	var global_target = cannon.global_position + global_dir * flight_dist
+	var target_pos = to_local(global_target)
 	_show_warn(cannon.position, target_pos)
 	await _await_warns()
 
@@ -862,7 +877,7 @@ func _draw() -> void:
 				p_b - perp * half_w, p_b + perp * half_w,
 			])
 			draw_colored_polygon(pts, col)
-	if not warn_circle.is_empty():
+	if warn_circle.has("radius"):
 		var elapsed = 5.0 - warn_circle.timer
 		var r = warn_circle.radius
 		var alpha_mod = 1.0
@@ -1030,7 +1045,6 @@ func _die() -> void:
 		return
 	active = false
 	dying = true
-	is_executing = false
 	death_timer = 0.0
 	death_explosion_cd = 0.0
 	death_sfx_cd = 0.0
