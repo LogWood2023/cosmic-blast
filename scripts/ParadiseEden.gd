@@ -9,7 +9,7 @@ func _init() -> void:
 	has_skill_2 = false
 	has_skill_3 = true
 	has_skill_4 = true
-	has_skill_5 = true
+	has_skill_5 = false
 	has_skill_6 = true
 	body_tex = preload("res://assets/images/paradise/paradise_body_eden_cutout.png")
 	cannon_tex = preload("res://assets/images/paradise/paradise_cannon_eden_cutout.png")
