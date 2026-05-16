@@ -83,6 +83,10 @@ const LASER_ZAP_SFX = preload("res://assets/audio/laser_zap.wav")
 var cannon_executing: Array[bool] = [false, false, false, false]
 var cannon_skill_cd: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
+# 技能4 共享旋转方向（CW=0, CCW=1）
+var _skill_4_dir: int = 0
+var _skill_4_active_count: int = 0
+
 # 技能3 独立冷却（全局，20-40s随机）
 var _skill_3_timer: float = 0.0
 const SKILL_3_CD_MIN: float = 20.0
@@ -418,8 +422,8 @@ func _skill_2(cannon_idx: int) -> void:
 	_show_warn(cannon.position, target_pos)
 	await _await_warns()
 
-	# 旋转速度：30-60°/s，均匀随机
-	var rot_speed = deg_to_rad(randf_range(30.0, 60.0))
+	# 旋转速度：180-270°/s，均匀随机
+	var rot_speed = deg_to_rad(randf_range(180.0, 270.0))
 
 	# 飞出
 	var flight_time = maxf(flight_dist / 600.0, 1.0)
@@ -436,7 +440,7 @@ func _skill_2(cannon_idx: int) -> void:
 		fire_cd -= dt
 		if fire_cd <= 0.0:
 			_spawn_skill2_bullet(cannon, skill_2_bullet_dmg)
-			fire_cd = 0.05
+			fire_cd = 0.1
 		await get_tree().process_frame
 	_spawn_skill2_bullet(cannon, skill_2_bullet_dmg)
 
@@ -452,17 +456,18 @@ func _skill_2(cannon_idx: int) -> void:
 		fire_cd -= dt
 		if fire_cd <= 0.0:
 			_spawn_skill2_bullet(cannon, skill_2_bullet_dmg)
-			fire_cd = 0.05
+			fire_cd = 0.1
 		await get_tree().process_frame
 
-	# 平滑旋转回指向玩家
+	# 平滑旋转回指向玩家（走最短弧）
 	cannon.tracking = true
 	var player = get_tree().get_first_node_in_group(&"player")
 	if player:
 		var world_dir = (player.global_position - cannon.global_position).normalized()
 		var target_angle = world_dir.angle() - self.rotation
+		var diff = fposmod(target_angle - cannon.rotation + PI, TAU) - PI
 		tw = _make_tween()
-		tw.tween_property(cannon, "rotation", target_angle, 0.5)
+		tw.tween_property(cannon, "rotation", cannon.rotation + diff, 0.5)
 		await tw.finished
 
 	if laser:
@@ -570,7 +575,35 @@ func _skill_4(cannon_idx: int) -> void:
 	await tw.finished
 
 	cannon.tracking = false
-	cannon.rotation = deg_to_rad(135.0)
+
+	# 共享旋转方向：无活跃→随机，有活跃→跟随
+	if _skill_4_active_count == 0:
+		_skill_4_dir = randi() % 2
+	_skill_4_active_count += 1
+	var is_cw = _skill_4_dir == 0
+
+	# 根据停泊位+方向确定起止角度
+	var start_angle: float
+	var end_angle: float
+	if dock == Dock.TOP:
+		if is_cw:
+			start_angle = deg_to_rad(45.0)
+			end_angle = deg_to_rad(135.0)
+		else:
+			start_angle = deg_to_rad(135.0)
+			end_angle = deg_to_rad(45.0)
+	else:
+		if is_cw:
+			start_angle = deg_to_rad(135.0)
+			end_angle = deg_to_rad(90.0)
+		else:
+			start_angle = deg_to_rad(45.0)
+			end_angle = deg_to_rad(90.0)
+
+	# 平滑旋转至起始角度
+	tw = _make_tween()
+	tw.tween_property(cannon, "rotation", start_angle, 0.3)
+	await tw.finished
 
 	if laser:
 		laser.width = 9.0
@@ -580,7 +613,7 @@ func _skill_4(cannon_idx: int) -> void:
 	# 扫射 6s
 	var base_w = 9.0
 	tw = _make_tween()
-	tw.tween_property(cannon, "rotation", deg_to_rad(45.0), 6.0)
+	tw.tween_property(cannon, "rotation", end_angle, 6.0)
 	var flicker_cd = 0.0
 	var flickering = false
 	var hit_cd = 0.0
@@ -606,6 +639,8 @@ func _skill_4(cannon_idx: int) -> void:
 				hit_cd = 0.3
 		await get_tree().process_frame
 	if laser: laser.width = base_w
+
+	_skill_4_active_count -= 1
 
 	if laser:
 		var flash_end = Time.get_ticks_msec() / 1000.0 + 0.4
@@ -776,7 +811,7 @@ func _spawn_skill2_bullet(cannon: Area2D, dmg: int) -> void:
 	bullet.position = cannon.global_position + Vector2(0, 30)
 	bullet.direction = Vector2.RIGHT.rotated(cannon.global_rotation)
 	bullet.damage = dmg
-	bullet.speed = 500
+	bullet.speed = 750
 	bullet.z_index = -80
 	bullet.scale = Vector2(1.84, 1.84)
 	bullet.rotation = bullet.direction.angle()
