@@ -83,10 +83,6 @@ const LASER_ZAP_SFX = preload("res://assets/audio/laser_zap.wav")
 var cannon_executing: Array[bool] = [false, false, false, false]
 var cannon_skill_cd: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
-# 技能2 共享旋转方向（CW=0, CCW=1）
-var _skill_2_dir: int = 0
-var _skill_2_active_count: int = 0
-
 # 技能3 独立冷却（全局，20-40s随机）
 var _skill_3_timer: float = 0.0
 const SKILL_3_CD_MIN: float = 20.0
@@ -406,35 +402,6 @@ func _skill_2(cannon_idx: int) -> void:
 	if laser: laser.visible = false
 	cannon.tracking = false
 
-	# 共享旋转方向：无活跃→随机，有活跃→跟随
-	if _skill_2_active_count == 0:
-		_skill_2_dir = randi() % 2
-	_skill_2_active_count += 1
-	var is_cw = _skill_2_dir == 0
-
-	# 根据停泊位+方向确定起止角度
-	var start_angle: float
-	var rot_total: float
-	if dock == Dock.TOP:
-		if is_cw:
-			start_angle = deg_to_rad(45.0)
-			rot_total = deg_to_rad(90.0)
-		else:
-			start_angle = deg_to_rad(135.0)
-			rot_total = deg_to_rad(-90.0)
-	else:
-		if is_cw:
-			start_angle = deg_to_rad(135.0)
-			rot_total = deg_to_rad(-45.0)
-		else:
-			start_angle = deg_to_rad(45.0)
-			rot_total = deg_to_rad(45.0)
-
-	# 平滑旋转至起始角度
-	var tw = _make_tween()
-	tw.tween_property(cannon, "rotation", start_angle, 0.3)
-	await tw.finished
-
 	# 飞行方向 = 船的"正下方"（全局坐标）
 	var global_dir = Vector2(0, 1).rotated(self.rotation)
 	var flight_dist: float
@@ -451,40 +418,52 @@ func _skill_2(cannon_idx: int) -> void:
 	_show_warn(cannon.position, target_pos)
 	await _await_warns()
 
+	# 旋转速度：30-60°/s，均匀随机
+	var rot_speed = deg_to_rad(randf_range(30.0, 60.0))
+
 	# 飞出
 	var flight_time = maxf(flight_dist / 600.0, 1.0)
-	tw = _make_tween()
-	tw.set_parallel(true)
-	tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	var tw = _make_tween()
 	tw.tween_property(cannon, "position", target_pos, flight_time)
-	tw.tween_property(cannon, "rotation", cannon.rotation + rot_total, flight_time)
+	tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	var fire_cd = 0.0
+	var rot_elapsed = 0.0
 	while tw.is_running():
 		if dying: break
-		fire_cd -= get_process_delta_time()
+		var dt = get_process_delta_time()
+		rot_elapsed += dt
+		cannon.rotation += rot_speed * dt
+		fire_cd -= dt
 		if fire_cd <= 0.0:
 			_spawn_skill2_bullet(cannon, skill_2_bullet_dmg)
 			fire_cd = 0.05
 		await get_tree().process_frame
 	_spawn_skill2_bullet(cannon, skill_2_bullet_dmg)
 
-	# 飞回
+	# 飞回（继续同向旋转）
 	tw = _make_tween()
-	tw.set_parallel(true)
-	tw.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(cannon, "position", origin, flight_time)
-	tw.tween_property(cannon, "rotation", cannon.rotation + rot_total, flight_time)
+	tw.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	fire_cd = 0.0
 	while tw.is_running():
 		if dying: break
-		fire_cd -= get_process_delta_time()
+		var dt = get_process_delta_time()
+		cannon.rotation += rot_speed * dt
+		fire_cd -= dt
 		if fire_cd <= 0.0:
 			_spawn_skill2_bullet(cannon, skill_2_bullet_dmg)
 			fire_cd = 0.05
 		await get_tree().process_frame
-	cannon.tracking = true
 
-	_skill_2_active_count -= 1
+	# 平滑旋转回指向玩家
+	cannon.tracking = true
+	var player = get_tree().get_first_node_in_group(&"player")
+	if player:
+		var world_dir = (player.global_position - cannon.global_position).normalized()
+		var target_angle = world_dir.angle() - self.rotation
+		tw = _make_tween()
+		tw.tween_property(cannon, "rotation", target_angle, 0.5)
+		await tw.finished
 
 	if laser:
 		var flash_end = Time.get_ticks_msec() / 1000.0 + 0.3
