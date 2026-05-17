@@ -4,7 +4,7 @@
 
 [node name="HellEye" type="Node2D"]
 script = ExtResource("1")
-mask_scale = Vector2(0.25, 0.1)
+mask_scale = Vector2(0.375, 0.15)
 mask_rotation_deg = 50.0
 mask_stroke_thickness = 30.0
 mask_stroke_color = Color(0.5172243, 0, 0.083567776, 1)

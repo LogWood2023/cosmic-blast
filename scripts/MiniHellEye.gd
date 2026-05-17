@@ -13,6 +13,7 @@ const PARTICLE_ARRIVE_DIST: float = 50.0
 const PARTICLE_MAX_AGE: float = 3.0
 const FADE_START_DIST: float = 50.0
 const EYEBALL_TRACK_PX: float = 20.0
+const OPEN_SPEED: float = 4.0
 
 var _stroke_sprite: Sprite2D
 var _nebula_sprite: Sprite2D
@@ -50,8 +51,10 @@ var _eyeball_scale_for_track: Vector2 = Vector2(0.18, 0.18)
 static func spawn(parent: Node, pos: Vector2, sc: float, hp_val: int) -> MiniHellEye:
 	var m = MiniHellEye.new()
 	m.position = pos
-	sc *= 2.0  # double size
+	sc *= 2.0
 	m._scale_factor = sc
+	m._eye_y_mult = 0.08
+	m._opening = true
 	m.max_hp = hp_val
 	m._hp = hp_val
 
@@ -94,7 +97,7 @@ static func spawn(parent: Node, pos: Vector2, sc: float, hp_val: int) -> MiniHel
 	m._stroke_sprite.self_modulate = stroke_color
 	m._stroke_sprite.z_index = -3
 	m._stroke_sprite.rotation = -rot
-	m._stroke_sprite.scale = Vector2(ms.x + stroke_th / 1024.0, ms.y + stroke_th / 1024.0)
+	m._stroke_sprite.scale = Vector2(ms.x + stroke_th / 1024.0, ms.y * m._eye_y_mult + stroke_th / 1024.0)
 	m.add_child(m._stroke_sprite)
 
 	m._nebula_sprite = Sprite2D.new()
@@ -122,6 +125,8 @@ static func spawn(parent: Node, pos: Vector2, sc: float, hp_val: int) -> MiniHel
 	m._eyeball_sprite.material = m._eye_mat
 	m._sync_eye_mask()
 	m.add_child(m._eyeball_sprite)
+
+	m._sync_stroke()
 
 	var body_area = Area2D.new()
 	body_area.collision_layer = 2
@@ -200,12 +205,16 @@ func _process(delta: float) -> void:
 		return
 
 	if _opening:
-		_eye_y_mult = lerpf(_eye_y_mult, 1.0, delta * 6.0)
+		_eye_y_mult = lerpf(_eye_y_mult, 1.0, delta * OPEN_SPEED)
 		if _eye_y_mult > 0.98:
 			_eye_y_mult = 1.0
 			_opening = false
+		_sync_eye()
+		_sync_stroke()
+		queue_redraw()
+		return
 
-	# drain + particles every second
+	# drain + particles every 2 seconds
 	_drain_timer += delta
 	if _drain_timer >= 2.0:
 		_drain_timer -= 2.0

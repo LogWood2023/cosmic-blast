@@ -153,8 +153,8 @@ const SKILL_2_RING_COUNT_MIN: int = 3
 const SKILL_2_RING_COUNT_MAX: int = 6
 const SKILL_2_SHRINK_MIN: float = 2.0
 const SKILL_2_SHRINK_MAX: float = 3.0
-const SKILL_2_INTERVAL_MIN: float = 0.5
-const SKILL_2_INTERVAL_MAX: float = 1.0
+const SKILL_2_INTERVAL_MIN: float = 1.0
+const SKILL_2_INTERVAL_MAX: float = 2.0
 const SKILL_2_INIT_RADIUS: float = 800.0
 const SKILL_2_INIT_THICKNESS: float = 30.0
 var _skill_2_active: bool = false
@@ -403,11 +403,6 @@ func _check_ring_hit_player(player: Node2D) -> void:
 			in_gap = pa >= gs and pa <= ge
 		else:
 			in_gap = pa >= gs or pa <= ge
-		if not in_gap and inner_r < 40.0:
-			player.take_damage_from_boss(RING_HIT_DAMAGE)
-			d.has_hit_player = true
-			_ring_hit_cd = 0.3
-			return
 		if dist >= inner_r and dist <= outer_r:
 			if not in_gap:
 				player.take_damage_from_boss(RING_HIT_DAMAGE)
@@ -1293,6 +1288,7 @@ func _die() -> void:
 	if is_instance_valid(_skill_4_overlay):
 		_skill_4_overlay.queue_free()
 	_skill_4_overlay = null
+	GameManager.controls_inverted = false
 
 
 func _death_process(delta: float) -> void:

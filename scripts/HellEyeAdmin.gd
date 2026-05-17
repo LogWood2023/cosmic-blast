@@ -74,7 +74,7 @@ func _setup_body() -> void:
 	body_area.name = "BodyArea"
 	var col = CollisionShape2D.new()
 	col.shape = CircleShape2D.new()
-	col.shape.radius = 60.0
+	col.shape.radius = body_collision_radius
 	col.name = "BodyCol"
 	body_area.add_child(col)
 	body_area.area_entered.connect(_on_body_area_entered)
