@@ -16,7 +16,6 @@ var screen_size: Vector2
 
 # ═══════════ 生命周期标志 ═══════════
 var active: bool = false
-var entering: bool = true
 var dying: bool = false
 
 # ═══════════ 主体外观 ═══════════
@@ -27,6 +26,93 @@ var wings_right: Sprite2D
 var _wings_open: bool = false
 var _crown_phase: float = 0.0
 var _crystal_pulse: float = 0.0
+var _wings_phase: float = 0.0
+var _crystal_speed: float = 1.2
+var _crown_speed: float = 1.2
+var _wings_speed: float = 1.2
+var _wings_shake_phase: float = 0.0
+
+# 展翅动画（当前停用，改用简单切换）
+var _is_wing_spread_playing: bool = false
+var _spread_timer: float = 0.0
+var _spread_phase: int = 0
+var _spread_switched: bool = false
+
+# 翅膀配置硬切换测试
+var _test_toggle_timer: float = 0.0
+var _test_toggle_open: bool = false
+
+# 闭合翅膀状态下的基准位置
+var _closed_crystal_pos: Vector2
+var _closed_crown_pos: Vector2
+var _closed_wl_pivot_pos: Vector2
+var _closed_wr_pivot_pos: Vector2
+
+# 张开翅膀状态下的基准位置（切换时记录）
+var _open_crystal_pos: Vector2
+var _open_crown_pos: Vector2
+var _open_wl_pivot_pos: Vector2
+var _open_wr_pivot_pos: Vector2
+
+# 阶段2切换瞬间的视觉状态
+var _switch_crystal_pos: Vector2
+var _switch_crown_pos: Vector2
+var _switch_wl_pivot_pos: Vector2
+var _switch_wr_pivot_pos: Vector2
+var _switch_wl_rot: float
+var _switch_wr_rot: float
+
+# 阶段4起始状态
+var _p4_crystal_pos: Vector2
+var _p4_crown_pos: Vector2
+var _p4_wl_pivot_pos: Vector2
+var _p4_wr_pivot_pos: Vector2
+var _p4_wl_rot: float
+var _p4_wr_rot: float
+
+var wing_pivot_left_node: Node2D
+var wing_pivot_right_node: Node2D
+var wing_pivot_left_sprite: Sprite2D
+var wing_pivot_right_sprite: Sprite2D
+
+# 闭合翅膀状态
+var wings_closed_wings_scale: Vector2 = Vector2(0.5, 0.5)
+var wings_closed_wings_z_index: int = 48
+var wings_closed_wings_shake_angle: float = 10.0
+var wings_closed_wings_shake_speed: float = 2.0
+var wings_closed_wing_pivot_left_pos: Vector2 = Vector2(-80, 0)
+var wings_closed_wing_pivot_right_pos: Vector2 = Vector2(80, 0)
+var wings_closed_wing_left_offset: Vector2 = Vector2(40, 0)
+var wings_closed_wing_right_offset: Vector2 = Vector2(-40, 0)
+
+# 张开翅膀状态（使用当前参数作为默认值）
+@export var crystal_scale: Vector2 = Vector2(0.5, 0.5)
+@export var crystal_pos: Vector2 = Vector2.ZERO
+@export var crystal_z_index: int = 50
+@export var crown_scale: Vector2 = Vector2(0.35, 0.35)
+@export var crown_pos: Vector2 = Vector2(0, -120)
+@export var crown_z_index: int = 51
+@export var wings_scale: Vector2 = Vector2(0.5, 0.5)
+@export var wings_z_index: int = 48
+@export var overall_scale: float = 1.0
+@export var wings_open: bool = false
+@export var wings_shake_angle: float = 10.0
+@export var wings_shake_speed: float = 2.0
+@export var wing_pivot_left_pos: Vector2 = Vector2(-80, 0)
+@export var wing_pivot_right_pos: Vector2 = Vector2(80, 0)
+@export var wing_left_offset: Vector2 = Vector2(40, 0)
+@export var wing_right_offset: Vector2 = Vector2(-40, 0)
+@export var show_pivot_dots: bool = false
+
+# 张开翅膀状态
+var wings_open_wings_scale: Vector2 = Vector2(0.5, 0.5)
+var wings_open_wings_z_index: int = 48
+var wings_open_wings_shake_angle: float = 10.0
+var wings_open_wings_shake_speed: float = 2.0
+var wings_open_wing_pivot_left_pos: Vector2 = Vector2(-80, 0)
+var wings_open_wing_pivot_right_pos: Vector2 = Vector2(80, 0)
+var wings_open_wing_left_offset: Vector2 = Vector2(40, 0)
+var wings_open_wing_right_offset: Vector2 = Vector2(-40, 0)
 
 # ═══════════ 技能 ═══════════
 @export var has_skill_1: bool = true
@@ -57,12 +143,6 @@ var won: bool = false
 const BOSS_BGM = preload("res://assets/audio/warpedcore_bgm.mp3")
 var bgm_player: AudioStreamPlayer
 
-# ═══════════ 进场遮罩 ═══════════
-var overlay_layer: CanvasLayer
-var overlay_rect: ColorRect
-var overlay_label: Label
-var entrance_timer: float = 0.0
-
 # ═══════════ 资源预加载 ═══════════
 const HIT_SFX = preload("res://assets/audio/boss_hit.wav")
 const EXPLOSION_SFX = preload("res://assets/audio/explosion.wav")
@@ -79,125 +159,43 @@ var _skill_tweens: Array[Tween] = []
 func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
 	boss_hp = max_hp
+	_crystal_pulse = randf_range(0.0, TAU)
+	_crown_phase = randf_range(0.0, TAU)
+	_wings_phase = randf_range(0.0, TAU)
+	_crystal_speed = randf_range(1.0, 1.4)
+	_crown_speed = randf_range(1.0, 1.4)
+	_wings_speed = randf_range(1.0, 1.4)
+	scale = Vector2(overall_scale, overall_scale)
 	_setup_bgm()
 	_setup_body()
-	_create_entrance_overlay()
-	_start_entrance()
-
-
-func _setup_bgm() -> void:
-	bgm_player = AudioStreamPlayer.new()
-	bgm_player.stream = BOSS_BGM
-	bgm_player.volume_db = -10
-	add_child(bgm_player)
-
-
-func _setup_body() -> void:
-	# 羽翼 — 闭合状态，z_index 最低（被水晶遮挡）
-	wings_left = Sprite2D.new()
-	wings_left.texture = WINGS_TEX
-	wings_left.centered = true
-	wings_left.scale = Vector2(0.5, 0.5)
-	wings_left.position = Vector2(-40, 20)
-	wings_left.z_index = 48
-	wings_left.name = "WingsLeft"
-	add_child(wings_left)
-
-	wings_right = Sprite2D.new()
-	wings_right.texture = WINGS_TEX
-	wings_right.centered = true
-	wings_right.scale = Vector2(-0.5, 0.5)
-	wings_right.position = Vector2(40, 20)
-	wings_right.z_index = 48
-	wings_right.name = "WingsRight"
-	add_child(wings_right)
-
-	# 水晶 — 主体，z_index 中间
-	crystal_sprite = Sprite2D.new()
-	crystal_sprite.texture = CRYSTAL_TEX
-	crystal_sprite.centered = true
-	crystal_sprite.scale = Vector2(0.5, 0.5)
-	crystal_sprite.z_index = 50
-	crystal_sprite.name = "Crystal"
-	add_child(crystal_sprite)
-
-	# 王冠 — 水晶上方1/2处，z_index 最高
-	crown_sprite = Sprite2D.new()
-	crown_sprite.texture = CROWN_TEX
-	crown_sprite.centered = true
-	crown_sprite.scale = Vector2(0.35, 0.35)
-	crown_sprite.position = Vector2(0, -120)
-	crown_sprite.z_index = 51
-	crown_sprite.name = "Crown"
-	add_child(crown_sprite)
-
-	# 碰撞体
-	var body_area = Area2D.new()
-	body_area.collision_layer = 2
-	body_area.collision_mask = 1
-	body_area.add_to_group(&"boss")
-	body_area.name = "BodyArea"
-	var col = CollisionShape2D.new()
-	col.shape = CircleShape2D.new()
-	col.shape.radius = 100.0
-	col.name = "BodyCol"
-	body_area.add_child(col)
-	body_area.area_entered.connect(_on_body_area_entered)
-	add_child(body_area)
-
-
-func _create_entrance_overlay() -> void:
-	overlay_layer = CanvasLayer.new()
-	overlay_layer.layer = 100
-	add_child(overlay_layer)
-
-	overlay_rect = ColorRect.new()
-	overlay_rect.anchor_left = 0.0
-	overlay_rect.anchor_right = 1.0
-	overlay_rect.anchor_top = 0.0
-	overlay_rect.anchor_bottom = 1.0
-	overlay_rect.color = Color(0, 0, 0, 0)
-	overlay_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay_layer.add_child(overlay_rect)
-
-	overlay_label = Label.new()
-	overlay_label.text = boss_name
-	overlay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	overlay_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	overlay_label.anchor_left = 0.0
-	overlay_label.anchor_right = 1.0
-	overlay_label.anchor_top = 0.0
-	overlay_label.anchor_bottom = 1.0
-	overlay_label.modulate = Color(1, 1, 1, 0)
-	overlay_label.add_theme_font_size_override(&"font_size", 72)
-	overlay_layer.add_child(overlay_label)
-
-
-func _start_entrance() -> void:
-	entering = true
-	entrance_timer = 0.0
+	active = true
 	position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio)
-	overlay_rect.color = Color(0, 0, 0, 1)
-	overlay_label.modulate = Color(1, 1, 1, 1)
-
-
-func _start_bgm() -> void:
-	if GameManager.bgm_player.playing:
-		GameManager.bgm_player.stop()
-	bgm_player.play.call_deferred()
+	cooldown_remaining = 2.0
+	_start_bgm()
+	# 翅膀配置切换测试：每5s硬切换开/合
+	apply_wings_closed_state()
+	_set_wings_open(false)
+	_sync_all_node_props()
+	_test_toggle_open = false
+	_test_toggle_timer = 0.0
 
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		scale = Vector2(overall_scale, overall_scale)
+		# 编辑器模式下更新所有组件状态
+		_update_editor_preview()
+		return
 	if dying:
 		_death_process(delta)
-		return
-	if entering:
-		_entrance_process(delta)
 		return
 	if not active:
 		return
 
-	_idle_animation(delta)
+	if _is_wing_spread_playing:
+		_process_wing_spread_animation(delta)
+	else:
+		_test_toggle_cycle(delta)
 
 	if is_executing:
 		return
@@ -218,6 +216,359 @@ func _process(delta: float) -> void:
 			_last_skill = s
 		cooldown_remaining = skill_cooldown
 		is_executing = false
+
+
+func _update_editor_preview() -> void:
+	if not wings_left or not wings_right or not crystal_sprite or not crown_sprite or not wing_pivot_left_node or not wing_pivot_right_node:
+		return
+	# 更新旋转容器位置
+	wing_pivot_left_node.position = wing_pivot_left_pos
+	wing_pivot_right_node.position = wing_pivot_right_pos
+	# 重置旋转容器的旋转（在编辑器中不摇晃）
+	wing_pivot_left_node.rotation = 0.0
+	wing_pivot_right_node.rotation = 0.0
+	# 更新翅膀材质和裁剪
+	var wings_tex = WINGS_OPEN_TEX if wings_open else WINGS_TEX
+	if wings_tex:
+		wings_left.texture = wings_tex
+		wings_right.texture = wings_tex
+		wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(wings_tex.get_size().x / 2.0, wings_tex.get_size().y))
+		wings_right.region_rect = Rect2(Vector2(wings_tex.get_size().x / 2.0, 0), Vector2(wings_tex.get_size().x / 2.0, wings_tex.get_size().y))
+	# 更新翅膀相对于旋转中心的位置 - 直接设置完整的 Vector2
+	wings_left.scale = wings_scale
+	wings_left.position = wing_left_offset
+	wings_left.z_index = wings_z_index
+	wings_right.scale = wings_scale
+	wings_right.position = wing_right_offset
+	wings_right.z_index = wings_z_index
+	# 更新水晶和王冠
+	crystal_sprite.scale = crystal_scale
+	crystal_sprite.position = crystal_pos
+	crystal_sprite.z_index = crystal_z_index
+	crown_sprite.scale = crown_scale
+	crown_sprite.position = crown_pos
+	crown_sprite.z_index = crown_z_index
+	# 更新红点可见性
+	if wing_pivot_left_sprite:
+		wing_pivot_left_sprite.visible = show_pivot_dots
+	if wing_pivot_right_sprite:
+		wing_pivot_right_sprite.visible = show_pivot_dots
+
+
+## ── 翅膀配置切换测试 ──
+
+func _test_toggle_cycle(delta: float) -> void:
+	_test_toggle_timer += delta
+	if _test_toggle_timer >= 5.0:
+		_test_toggle_timer = 0.0
+		_test_toggle_open = not _test_toggle_open
+		if _test_toggle_open:
+			apply_wings_open_state()
+		else:
+			apply_wings_closed_state()
+		_sync_all_node_props()
+		_set_wings_open(_test_toggle_open)
+
+
+## ── 展翅动画 ──
+
+func _start_wing_spread_animation() -> void:
+	apply_wings_closed_state()
+	_set_wings_open(false)
+	_sync_all_node_props()
+	_snapshot_closed()
+	_spread_switched = false
+	_spread_timer = 0.0
+	_spread_phase = 0
+	_is_wing_spread_playing = true
+
+
+func _process_wing_spread_animation(delta: float) -> void:
+	if not _is_wing_spread_playing:
+		return
+	
+	_spread_timer += delta
+	
+	match _spread_phase:
+		0: # 0→0.8s：向下50px缓出，左逆10°右顺10°
+			if _spread_timer <= 0.8:
+				var t = ease_out(_spread_timer / 0.8)
+				_apply_p0(t)
+			else:
+				_spread_timer = 0.0
+				_spread_phase = 1
+		1: # 0→0.3s：停顿在峰值
+			if _spread_timer <= 0.3:
+				_apply_p0(1.0)
+			else:
+				_spread_timer = 0.0
+				_spread_phase = 2
+		2: # 0→0.3s：向上100px缓入，左右各反向20°；0.2s时切换张开配置
+			var t = ease_in(_spread_timer / 0.3)
+			if _spread_timer >= 0.2 and not _spread_switched:
+				_spread_switched = true
+				_save_switch_visual()
+				_snapshot_open()
+				apply_wings_open_state()
+				_set_wings_open(true)
+				_restore_switch_visual()
+			_apply_p2(t)
+			if _spread_timer >= 0.3:
+				_snapshot_p4()
+				_spread_timer = 0.0
+				_spread_phase = 3
+		3: # 0→2s：停顿在最高点
+			if _spread_timer <= 2.0:
+				_apply_p2(1.0)
+			else:
+				_spread_timer = 0.0
+				_spread_phase = 4
+		4: # 0→0.5s：向下50px缓出，左逆10°右顺10°
+			if _spread_timer <= 0.5:
+				var t = ease_out(_spread_timer / 0.5)
+				_apply_p4(t)
+			else:
+				_spread_timer = 0.0
+				_spread_phase = 0
+				_restart_wing_spread_animation()
+
+
+func _restart_wing_spread_animation() -> void:
+	apply_wings_closed_state()
+	_set_wings_open(false)
+	_sync_all_node_props()
+	_snapshot_closed()
+	_spread_switched = false
+	_spread_timer = 0.0
+	_spread_phase = 0
+
+
+func _sync_all_node_props() -> void:
+	if crystal_sprite:
+		crystal_sprite.position = crystal_pos
+		crystal_sprite.scale = crystal_scale
+		crystal_sprite.z_index = crystal_z_index
+	if crown_sprite:
+		crown_sprite.position = crown_pos
+		crown_sprite.scale = crown_scale
+		crown_sprite.z_index = crown_z_index
+	if wing_pivot_left_node:
+		wing_pivot_left_node.position = wing_pivot_left_pos
+	if wing_pivot_right_node:
+		wing_pivot_right_node.position = wing_pivot_right_pos
+	if wings_left:
+		wings_left.position = wing_left_offset
+		wings_left.scale = wings_scale
+		wings_left.z_index = wings_z_index
+	if wings_right:
+		wings_right.position = wing_right_offset
+		wings_right.scale = wings_scale
+		wings_right.z_index = wings_z_index
+
+
+func _snapshot_closed() -> void:
+	_closed_crystal_pos = crystal_pos
+	_closed_crown_pos = crown_pos
+	_closed_wl_pivot_pos = wing_pivot_left_pos
+	_closed_wr_pivot_pos = wing_pivot_right_pos
+
+
+func _snapshot_open() -> void:
+	_open_crystal_pos = crystal_pos
+	_open_crown_pos = crown_pos
+	_open_wl_pivot_pos = wing_pivot_left_pos
+	_open_wr_pivot_pos = wing_pivot_right_pos
+
+
+func _save_switch_visual() -> void:
+	_switch_crystal_pos = crystal_sprite.position
+	_switch_crown_pos = crown_sprite.position
+	_switch_wl_pivot_pos = wing_pivot_left_node.position
+	_switch_wr_pivot_pos = wing_pivot_right_node.position
+	_switch_wl_rot = wing_pivot_left_node.rotation
+	_switch_wr_rot = wing_pivot_right_node.rotation
+
+
+func _restore_switch_visual() -> void:
+	crystal_sprite.position = _switch_crystal_pos
+	crown_sprite.position = _switch_crown_pos
+	wing_pivot_left_node.position = _switch_wl_pivot_pos
+	wing_pivot_right_node.position = _switch_wr_pivot_pos
+	wing_pivot_left_node.rotation = _switch_wl_rot
+	wing_pivot_right_node.rotation = _switch_wr_rot
+
+
+func _snapshot_p4() -> void:
+	_p4_crystal_pos = crystal_sprite.position
+	_p4_crown_pos = crown_sprite.position
+	_p4_wl_pivot_pos = wing_pivot_left_node.position
+	_p4_wr_pivot_pos = wing_pivot_right_node.position
+	_p4_wl_rot = wing_pivot_left_node.rotation
+	_p4_wr_rot = wing_pivot_right_node.rotation
+
+
+func _apply_p0(t: float) -> void:
+	var move_y = 50.0 * t
+	crystal_sprite.position = _closed_crystal_pos + Vector2(0, move_y)
+	crown_sprite.position = _closed_crown_pos + Vector2(0, move_y)
+	wing_pivot_left_node.position = _closed_wl_pivot_pos + Vector2(0, move_y)
+	wing_pivot_right_node.position = _closed_wr_pivot_pos + Vector2(0, move_y)
+	var rot = deg_to_rad(10.0) * t
+	wing_pivot_left_node.rotation = -rot
+	wing_pivot_right_node.rotation = rot
+
+
+func _apply_p2(t: float) -> void:
+	var move_y = -100.0 * t
+	var base_y = 50.0
+	
+	if _spread_switched:
+		# 切换后：从切换瞬间的视觉位置继续向上
+		var switch_t = 0.2 / 0.3
+		var remaining_move = -100.0 * (t - switch_t)
+		crystal_sprite.position = _switch_crystal_pos + Vector2(0, remaining_move)
+		crown_sprite.position = _switch_crown_pos + Vector2(0, remaining_move)
+		wing_pivot_left_node.position = _switch_wl_pivot_pos + Vector2(0, remaining_move)
+		wing_pivot_right_node.position = _switch_wr_pivot_pos + Vector2(0, remaining_move)
+	else:
+		crystal_sprite.position = _closed_crystal_pos + Vector2(0, base_y + move_y)
+		crown_sprite.position = _closed_crown_pos + Vector2(0, base_y + move_y)
+		wing_pivot_left_node.position = _closed_wl_pivot_pos + Vector2(0, base_y + move_y)
+		wing_pivot_right_node.position = _closed_wr_pivot_pos + Vector2(0, base_y + move_y)
+	
+	# 旋转：从±10°到∓10°，各有20°变化
+	var start_rot = deg_to_rad(10.0)
+	var delta_rot = deg_to_rad(-20.0) * t
+	wing_pivot_left_node.rotation = -start_rot + (-delta_rot)
+	wing_pivot_right_node.rotation = start_rot + delta_rot
+
+
+func _apply_p4(t: float) -> void:
+	var move_y = 50.0 * t
+	crystal_sprite.position = _p4_crystal_pos + Vector2(0, move_y)
+	crown_sprite.position = _p4_crown_pos + Vector2(0, move_y)
+	wing_pivot_left_node.position = _p4_wl_pivot_pos + Vector2(0, move_y)
+	wing_pivot_right_node.position = _p4_wr_pivot_pos + Vector2(0, move_y)
+	
+	var start_rot_l = _p4_wl_rot
+	var start_rot_r = _p4_wr_rot
+	var delta = deg_to_rad(10.0) * t
+	wing_pivot_left_node.rotation = start_rot_l - delta
+	wing_pivot_right_node.rotation = start_rot_r + delta
+
+
+# 缓出函数
+func ease_out(t: float) -> float:
+	return 1.0 - pow(1.0 - t, 3.0)
+
+
+# 缓入函数
+func ease_in(t: float) -> float:
+	return t * t * t
+
+
+func _setup_bgm() -> void:
+	bgm_player = AudioStreamPlayer.new()
+	bgm_player.stream = BOSS_BGM
+	bgm_player.volume_db = -10
+	add_child(bgm_player)
+
+
+func _setup_body() -> void:
+	# 左翅膀旋转容器
+	wing_pivot_left_node = Node2D.new()
+	wing_pivot_left_node.position = wing_pivot_left_pos
+	wing_pivot_left_node.name = "LeftPivotNode"
+	add_child(wing_pivot_left_node)
+	
+	# 左翅膀（子节点）
+	var wings_tex = WINGS_OPEN_TEX if wings_open else WINGS_TEX
+	wings_left = Sprite2D.new()
+	wings_left.texture = wings_tex
+	wings_left.centered = true
+	wings_left.scale = wings_scale
+	wings_left.position = wing_left_offset
+	wings_left.z_index = wings_z_index
+	wings_left.name = "WingsLeft"
+	wings_left.region_enabled = true
+	if wings_tex:
+		wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(wings_tex.get_size().x / 2.0, wings_tex.get_size().y))
+	wing_pivot_left_node.add_child(wings_left)
+	
+	# 左旋转中心红点（子节点，也放在容器上，位置是 (0,0)）
+	wing_pivot_left_sprite = _create_red_dot_sprite()
+	wing_pivot_left_sprite.position = Vector2.ZERO
+	wing_pivot_left_sprite.z_index = 100
+	wing_pivot_left_sprite.name = "LeftPivotDot"
+	wing_pivot_left_sprite.visible = show_pivot_dots
+	wing_pivot_left_node.add_child(wing_pivot_left_sprite)
+	
+	# 右翅膀旋转容器
+	wing_pivot_right_node = Node2D.new()
+	wing_pivot_right_node.position = wing_pivot_right_pos
+	wing_pivot_right_node.name = "RightPivotNode"
+	add_child(wing_pivot_right_node)
+	
+	# 右翅膀（子节点）
+	wings_right = Sprite2D.new()
+	wings_right.texture = wings_tex
+	wings_right.centered = true
+	wings_right.scale = wings_scale
+	wings_right.position = wing_right_offset
+	wings_right.z_index = wings_z_index
+	wings_right.name = "WingsRight"
+	wings_right.region_enabled = true
+	if wings_tex:
+		wings_right.region_rect = Rect2(Vector2(wings_tex.get_size().x / 2.0, 0), Vector2(wings_tex.get_size().x / 2.0, wings_tex.get_size().y))
+	wing_pivot_right_node.add_child(wings_right)
+	
+	# 右旋转中心红点
+	wing_pivot_right_sprite = _create_red_dot_sprite()
+	wing_pivot_right_sprite.position = Vector2.ZERO
+	wing_pivot_right_sprite.z_index = 100
+	wing_pivot_right_sprite.name = "RightPivotDot"
+	wing_pivot_right_sprite.visible = show_pivot_dots
+	wing_pivot_right_node.add_child(wing_pivot_right_sprite)
+
+	# 水晶 — 主体，z_index 中间
+	crystal_sprite = Sprite2D.new()
+	crystal_sprite.texture = CRYSTAL_TEX
+	crystal_sprite.centered = true
+	crystal_sprite.scale = crystal_scale
+	crystal_sprite.position = crystal_pos
+	crystal_sprite.z_index = crystal_z_index
+	crystal_sprite.name = "Crystal"
+	add_child(crystal_sprite)
+
+	# 王冠 — 水晶上方1/2处，z_index 最高
+	crown_sprite = Sprite2D.new()
+	crown_sprite.texture = CROWN_TEX
+	crown_sprite.centered = true
+	crown_sprite.scale = crown_scale
+	crown_sprite.position = crown_pos
+	crown_sprite.z_index = crown_z_index
+	crown_sprite.name = "Crown"
+	add_child(crown_sprite)
+
+	# 碰撞体
+	var body_area = Area2D.new()
+	body_area.collision_layer = 2
+	body_area.collision_mask = 1
+	body_area.add_to_group(&"boss")
+	body_area.name = "BodyArea"
+	var col = CollisionShape2D.new()
+	col.shape = CircleShape2D.new()
+	col.shape.radius = 100.0
+	col.name = "BodyCol"
+	body_area.add_child(col)
+	body_area.area_entered.connect(_on_body_area_entered)
+	add_child(body_area)
+
+
+func _start_bgm() -> void:
+	if GameManager.bgm_player.playing:
+		GameManager.bgm_player.stop()
+	bgm_player.play.call_deferred()
 
 
 func _pick_random_skill(exclude: int = 0) -> int:
@@ -246,47 +597,40 @@ func _exec_skill(s: int) -> void:
 ## ── 待机动画 ──
 
 func _idle_animation(delta: float) -> void:
+	_crystal_pulse += delta * _crystal_speed
 	if crystal_sprite:
-		_crystal_pulse += delta * 2.5
-		var s = 0.5 + sin(_crystal_pulse) * 0.02
-		crystal_sprite.scale = Vector2(s, s)
+		crystal_sprite.position = Vector2(crystal_pos.x, crystal_pos.y + sin(_crystal_pulse) * 8)
+		crystal_sprite.scale = crystal_scale
+		crystal_sprite.z_index = crystal_z_index
 	if crown_sprite:
-		_crown_phase += delta * 1.2
-		crown_sprite.position.y = -120 + sin(_crown_phase) * 8
+		_crown_phase += delta * _crown_speed
+		crown_sprite.position = Vector2(crown_pos.x, crown_pos.y + sin(_crown_phase) * 8)
+		crown_sprite.scale = crown_scale
+		crown_sprite.z_index = crown_z_index
+	if wings_left and wings_right and wing_pivot_left_node and wing_pivot_right_node:
+		_wings_phase += delta * _wings_speed
+		var wing_offset = sin(_wings_phase) * 8
+		wings_left.position = Vector2(wing_left_offset.x, wing_left_offset.y + wing_offset)
+		wings_left.scale = wings_scale
+		wings_left.z_index = wings_z_index
+		wings_right.position = Vector2(wing_right_offset.x, wing_right_offset.y + wing_offset)
+		wings_right.scale = wings_scale
+		wings_right.z_index = wings_z_index
+		wing_pivot_left_node.position = wing_pivot_left_pos
+		wing_pivot_right_node.position = wing_pivot_right_pos
+		_wings_shake_phase += delta * wings_shake_speed
+		var shake_rad = deg_to_rad(wings_shake_angle)
+		var left_wing_rot = sin(_wings_shake_phase) * shake_rad
+		var right_wing_rot = sin(_wings_shake_phase + PI) * shake_rad
+		wing_pivot_left_node.rotation = left_wing_rot
+		wing_pivot_right_node.rotation = right_wing_rot
 
 
-## ── 进场动画 ──
+var _wing_test_timer: float = 0.0
+var _wing_test_open: bool = false
 
-func _entrance_process(delta: float) -> void:
-	entrance_timer += delta
-	_idle_animation(delta)
-
-	const E1 = 2.0
-	const E2 = 3.0
-	const E3 = 5.0
-
-	if entrance_timer <= E1:
-		if entrance_timer - delta < 1.0 and entrance_timer >= 1.0:
-			_start_bgm()
-		var t = clampf(entrance_timer / E1, 0.0, 1.0)
-		overlay_rect.color = Color(0, 0, 0, lerpf(1.0, 0.0, t))
-		overlay_label.modulate = Color(1, 1, 1, lerpf(1.0, 0.0, t))
-
-	elif entrance_timer <= E2:
-		overlay_rect.color = Color(0, 0, 0, 0)
-		overlay_label.modulate = Color(1, 1, 1, 0)
-		if entrance_timer - delta < E1:
-			_play_sfx(ROAR_SFX, -5)
-
-	elif entrance_timer <= E3:
-		overlay_rect.color = Color(0, 0, 0, 1)
-		overlay_label.modulate = Color(1, 1, 1, 1)
-
-	else:
-		overlay_layer.queue_free()
-		entering = false
-		active = true
-		cooldown_remaining = 2.0
+func _test_wing_cycle(delta: float) -> void:
+	pass
 
 
 ## ── 死亡动画 ──
@@ -366,19 +710,19 @@ func _return_to_menu() -> void:
 
 func _shake_parts() -> void:
 	if crystal_sprite:
-		crystal_sprite.position = Vector2(randf_range(-15, 15), randf_range(-15, 15))
+		crystal_sprite.position = crystal_pos + Vector2(randf_range(-15, 15), randf_range(-15, 15))
 	if crown_sprite:
-		crown_sprite.position = Vector2(randf_range(-15, 15), -120 + randf_range(-15, 15))
+		crown_sprite.position = crown_pos + Vector2(randf_range(-15, 15), randf_range(-15, 15))
 	if wings_left:
-		wings_left.position = Vector2(-40 + randf_range(-10, 10), 20 + randf_range(-10, 10))
+		wings_left.position = wing_left_offset + Vector2(randf_range(-10, 10), randf_range(-10, 10))
 	if wings_right:
-		wings_right.position = Vector2(40 + randf_range(-10, 10), 20 + randf_range(-10, 10))
+		wings_right.position = wing_right_offset + Vector2(randf_range(-10, 10), randf_range(-10, 10))
 
 
 ## ── 伤害系统 ──
 
 func _on_body_area_entered(area: Area2D) -> void:
-	if entering or dying:
+	if dying:
 		return
 	if area.is_in_group(&"player"):
 		return
@@ -389,7 +733,7 @@ func _on_body_area_entered(area: Area2D) -> void:
 
 
 func apply_damage(amount: int) -> void:
-	if entering or dying:
+	if dying:
 		return
 	if is_executing:
 		amount = maxi(1, amount / 2)
@@ -405,8 +749,54 @@ func apply_damage(amount: int) -> void:
 
 func _skill_1() -> void:
 	if dying: return
-	_set_wings_open(true)
 	await get_tree().create_timer(2.0).timeout
+
+
+## ── 翅膀状态管理（张开/闭合） ──
+
+func save_wings_open_state() -> void:
+	wings_open_wings_scale = wings_scale
+	wings_open_wings_z_index = wings_z_index
+	wings_open_wings_shake_angle = wings_shake_angle
+	wings_open_wings_shake_speed = wings_shake_speed
+	wings_open_wing_pivot_left_pos = wing_pivot_left_pos
+	wings_open_wing_pivot_right_pos = wing_pivot_right_pos
+	wings_open_wing_left_offset = wing_left_offset
+	wings_open_wing_right_offset = wing_right_offset
+
+
+func save_wings_closed_state() -> void:
+	wings_closed_wings_scale = wings_scale
+	wings_closed_wings_z_index = wings_z_index
+	wings_closed_wings_shake_angle = wings_shake_angle
+	wings_closed_wings_shake_speed = wings_shake_speed
+	wings_closed_wing_pivot_left_pos = wing_pivot_left_pos
+	wings_closed_wing_pivot_right_pos = wing_pivot_right_pos
+	wings_closed_wing_left_offset = wing_left_offset
+	wings_closed_wing_right_offset = wing_right_offset
+
+
+func apply_wings_open_state() -> void:
+	wings_scale = wings_open_wings_scale
+	wings_z_index = wings_open_wings_z_index
+	wings_shake_angle = wings_open_wings_shake_angle
+	wings_shake_speed = wings_open_wings_shake_speed
+	wing_pivot_left_pos = wings_open_wing_pivot_left_pos
+	wing_pivot_right_pos = wings_open_wing_pivot_right_pos
+	wing_left_offset = wings_open_wing_left_offset
+	wing_right_offset = wings_open_wing_right_offset
+	_set_wings_open(true)
+
+
+func apply_wings_closed_state() -> void:
+	wings_scale = wings_closed_wings_scale
+	wings_z_index = wings_closed_wings_z_index
+	wings_shake_angle = wings_closed_wings_shake_angle
+	wings_shake_speed = wings_closed_wings_shake_speed
+	wing_pivot_left_pos = wings_closed_wing_pivot_left_pos
+	wing_pivot_right_pos = wings_closed_wing_pivot_right_pos
+	wing_left_offset = wings_closed_wing_left_offset
+	wing_right_offset = wings_closed_wing_right_offset
 	_set_wings_open(false)
 
 
@@ -445,28 +835,57 @@ func _skill_6() -> void:
 	await get_tree().create_timer(2.0).timeout
 
 
+## ── 红点创建 ──
+
+func _create_red_dot_sprite() -> Sprite2D:
+	var dot = Sprite2D.new()
+	# 创建一个简单的红色圆点纹理
+	var size = Vector2(16, 16)
+	var img = Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
+	img.fill(Color.TRANSPARENT)
+	for y in range(size.y):
+		for x in range(size.x):
+			var cx = size.x / 2.0
+			var cy = size.y / 2.0
+			var dx = x - cx
+			var dy = y - cy
+			var dist_sq = dx * dx + dy * dy
+			var radius_sq = (size.x / 2.0) * (size.y / 2.0)
+			if dist_sq <= radius_sq:
+				img.set_pixel(x, y, Color(1, 0, 0, 1))
+	var tex = ImageTexture.create_from_image(img)
+	dot.texture = tex
+	dot.centered = true
+	dot.scale = Vector2(1, 1)
+	return dot
+
+
 ## ── 羽翼状态控制 ──
 
 func _set_wings_open(open: bool) -> void:
 	_wings_open = open
 	if open:
 		if wings_left:
-			var tw = _make_tween()
-			tw.tween_property(wings_left, "position:x", -140, 0.5).set_ease(Tween.EASE_OUT)
-			tw.tween_property(wings_left, "rotation", deg_to_rad(-30), 0.5).set_ease(Tween.EASE_OUT)
+			wings_left.texture = WINGS_OPEN_TEX
+			wings_left.region_enabled = true
+			if WINGS_OPEN_TEX:
+				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, WINGS_OPEN_TEX.get_size().y))
 		if wings_right:
-			var tw = _make_tween()
-			tw.tween_property(wings_right, "position:x", 140, 0.5).set_ease(Tween.EASE_OUT)
-			tw.tween_property(wings_right, "rotation", deg_to_rad(30), 0.5).set_ease(Tween.EASE_OUT)
+			wings_right.texture = WINGS_OPEN_TEX
+			wings_right.region_enabled = true
+			if WINGS_OPEN_TEX:
+				wings_right.region_rect = Rect2(Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, 0), Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, WINGS_OPEN_TEX.get_size().y))
 	else:
 		if wings_left:
-			var tw = _make_tween()
-			tw.tween_property(wings_left, "position", Vector2(-40, 20), 0.5).set_ease(Tween.EASE_OUT)
-			tw.tween_property(wings_left, "rotation", 0, 0.5).set_ease(Tween.EASE_OUT)
+			wings_left.texture = WINGS_TEX
+			wings_left.region_enabled = true
+			if WINGS_TEX:
+				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(WINGS_TEX.get_size().x / 2.0, WINGS_TEX.get_size().y))
 		if wings_right:
-			var tw = _make_tween()
-			tw.tween_property(wings_right, "position", Vector2(40, 20), 0.5).set_ease(Tween.EASE_OUT)
-			tw.tween_property(wings_right, "rotation", 0, 0.5).set_ease(Tween.EASE_OUT)
+			wings_right.texture = WINGS_TEX
+			wings_right.region_enabled = true
+			if WINGS_TEX:
+				wings_right.region_rect = Rect2(Vector2(WINGS_TEX.get_size().x / 2.0, 0), Vector2(WINGS_TEX.get_size().x / 2.0, WINGS_TEX.get_size().y))
 
 
 ## ── 工具方法 ──
