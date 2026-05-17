@@ -9,5 +9,5 @@ func _init() -> void:
 	has_skill_2 = false
 	has_skill_3 = true
 	has_skill_4 = true
-	has_skill_5 = false
+	has_skill_5 = true
 	has_skill_6 = false

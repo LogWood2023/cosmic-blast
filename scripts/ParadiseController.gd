@@ -67,7 +67,7 @@ const LASER_ZAP_SFX = preload("res://assets/audio/laser_zap.wav")
 @export var has_skill_2: bool = true
 @export var has_skill_3: bool = true
 @export var has_skill_4: bool = true
-@export var has_skill_5: bool = false
+@export var has_skill_5: bool = true
 @export var has_skill_6: bool = true
 @export var skill_cooldown: float = 2.0
 
@@ -95,7 +95,7 @@ var _skill_3_pending: bool = false
 var _skill_3_active: bool = false
 
 # 测试用：技能序号轮转
-var _test_skill_seq: Array[int] = [1, 2, 3, 4, 6]
+var _test_skill_seq: Array[int] = [1, 2, 3, 4, 5, 6]
 var _test_seq_index: int = 0
 
 var ring_drawer: Node2D
@@ -287,6 +287,7 @@ func _dispatch_cannon_skill(cannon_idx: int) -> void:
 	if has_skill_1: available.append(1)
 	if has_skill_2: available.append(2)
 	if has_skill_4: available.append(4)
+	if has_skill_5: available.append(5)
 	if has_skill_6: available.append(6)
 	if available.is_empty():
 		cannon_executing[cannon_idx] = false
@@ -310,6 +311,7 @@ func _exec_cannon_skill(cannon_idx: int, s: int) -> void:
 		1: await _skill_1(cannon_idx)
 		2: await _skill_2(cannon_idx)
 		4: await _skill_4(cannon_idx)
+		5: await _skill_5(cannon_idx)
 		6: await _skill_6(cannon_idx)
 
 
@@ -600,9 +602,11 @@ func _skill_4(cannon_idx: int) -> void:
 			start_angle = deg_to_rad(45.0)
 			end_angle = deg_to_rad(90.0)
 
-	# 平滑旋转至起始角度
+	# 平滑旋转至起始角度（最短弧）
+	var diff_start = fposmod(start_angle - cannon.rotation + PI, TAU) - PI
+	var actual_start = cannon.rotation + diff_start
 	tw = _make_tween()
-	tw.tween_property(cannon, "rotation", start_angle, 0.3)
+	tw.tween_property(cannon, "rotation", actual_start, 0.3)
 	await tw.finished
 
 	if laser:
@@ -610,10 +614,12 @@ func _skill_4(cannon_idx: int) -> void:
 		laser.default_color = Color(1, 0.2, 0.1, 0.8)
 	await get_tree().create_timer(0.3).timeout
 
-	# 扫射 6s
+	# 扫射 6s（最短弧）
+	var diff_end = fposmod(end_angle - actual_start + PI, TAU) - PI
+	var actual_end = actual_start + diff_end
 	var base_w = 9.0
 	tw = _make_tween()
-	tw.tween_property(cannon, "rotation", end_angle, 6.0)
+	tw.tween_property(cannon, "rotation", actual_end, 6.0)
 	var flicker_cd = 0.0
 	var flickering = false
 	var hit_cd = 0.0
