@@ -50,6 +50,7 @@ var _eyeball_scale_for_track: Vector2 = Vector2(0.18, 0.18)
 static func spawn(parent: Node, pos: Vector2, sc: float, hp_val: int) -> MiniHellEye:
 	var m = MiniHellEye.new()
 	m.position = pos
+	sc *= 2.0  # double size
 	m._scale_factor = sc
 	m.max_hp = hp_val
 	m._hp = hp_val
