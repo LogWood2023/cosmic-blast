@@ -88,11 +88,11 @@ var _eff_speed_mult: float = 1.0
 var _eff_radius_mult: float = 1.0
 
 # ═══════════ 技能 ═══════════
-@export var has_skill_1: bool = false
-@export var has_skill_2: bool = false
-@export var has_skill_3: bool = false
-@export var has_skill_4: bool = false
-@export var has_skill_5: bool = false
+@export var has_skill_1: bool = true
+@export var has_skill_2: bool = true
+@export var has_skill_3: bool = true
+@export var has_skill_4: bool = true
+@export var has_skill_5: bool = true
 @export var has_skill_6: bool = true
 @export var skill_cooldown: float = 2.0
 @export var skill_1_dmg: int = 5
@@ -817,6 +817,110 @@ func _spawn_single_roar_enemy() -> void:
 	get_tree().current_scene.add_child(enemy)
 
 
+func _spawn_trail_orb_group(dash_dir: Vector2, dash_speed: float) -> void:
+	if dying:
+		return
+	var root = get_tree().current_scene
+	var angles: Array[float] = [deg_to_rad(150.0), deg_to_rad(210.0)]
+	for ang in angles:
+		var dir = dash_dir.rotated(ang)
+		var orb = Sprite2D.new()
+		orb.texture = orbiter_tex
+		orb.centered = true
+		orb.scale = Vector2(orbiter_scale, orbiter_scale)
+		orb.z_index = 35
+		orb.global_position = global_position
+		orb.rotation = dir.angle()
+		root.add_child(orb)
+		_launch_trail_orb_async(orb, dir, dash_speed)
+
+
+func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: float) -> void:
+	if dying:
+		return
+	var global_start = orb.global_position
+	var max_charge = 3.0
+	var decel = initial_speed / max_charge
+	var elapsed = 0.0
+
+	while elapsed < max_charge:
+		if dying or not is_instance_valid(orb):
+			return
+		var dt = get_process_delta_time()
+		elapsed += dt
+		var cur_speed = initial_speed - decel * elapsed
+		if cur_speed < 0:
+			cur_speed = 0
+		orb.position += vel_dir * cur_speed * dt
+		orb.rotation += cur_speed * dt * 0.8
+		await get_tree().process_frame
+
+	if dying or not is_instance_valid(orb):
+		return
+
+	# 速度归零后：十字激光蓄力 + 发射
+	var target_global = orb.global_position
+	var laser_angle = randf_range(0, TAU)
+	var diag = screen_size.length() * 0.8
+	var ang_speed_initial = TAU * 4.0
+	var ang_speed_decay = 5.66
+	var charge_elapsed = 0.0
+
+	# 十字警戒框
+	var ldir1 = Vector2.RIGHT.rotated(laser_angle)
+	var ldir2 = Vector2.UP.rotated(laser_angle)
+	var warn1 = {"from": to_local(target_global - ldir1 * diag), "to": to_local(target_global + ldir1 * diag), "timer": max_charge, "max_timer": max_charge, "full_half_w": 6.0}
+	var warn2 = {"from": to_local(target_global - ldir2 * diag), "to": to_local(target_global + ldir2 * diag), "timer": max_charge, "max_timer": max_charge, "full_half_w": 6.0}
+	_warn_list.append(warn1)
+	_warn_list.append(warn2)
+	queue_redraw()
+
+	while charge_elapsed < max_charge:
+		if dying or not is_instance_valid(orb):
+			_warn_list.erase(warn1); _warn_list.erase(warn2)
+			return
+		var dt = get_process_delta_time()
+		charge_elapsed += dt
+		var cur_ang_speed = ang_speed_initial * exp(-ang_speed_decay * charge_elapsed)
+		cur_ang_speed = maxf(cur_ang_speed, deg_to_rad(5.0))
+		orb.rotation += cur_ang_speed * dt
+		if cur_ang_speed <= deg_to_rad(5.01):
+			break
+		warn1.timer -= dt
+		warn2.timer -= dt
+		queue_redraw()
+		await get_tree().process_frame
+	_warn_list.erase(warn1)
+	_warn_list.erase(warn2)
+
+	if dying or not is_instance_valid(orb):
+		return
+
+	orb.queue_free()
+	_spawn_explosion_at(target_global, 0.35)
+
+	var laser_data = {"pos": target_global, "angle": laser_angle, "progress": 0.0, "grow": 0.0, "hit_player": false}
+	_cross_lasers.append(laser_data)
+	var laser_elapsed = 0.0
+	while laser_elapsed < 0.5:
+		if dying:
+			_cross_lasers.erase(laser_data)
+			return
+		var dt = get_process_delta_time()
+		laser_elapsed += dt
+		if laser_elapsed <= 0.25:
+			laser_data.grow = clampf(laser_elapsed / 0.25, 0.0, 1.0)
+			laser_data.progress = laser_data.grow
+		else:
+			laser_data.progress = clampf(1.0 - (laser_elapsed - 0.25) / 0.25, 0.0, 1.0)
+		if not laser_data.hit_player:
+			_check_laser_hit_player(laser_data, diag)
+		queue_redraw()
+		await get_tree().process_frame
+	_cross_lasers.erase(laser_data)
+	queue_redraw()
+
+
 func _revert_roar(instant: bool = false) -> void:
 	_eff_body_mult = 1.0
 	_eff_speed_mult = 1.0
@@ -849,6 +953,18 @@ func _revert_roar(instant: bool = false) -> void:
 func _set_eff_body_mult(v: float) -> void:   _eff_body_mult = v
 func _set_eff_speed_mult(v: float) -> void:  _eff_speed_mult = v
 func _set_eff_radius_mult(v: float) -> void: _eff_radius_mult = v
+
+
+func _shake_camera() -> void:
+	var cam = get_viewport().get_camera_2d()
+	if cam:
+		cam.offset = Vector2(randf_range(-8, 8), randf_range(-5, 5))
+
+
+func _stop_camera_shake() -> void:
+	var cam = get_viewport().get_camera_2d()
+	if cam:
+		cam.offset = Vector2.ZERO
 
 
 ## ── 吸力速度线粒子系统 ──
@@ -1111,10 +1227,17 @@ func _skill_6() -> void:
 			_orbiter_speed_override = 1.0
 			return
 
-		# 冲刺（小球保持 6 倍速不变）
+		# 冲刺（小球保持 6 倍速不变，留下拖尾球）
 		var origin = position
+		var dash_dir = (target_global - origin).normalized()
 		var dist = origin.distance_to(target_global)
-		var dur = dist / (brown_dash_speed * 3.0)
+		var dash_speed = brown_dash_speed * 3.0
+		var dur = dist / dash_speed
+
+		var trail_groups = randi_range(3, 5)
+		var trail_interval = dur / float(trail_groups)
+		var next_spawn_at = trail_interval
+
 		var elapsed = 0.0
 		while elapsed < dur:
 			if dying:
@@ -1125,6 +1248,11 @@ func _skill_6() -> void:
 			var t = clampf(elapsed / dur, 0.0, 1.0)
 			var e = 1.0 - (1.0 - t) * (1.0 - t)
 			position = origin.lerp(target_global, e)
+
+			while elapsed >= next_spawn_at and next_spawn_at <= dur:
+				_spawn_trail_orb_group(dash_dir, dash_speed)
+				next_spawn_at += trail_interval
+
 			await get_tree().process_frame
 		position = target_global
 		_home_position = position
@@ -1237,39 +1365,82 @@ func _skill_2() -> void:
 		is_executing = false
 		return
 
-	# 1. 冻结布朗运动
 	_brown_state = BrownState.PAUSING
 	_brown_pause_timer = 99.0
 
-	# 2. 启用拖尾和轨道警戒圆
+	# 咆哮动画：0.25s 膨胀（同技能3）
+	var tw = _make_tween()
+	tw.set_parallel(true)
+	tw.tween_method(_set_eff_body_mult, 1.0, 2.0, 0.25).set_ease(Tween.EASE_IN)
+	tw.tween_method(_set_eff_speed_mult, 1.0, 8.0, 0.25).set_ease(Tween.EASE_IN)
+	tw.tween_method(_set_eff_radius_mult, 1.0, 1.5, 0.25).set_ease(Tween.EASE_IN)
+	_eff_pulse_mult = 0.0
+	await tw.finished
+
+	# 启用拖尾和轨道警戒圆
 	_orbiter_trails_active = true
 	_show_orbit_circles = true
 	queue_redraw()
 
-	# 3. 5s 匀速扩张到 3×速度 + 5×半径
-	var tw = _make_tween()
-	tw.set_parallel(true)
-	tw.tween_method(_set_orbiter_override, 1.0, 3.0, 5.0)
-	tw.tween_method(_set_orbiter_radius_override, 1.0, 5.0, 5.0)
-	await tw.finished
+	# 半径峰值：3-10x 随机，四球同步
+	var peak_r = randf_range(3.0, 10.0)
 
-	# 4. 维持 3s
+	# 5s 扩张到峰值速度+峰值半径（维持咆哮震动）
+	var expand_elapsed = 0.0
+	while expand_elapsed < 5.0:
+		if dying:
+			_cleanup_skill_2()
+			_revert_roar(true)
+			return
+		var dt = get_process_delta_time()
+		expand_elapsed += dt
+		var t = clampf(expand_elapsed / 5.0, 0.0, 1.0)
+		_orbiter_speed_override = lerpf(1.0, 3.0, t)
+		_orbiter_radius_override = lerpf(1.0, peak_r, t)
+		_shake_camera()
+		await get_tree().process_frame
+
+	# 维持 3s（咆哮震动持续）
 	if dying:
 		_cleanup_skill_2()
+		_revert_roar(true)
 		return
-	await get_tree().create_timer(3.0).timeout
+	var hold_elapsed = 0.0
+	while hold_elapsed < 3.0:
+		if dying:
+			_cleanup_skill_2()
+			_revert_roar(true)
+			return
+		var dt = get_process_delta_time()
+		hold_elapsed += dt
+		_shake_camera()
+		await get_tree().process_frame
 
-	# 5. 5s 匀速回归
-	if dying:
-		_cleanup_skill_2()
-		return
+	# 5s 回归（咆哮震动持续）
+	var shrink_elapsed = 0.0
+	while shrink_elapsed < 5.0:
+		if dying:
+			_cleanup_skill_2()
+			_revert_roar(true)
+			return
+		var dt = get_process_delta_time()
+		shrink_elapsed += dt
+		var t = clampf(shrink_elapsed / 5.0, 0.0, 1.0)
+		_orbiter_speed_override = lerpf(3.0, 1.0, t)
+		_orbiter_radius_override = lerpf(peak_r, 1.0, t)
+		_shake_camera()
+		await get_tree().process_frame
+
+	# 停止震动 + 0.5s 咆哮复原
+	_stop_camera_shake()
 	tw = _make_tween()
 	tw.set_parallel(true)
-	tw.tween_method(_set_orbiter_override, 3.0, 1.0, 5.0)
-	tw.tween_method(_set_orbiter_radius_override, 5.0, 1.0, 5.0)
+	tw.tween_method(_set_eff_body_mult, 2.0, 1.0, 0.5).set_ease(Tween.EASE_OUT)
+	tw.tween_method(_set_eff_speed_mult, 8.0, 1.0, 0.5).set_ease(Tween.EASE_OUT)
+	tw.tween_method(_set_eff_radius_mult, 1.5, 1.0, 0.5).set_ease(Tween.EASE_OUT)
+	tw.tween_property(self, "_eff_pulse_mult", 1.0, 0.5).set_ease(Tween.EASE_OUT)
 	await tw.finished
 
-	# 6. 清理
 	_cleanup_skill_2()
 	_brown_state = BrownState.PICK_TARGET
 
