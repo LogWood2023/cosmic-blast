@@ -16,7 +16,7 @@ var dying: bool = false
 
 # ═══════════ 主体外观 ═══════════
 @export var body_scale_value: float = 1.0
-@export var body_collision_radius: float = 100.0
+@export var body_collision_radius: float = 150.0
 @export var body_touch_dmg: int = 30
 @export var pulse_amplitude: float = 0.006
 @export var pulse_speed: float = 3.0
@@ -101,11 +101,11 @@ const HELL_EYE_BGM = preload("res://assets/audio/hell_eye_boss_bgm_2.mp3")
 @onready var _eye_mat: ShaderMaterial = null
 @onready var _stroke_sprite: Sprite2D = null
 
-@export var mask_scale: Vector2 = Vector2(0.18, 0.18)
+@export var mask_scale: Vector2 = Vector2(0.27, 0.27)
 @export var mask_rotation_deg: float = 0.0
-@export var nebula_scale: Vector2 = Vector2(0.27, 0.27)
+@export var nebula_scale: Vector2 = Vector2(0.405, 0.405)
 @export var nebula_offset: Vector2 = Vector2(0, 0)
-@export var eyeball_scale: Vector2 = Vector2(0.18, 0.18)
+@export var eyeball_scale: Vector2 = Vector2(0.27, 0.27)
 @export var eyeball_offset: Vector2 = Vector2(0, 0)
 @export var mask_stroke_thickness: float = 3.0
 @export var mask_stroke_jitter: float = 1.5
@@ -1252,7 +1252,6 @@ func _entrance_process(delta: float) -> void:
 		overlay_layer.queue_free()
 		entering = false
 		active = true
-		_dock = Dock.HOME
 		_initial_position = position
 		_home_position = position
 		cooldown_remaining = 2.0

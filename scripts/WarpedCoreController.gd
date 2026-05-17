@@ -106,7 +106,7 @@ var cooldown_remaining: float = 0.0
 var _last_skill: int = 0                                 # 上次释放的技能编号（0=无）
 
 # 测试模式：按顺序循环 1→2→3→4→5→6
-var _test_skill_seq: Array[int] = [1, 2, 3, 4, 5, 6]
+var _test_skill_seq: Array[int] = [6]
 var _test_seq_index: int = 0
 
 # ═══════════ 死亡 ═══════════
@@ -296,18 +296,15 @@ func _process(delta: float) -> void:
 	cooldown_remaining -= delta
 	if cooldown_remaining <= 0.0:
 		is_executing = true
-		# 测试模式：按顺序循环 1→2→3→4→5→6
-		var available: Array[int] = []
-		if has_skill_1: available.append(1)
-		if has_skill_2: available.append(2)
-		if has_skill_3: available.append(3)
-		if has_skill_4: available.append(4)
-		if has_skill_5: available.append(5)
-		if has_skill_6: available.append(6)
-		var s = 0
-		if not available.is_empty():
-			s = available[_test_seq_index % available.size()]
-			_test_seq_index += 1
+		# AI：敌机过多(>8)时禁止技能3；敌机≤3且上次不是技能3→强制技能3
+		var enemy_count = get_tree().get_nodes_in_group(&"enemies").size()
+		var s: int
+		if enemy_count > 8:
+			s = _pick_random_skill(3)
+		elif has_skill_3 and _last_skill != 3 and enemy_count <= 3:
+			s = 3
+		else:
+			s = _pick_random_skill()
 		if s != 0:
 			await _exec_skill(s)
 			_last_skill = s
@@ -842,7 +839,8 @@ func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: flo
 	var decel = initial_speed / max_charge
 	var elapsed = 0.0
 
-	# Phase 1: 漂移减速至 0（不旋转）
+	# Phase 1: 漂移减速至 0，带慢速旋转（逐帧可见）
+	var rot_factor = TAU * 0.3
 	while elapsed < max_charge:
 		if dying or not is_instance_valid(orb):
 			return
@@ -852,47 +850,43 @@ func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: flo
 		if cur_speed < 0:
 			cur_speed = 0
 		orb.position += vel_dir * cur_speed * dt
+		orb.rotation += cur_speed * rot_factor * dt
 		await get_tree().process_frame
 
 	if dying or not is_instance_valid(orb):
 		return
 
-	# Phase 2: 十字激光蓄力（完全模仿技能5）
+	# Phase 2: 十字激光蓄力（持续衰减，无断点，全程可见旋转）
 	var target_global = orb.global_position
 	var laser_angle = randf_range(0, TAU)
 	var diag = screen_size.length() * 0.8
-	var ang_speed_initial = TAU * 4.0
-	var ang_speed_decay = 5.66
+	var ang_speed_initial = TAU * 1.0
+	var ang_speed_decay = 2.14
+	var charge_dur = 2.0
 
-	# 十字警戒框
+	# 十字警戒框（timer 设大值，确保激光结束前不消失）
 	var ldir1 = Vector2.RIGHT.rotated(laser_angle)
 	var ldir2 = Vector2.UP.rotated(laser_angle)
-	var warn1 = {"from": to_local(target_global - ldir1 * diag), "to": to_local(target_global + ldir1 * diag), "timer": max_charge, "max_timer": max_charge, "full_half_w": 6.0}
-	var warn2 = {"from": to_local(target_global - ldir2 * diag), "to": to_local(target_global + ldir2 * diag), "timer": max_charge, "max_timer": max_charge, "full_half_w": 6.0}
+	var warn1 = {"from": to_local(target_global - ldir1 * diag), "to": to_local(target_global + ldir1 * diag), "timer": 10.0, "max_timer": 10.0, "full_half_w": 6.0}
+	var warn2 = {"from": to_local(target_global - ldir2 * diag), "to": to_local(target_global + ldir2 * diag), "timer": 10.0, "max_timer": 10.0, "full_half_w": 6.0}
 	_warn_list.append(warn1)
 	_warn_list.append(warn2)
 	queue_redraw()
 
 	var charge_elapsed = 0.0
-	while charge_elapsed < max_charge:
+	while charge_elapsed < charge_dur:
 		if dying or not is_instance_valid(orb):
 			_warn_list.erase(warn1); _warn_list.erase(warn2)
 			return
 		var dt = get_process_delta_time()
 		charge_elapsed += dt
 		var cur_ang_speed = ang_speed_initial * exp(-ang_speed_decay * charge_elapsed)
-		cur_ang_speed = maxf(cur_ang_speed, deg_to_rad(5.0))
 		orb.rotation += cur_ang_speed * dt
-		if cur_ang_speed <= deg_to_rad(5.01):
-			break
-		warn1.timer -= dt
-		warn2.timer -= dt
 		queue_redraw()
 		await get_tree().process_frame
-	_warn_list.erase(warn1)
-	_warn_list.erase(warn2)
 
 	if dying or not is_instance_valid(orb):
+		_warn_list.erase(warn1); _warn_list.erase(warn2)
 		return
 
 	orb.queue_free()
@@ -904,6 +898,7 @@ func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: flo
 	while laser_elapsed < 0.5:
 		if dying:
 			_cross_lasers.erase(laser_data)
+			_warn_list.erase(warn1); _warn_list.erase(warn2)
 			return
 		var dt = get_process_delta_time()
 		laser_elapsed += dt
@@ -916,6 +911,8 @@ func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: flo
 			_check_laser_hit_player(laser_data, diag)
 		queue_redraw()
 		await get_tree().process_frame
+	_warn_list.erase(warn1)
+	_warn_list.erase(warn2)
 	_cross_lasers.erase(laser_data)
 	queue_redraw()
 
@@ -1226,17 +1223,10 @@ func _skill_6() -> void:
 			_orbiter_speed_override = 1.0
 			return
 
-		# 冲刺（小球保持 6 倍速不变，留下拖尾球）
+		# 冲刺
 		var origin = position
-		var dash_dir = (target_global - origin).normalized()
 		var dist = origin.distance_to(target_global)
-		var dash_speed = brown_dash_speed * 3.0
-		var dur = dist / dash_speed
-
-		var trail_groups = randi_range(3, 5)
-		var trail_interval = dur / float(trail_groups)
-		var next_spawn_at = trail_interval
-
+		var dur = dist / (brown_dash_speed * 3.0)
 		var elapsed = 0.0
 		while elapsed < dur:
 			if dying:
@@ -1247,11 +1237,6 @@ func _skill_6() -> void:
 			var t = clampf(elapsed / dur, 0.0, 1.0)
 			var e = 1.0 - (1.0 - t) * (1.0 - t)
 			position = origin.lerp(target_global, e)
-
-			while elapsed >= next_spawn_at and next_spawn_at <= dur:
-				_spawn_trail_orb_group(dash_dir, dash_speed * 0.3)
-				next_spawn_at += trail_interval
-
 			await get_tree().process_frame
 		position = target_global
 		_home_position = position
@@ -1709,6 +1694,8 @@ func _on_orbiter_area_entered(area: Area2D) -> void:
 func apply_damage(amount: int) -> void:
 	if entering or dying:
 		return
+	if is_executing:
+		amount = maxi(1, amount / 2)
 	boss_hp -= amount
 	if boss_hp <= 0:
 		boss_hp = 0
