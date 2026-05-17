@@ -527,10 +527,10 @@ func _skill_1() -> void:
 
 	var target_pos = _get_dock_global(target_dock)
 
-	# 4. 警戒框 3s
-	_show_warn(global_position, target_pos)
+	# 4. 警戒框 1s（原3s的1/3）
+	_show_warn(global_position, target_pos, 1.0)
 	var charge_elapsed = 0.0
-	while charge_elapsed < WARN_DURATION:
+	while charge_elapsed < 1.0:
 		if dying:
 			is_executing = false
 			_warn_list.clear()
@@ -838,11 +838,11 @@ func _spawn_trail_orb_group(dash_dir: Vector2, dash_speed: float) -> void:
 func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: float) -> void:
 	if dying:
 		return
-	var global_start = orb.global_position
 	var max_charge = 3.0
 	var decel = initial_speed / max_charge
 	var elapsed = 0.0
 
+	# Phase 1: 漂移减速至 0（不旋转）
 	while elapsed < max_charge:
 		if dying or not is_instance_valid(orb):
 			return
@@ -852,19 +852,17 @@ func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: flo
 		if cur_speed < 0:
 			cur_speed = 0
 		orb.position += vel_dir * cur_speed * dt
-		orb.rotation += cur_speed * dt * 0.8
 		await get_tree().process_frame
 
 	if dying or not is_instance_valid(orb):
 		return
 
-	# 速度归零后：十字激光蓄力 + 发射
+	# Phase 2: 十字激光蓄力（完全模仿技能5）
 	var target_global = orb.global_position
 	var laser_angle = randf_range(0, TAU)
 	var diag = screen_size.length() * 0.8
 	var ang_speed_initial = TAU * 4.0
 	var ang_speed_decay = 5.66
-	var charge_elapsed = 0.0
 
 	# 十字警戒框
 	var ldir1 = Vector2.RIGHT.rotated(laser_angle)
@@ -875,6 +873,7 @@ func _launch_trail_orb_async(orb: Sprite2D, vel_dir: Vector2, initial_speed: flo
 	_warn_list.append(warn2)
 	queue_redraw()
 
+	var charge_elapsed = 0.0
 	while charge_elapsed < max_charge:
 		if dying or not is_instance_valid(orb):
 			_warn_list.erase(warn1); _warn_list.erase(warn2)
@@ -1250,7 +1249,7 @@ func _skill_6() -> void:
 			position = origin.lerp(target_global, e)
 
 			while elapsed >= next_spawn_at and next_spawn_at <= dur:
-				_spawn_trail_orb_group(dash_dir, dash_speed * 0.1)
+				_spawn_trail_orb_group(dash_dir, dash_speed * 0.3)
 				next_spawn_at += trail_interval
 
 			await get_tree().process_frame
@@ -1384,7 +1383,7 @@ func _skill_2() -> void:
 	# 每球独立随机峰值 3-10x
 	var peaks: Array[float] = []
 	for _j in orbiter_data.size():
-		peaks.append(randf_range(3.0, 10.0))
+		peaks.append(randf_range(3.0, 6.0))
 
 	# 5s 扩张到峰值速度+各自峰值半径（维持咆哮震动）
 	var expand_elapsed = 0.0
@@ -1569,11 +1568,11 @@ func _draw() -> void:
 		var half_w = _orbiter_visual_diameter * 0.5
 		if half_w < 1.0: half_w = 5.0
 		const SEGS = 64
-		for i in orbiter_data.size():
-			var od = orbiter_data[i]
+		for j in orbiter_data.size():
+			var od = orbiter_data[j]
 			if not is_instance_valid(od.sprite):
 				continue
-			var r = od.radius * _eff_radius_mult * _orbiter_r_overrides[i]
+			var r = od.radius * _eff_radius_mult * _orbiter_r_overrides[j]
 			if r < half_w: continue
 			var outer_r = r + half_w
 			var inner_r = r - half_w
@@ -1603,6 +1602,22 @@ func _draw() -> void:
 					Vector2(cos(a1) * inner_r, sin(a1) * inner_r),
 				])
 				draw_colored_polygon(pts, col)
+
+		# 10% 白色全环（标识完整轨道）
+			var white_alpha = 0.1 * _orbit_circle_alpha
+			if white_alpha > 0.001:
+				var white_col = Color(1, 1, 1, white_alpha)
+				const RING_SEGS = 72
+				for i in RING_SEGS:
+					var a1 = TAU * float(i) / RING_SEGS
+					var a2 = TAU * float(i + 1) / RING_SEGS
+					var pts2 = PackedVector2Array([
+						Vector2(cos(a1) * outer_r, sin(a1) * outer_r),
+						Vector2(cos(a2) * outer_r, sin(a2) * outer_r),
+						Vector2(cos(a2) * inner_r, sin(a2) * inner_r),
+						Vector2(cos(a1) * inner_r, sin(a1) * inner_r),
+					])
+					draw_colored_polygon(pts2, white_col)
 
 	# 条形警戒框（技能1/5 通用）
 	if _warn_list.is_empty():
