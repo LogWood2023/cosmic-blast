@@ -265,7 +265,7 @@ func _process(delta: float) -> void:
 		Dock.TOP:
 			max_sway = screen_size.x * 0.5 - half_body_w
 		Dock.LEFT, Dock.RIGHT:
-			max_sway = screen_size.y * 0.5 - half_body_w
+			max_sway = screen_size.y * 0.5 - half_body_w - 100
 	var sway_x = sin(sway_phase) * max_sway
 	var sway_y = sin(sway_phase_2) * max_sway * 0.25
 	if not _skill_3_active:
@@ -725,21 +725,23 @@ func _skill_6(cannon_idx: int) -> void:
 	cannon.collision_mask = 0
 	cannon.monitoring = false
 
-	# 飞到屏幕中央
+	# 飞到屏幕中央（脱离父节点防止跟随摇摆）
 	var cannon_global = cannon.global_position
+	var root = get_tree().current_scene
+	cannon.reparent(root)
+	cannon.global_position = cannon_global
 	var center_global: Vector2
 	match dock:
 		Dock.TOP:    center_global = Vector2(cannon_global.x, screen_size.y * 0.5)
 		Dock.LEFT:   center_global = Vector2(screen_size.x * 0.5, cannon_global.y)
 		Dock.RIGHT:  center_global = Vector2(screen_size.x * 0.5, cannon_global.y)
-	var center_pos = to_local(center_global)
 	var tw = _make_tween()
 	tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(cannon, "position", center_pos, 1.2)
+	tw.tween_property(cannon, "global_position", center_global, 1.2)
 	await tw.finished
 
 	# 蓄力 5s
-	warn_circle = {"pos": cannon.position, "timer": 5.0, "radius": 400.0}
+	warn_circle = {"pos": to_local(cannon.global_position), "timer": 5.0, "radius": 400.0}
 	var sprite = cannon.get_child(0) if cannon.get_child_count() > 0 else null
 	var charge_timer = 5.0
 	var charge_elapsed = 0.0
@@ -748,7 +750,7 @@ func _skill_6(cannon_idx: int) -> void:
 		var dt = get_process_delta_time()
 		charge_timer -= dt
 		charge_elapsed += dt
-		warn_circle.pos = cannon.position
+		warn_circle.pos = to_local(cannon.global_position)
 		warn_circle.timer = charge_timer
 		if sprite:
 			var progress = 1.0 - charge_timer / 5.0
@@ -787,13 +789,15 @@ func _skill_6(cannon_idx: int) -> void:
 		sprite.scale = orig_scale
 		sprite.modulate = Color(1, 1, 1, 1)
 
-	# 瞬移到后方
+	# 瞬移到后方，归位父节点
 	var origin_global = to_global(origin)
 	var behind_global: Vector2
 	match dock:
 		Dock.TOP:    behind_global = Vector2(origin_global.x, -200)
 		Dock.LEFT:   behind_global = Vector2(-200, origin_global.y)
 		Dock.RIGHT:  behind_global = Vector2(screen_size.x + 200, origin_global.y)
+	cannon.global_position = behind_global
+	cannon.reparent(self)
 	cannon.position = to_local(behind_global)
 
 	tw = _make_tween()
@@ -1195,8 +1199,11 @@ func apply_damage(amount: int) -> void:
 func apply_cannon_damage(idx: int, amount: int) -> void:
 	if entering or dying:
 		return
-	if idx < 0 or idx >= CANNON_COUNT or not cannon_alive[idx]:
+	if idx < 0 or idx >= CANNON_COUNT:
 		return
+	if not cannon_alive[idx]:
+		return
+	apply_damage(amount)
 	cannon_hp[idx] -= amount
 	if cannon_hp[idx] <= 0:
 		cannon_hp[idx] = 0
@@ -1208,6 +1215,7 @@ func _destroy_cannon(idx: int) -> void:
 	var cannon = cannons[idx]
 	if not is_instance_valid(cannon):
 		return
+	cannon.set_process(false)
 	var sprite = cannon.get_child(0) if cannon.get_child_count() > 0 else null
 	if sprite:
 		sprite.modulate = Color(0.35, 0.35, 0.4, 1)
