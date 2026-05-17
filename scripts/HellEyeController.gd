@@ -1,4 +1,94 @@
-extends "res://scripts/WarpedCoreController.gd"
+extends Node2D
+
+enum Dock { HOME, LEFT, RIGHT, BOTTOM }
+
+# ═══════════ 基本属性 ═══════════
+@export var max_hp: int = 1000
+@export var boss_name: String = "地狱之眼"
+@export var spawn_y_ratio: float = 0.4
+var boss_hp: int
+var screen_size: Vector2
+
+# ═══════════ 生命周期标志 ═══════════
+var active: bool = false
+var entering: bool = true
+var dying: bool = false
+
+# ═══════════ 主体外观 ═══════════
+@export var body_scale_value: float = 1.0
+@export var body_collision_radius: float = 100.0
+@export var body_touch_dmg: int = 30
+@export var pulse_amplitude: float = 0.006
+@export var pulse_speed: float = 3.0
+var pulse_phase: float = 0.0
+var body_sprite: Sprite2D
+var _ghost_red: Sprite2D
+var _ghost_blue: Sprite2D
+var _eff_body_mult: float = 1.0
+var _eff_pulse_mult: float = 1.0
+var _eff_freq_mult: float = 1.0
+var _eff_speed_mult: float = 1.0
+var _eff_radius_mult: float = 1.0
+
+# 待机位置
+var _home_position: Vector2
+var _initial_position: Vector2
+
+# ═══════════ 技能 ═══════════
+@export var has_skill_1: bool = true
+@export var has_skill_2: bool = true
+@export var has_skill_3: bool = true
+@export var has_skill_4: bool = true
+@export var has_skill_5: bool = true
+@export var has_skill_6: bool = true
+@export var skill_cooldown: float = 2.0
+@export var skill_1_dmg: int = 5
+@export var skill_2_dmg: int = 5
+@export var skill_3_dmg: int = 5
+@export var skill_4_dmg: int = 5
+@export var skill_5_dmg: int = 5
+@export var skill_6_dmg: int = 5
+var is_executing: bool = false
+var cooldown_remaining: float = 0.0
+var _last_skill: int = 0
+
+# 测试模式
+var _test_skill_seq: Array[int] = [1, 2, 3, 4, 5, 6]
+var _test_seq_index: int = 0
+
+# ═══════════ 死亡 ═══════════
+const DEATH_DURATION: float = 5.0
+var death_timer: float = 0.0
+var death_explosion_cd: float = 0.0
+var death_sfx_cd: float = 0.0
+var won: bool = false
+
+# ═══════════ BGM ═══════════
+var bgm_player: AudioStreamPlayer
+
+# ═══════════ 进场遮罩 ═══════════
+var overlay_layer: CanvasLayer
+var overlay_rect: ColorRect
+var overlay_label: Label
+var entrance_timer: float = 0.0
+
+# ═══════════ 资源预加载 ═══════════
+const HIT_SFX = preload("res://assets/audio/boss_hit.wav")
+const EXPLOSION_SFX = preload("res://assets/audio/explosion.wav")
+const ROAR_SFX = preload("res://assets/audio/boss_roar.wav")
+const EXPLOSION_TEX = preload("res://assets/images/fx/explosion.png")
+const DEBRIS_TEX = preload("res://assets/images/fx/debris.png")
+const ExplosionScript = preload("res://scripts/Explosion.gd")
+const DebrisScript = preload("res://scripts/Debris.gd")
+
+# ═══════════ Tween 管理 ═══════════
+var _skill_tweens: Array[Tween] = []
+
+# ═══════════ 警戒框 ═══════════
+var _warn_list: Array = []
+var _warn_circle: Dictionary = {}
+const WARN_DURATION: float = 3.0
+
 ## 地狱之眼 —— 特殊 Boss
 ## 视觉：红色星云 + 眼珠，通过眼形遮罩裁剪显示（shader 裁剪）
 ## 碰撞箱始终位于眼珠处
@@ -123,30 +213,6 @@ var _death_particle_timer: float = 0.0
 var _death_particle_tex: Texture2D
 
 
-func _ready() -> void:
-	if boss_name == "扭曲星核":
-		boss_name = "地狱之眼"
-		has_skill_1 = true
-		has_skill_2 = true
-		has_skill_3 = true
-		has_skill_4 = true
-		has_skill_5 = true
-		has_skill_6 = true
-	mask_rotation_deg = randf_range(0.0, 360.0)
-	max_hp = 1000
-	super._ready()
-	boss_hp = max_hp
-	bgm_player.stream = HELL_EYE_BGM
-
-	_get_death_particle_tex()  # precompute circular texture
-
-	_whisper_player = AudioStreamPlayer.new()
-	_whisper_player.stream = ROAR_SFX
-	_whisper_player.volume_db = -18
-	_whisper_player.pitch_scale = 0.5
-	add_child(_whisper_player)
-
-
 func _setup_body() -> void:
 	_mask_tex = preload("res://assets/images/helleye/mask_alpha.png")
 	var nebula_tex = preload("res://assets/images/helleye/nebula_raw.png")
@@ -222,7 +288,12 @@ func _on_body_area_entered(area: Area2D) -> void:
 func apply_damage(amount: int) -> void:
 	if _skill_3_active:
 		return
-	super.apply_damage(amount)
+	boss_hp -= amount
+	if boss_hp <= 0:
+		boss_hp = 0
+		_die()
+	else:
+		_play_sfx(HIT_SFX, -5)
 	if boss_hp > 0 and not _skill_1_active and not _skill_2_active and _skill_2_cooling <= 0.0 and not _skill_3_active and not _skill_4_active and _skill_4_cooling <= 0.0 and not _skill_6_active:
 		_hit_squinting = HIT_SQUINT_DURATION
 
@@ -484,7 +555,6 @@ func _track_player_eyeball() -> void:
 
 
 func _draw() -> void:
-	super._draw()
 	var screen_center = screen_size * 0.5
 	for d in _skill_1_data:
 		var pos = to_local(d.pos)
@@ -1216,10 +1286,7 @@ func _die() -> void:
 		if is_instance_valid(tw) and tw.is_valid():
 			tw.kill()
 	_skill_tweens.clear()
-	_cleanup_skill_2()
-	_cross_lasers.clear()
 	_warn_list.clear()
-	_revert_roar(true)
 	if is_instance_valid(_whisper_player) and _whisper_player.playing:
 		_whisper_player.stop()
 	_reset_screen_shake()
@@ -1291,3 +1358,167 @@ func _spawn_final_particles() -> void:
 		var vel = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized() * randf_range(80, 280)
 		var tw_move = get_tree().create_tween().bind_node(p)
 		tw_move.tween_property(p, "position", p.position + vel, dur)
+
+
+# ═══════════ 基础设施方法 ═══════════
+
+func _ready() -> void:
+	screen_size = get_viewport().get_visible_rect().size
+	boss_hp = max_hp
+	if boss_name == "扭曲星核":
+		boss_name = "地狱之眼"
+		has_skill_1 = true
+		has_skill_2 = true
+		has_skill_3 = true
+		has_skill_4 = true
+		has_skill_5 = true
+		has_skill_6 = true
+	mask_rotation_deg = randf_range(0.0, 360.0)
+	max_hp = 1000
+	boss_hp = max_hp
+	bgm_player = AudioStreamPlayer.new()
+	bgm_player.stream = HELL_EYE_BGM
+	bgm_player.volume_db = -10
+	add_child(bgm_player)
+	_setup_body()
+	_setup_orbiters()
+	_create_entrance_overlay()
+	_start_entrance()
+
+	_get_death_particle_tex()
+	
+	_whisper_player = AudioStreamPlayer.new()
+	_whisper_player.stream = ROAR_SFX
+	_whisper_player.volume_db = -18
+	_whisper_player.pitch_scale = 0.5
+	add_child(_whisper_player)
+
+
+func _process(delta: float) -> void:
+	if dying:
+		_death_process(delta)
+		return
+	if entering:
+		_entrance_process(delta)
+		return
+	if not active:
+		return
+
+	_idle_animation(delta)
+
+	if is_executing:
+		return
+
+	cooldown_remaining -= delta
+	if cooldown_remaining <= 0.0:
+		is_executing = true
+		var available: Array[int] = []
+		if has_skill_1: available.append(1)
+		if has_skill_2: available.append(2)
+		if has_skill_3: available.append(3)
+		if has_skill_4: available.append(4)
+		if has_skill_5: available.append(5)
+		if has_skill_6: available.append(6)
+		var s = 0
+		if not available.is_empty():
+			s = available[_test_seq_index % available.size()]
+			_test_seq_index += 1
+		if s != 0:
+			await _exec_skill(s)
+			_last_skill = s
+		cooldown_remaining = skill_cooldown
+		is_executing = false
+
+
+func _exec_skill(s: int) -> void:
+	match s:
+		1: await _skill_1()
+		2: await _skill_2()
+		3: await _skill_3()
+		4: await _skill_4()
+		5: await _skill_5()
+		6: await _skill_6()
+
+
+func _make_tween() -> Tween:
+	if dying:
+		var tw = create_tween()
+		tw.kill()
+		return tw
+	var tw = create_tween()
+	_skill_tweens.append(tw)
+	return tw
+
+
+func _play_sfx(audio: AudioStream, vol_db: float = 0.0) -> void:
+	if dying:
+		return
+	var p = AudioStreamPlayer.new()
+	p.stream = audio
+	p.volume_db = vol_db
+	p.bus = &"Master"
+	p.finished.connect(p.queue_free)
+	add_child(p)
+	p.play()
+
+
+func _create_entrance_overlay() -> void:
+	overlay_layer = CanvasLayer.new()
+	overlay_layer.layer = 100
+	add_child(overlay_layer)
+
+	overlay_rect = ColorRect.new()
+	overlay_rect.anchor_left = 0.0
+	overlay_rect.anchor_right = 1.0
+	overlay_rect.anchor_top = 0.0
+	overlay_rect.anchor_bottom = 1.0
+	overlay_rect.color = Color(0, 0, 0, 0)
+	overlay_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay_layer.add_child(overlay_rect)
+
+	overlay_label = Label.new()
+	overlay_label.text = boss_name
+	overlay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	overlay_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	overlay_label.anchor_left = 0.0
+	overlay_label.anchor_right = 1.0
+	overlay_label.anchor_top = 0.0
+	overlay_label.anchor_bottom = 1.0
+	overlay_label.modulate = Color(1, 1, 1, 0)
+	overlay_label.add_theme_font_size_override(&"font_size", 72)
+	overlay_layer.add_child(overlay_label)
+
+
+func _spawn_explosion(pos: Vector2, scale_val: float = 1.0) -> void:
+	var exp = Sprite2D.new()
+	exp.texture = EXPLOSION_TEX
+	exp.hframes = 8
+	exp.vframes = 1
+	exp.frame = 0
+	exp.position = pos
+	exp.scale = Vector2(scale_val, scale_val)
+	exp.z_index = 200
+	exp.set_script(ExplosionScript)
+	get_tree().current_scene.add_child(exp)
+
+
+func _spawn_skill6_explosion(pos: Vector2) -> void:
+	_spawn_explosion(pos, 2.5)
+	for _i in range(8):
+		_spawn_debris(pos, 4.0)
+
+
+func _create_debris(pos: Vector2, lifetime: float = 2.0) -> void:
+	var d = Sprite2D.new()
+	d.texture = DEBRIS_TEX
+	d.position = pos
+	d.scale = Vector2(randf_range(0.5, 2.0), randf_range(0.5, 2.0))
+	d.rotation = randf_range(0, TAU)
+	d.z_index = 180
+	d.set_script(DebrisScript)
+	d.lifetime = lifetime
+	get_tree().current_scene.add_child(d)
+
+
+func _spawn_debris(pos: Vector2, scale_val: float = 1.0) -> void:
+	_create_debris(pos, 2.0)

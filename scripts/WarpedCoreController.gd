@@ -23,14 +23,14 @@ var dying: bool = false
 
 # ═══════════ 环绕小球 ═══════════
 @export var orbiter_count: int = 4
-@export var orbiter_base_radius: float = 120.0
+@export var orbiter_base_radius: float = 180.0
 @export var orbiter_base_speed: float = 1.5          # 弧度/秒
-@export var orbiter_scale: float = 0.4
+@export var orbiter_scale: float = 0.6
 var orbiter_data: Array = []   # [{sprite, radius, speed, phase_offset, z_dir}]
 
 # ═══════════ 主体外观 ═══════════
-@export var body_scale_value: float = 1.0            # 主体缩放倍率
-@export var body_collision_radius: float = 100.0       # 碰撞半径
+@export var body_scale_value: float = 1.5            # 主体缩放倍率
+@export var body_collision_radius: float = 150.0       # 碰撞半径
 @export var body_touch_dmg: int = 30                  # 触碰伤害
 @export var orbiter_touch_dmg: int = 5                # 小球触碰伤害
 @export var pulse_amplitude: float = 0.006            # 呼吸幅度（2% → 30% = 0.006）
