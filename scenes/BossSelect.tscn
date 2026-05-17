@@ -142,6 +142,14 @@ offset_bottom = 572.0
 text = "典狱长"
 theme_override_font_sizes/font_size = 16
 
+[node name="Boss17Button" type="Button" parent="."]
+offset_left = 1250.0
+offset_top = 600.0
+offset_right = 1590.0
+offset_bottom = 632.0
+text = "神明使者"
+theme_override_font_sizes/font_size = 16
+
 [node name="BackButton" type="Button" parent="."]
 offset_left = 860.0
 offset_top = 668.0
