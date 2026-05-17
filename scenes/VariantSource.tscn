@@ -5,9 +5,9 @@
 [node name="VariantSource" type="Node2D"]
 script = ExtResource("1")
 spawn_y_ratio = 0.2
-orbiter_base_radius = 100.0
-orbiter_scale = 0.05
-body_scale_value = 0.1
+orbiter_base_radius = 150.0
+orbiter_scale = 0.075
+body_scale_value = 0.15
 brown_max_dist = 100.0
 brown_dash_speed = 600.0
 brown_pause_min = 0.5
