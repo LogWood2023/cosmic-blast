@@ -5,6 +5,7 @@ extends Area2D
 
 var player: Area2D
 var tracking: bool = true                # 技能中可暂停追踪
+var cannon_index: int = -1
 
 
 func _ready() -> void:
@@ -30,5 +31,9 @@ func _on_area_entered(area: Area2D) -> void:
 		area.take_knockback_damage(15, 800, 0.4)
 		return
 	if area.get(&"atk") != null:
-		get_parent().apply_damage(area.atk)
+		var parent = get_parent()
+		if cannon_index >= 0 and parent.has_method(&"apply_cannon_damage"):
+			parent.apply_cannon_damage(cannon_index, area.atk)
+		else:
+			parent.apply_damage(area.atk)
 		area.queue_free()
