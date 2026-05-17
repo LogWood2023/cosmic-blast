@@ -105,6 +105,10 @@ var is_executing: bool = false
 var cooldown_remaining: float = 0.0
 var _last_skill: int = 0                                 # 上次释放的技能编号（0=无）
 
+# 测试模式：按顺序循环 1→2→3→4→5→6
+var _test_skill_seq: Array[int] = [1, 2, 3, 4, 5, 6]
+var _test_seq_index: int = 0
+
 # ═══════════ 死亡 ═══════════
 const DEATH_DURATION: float = 5.0
 var death_timer: float = 0.0
@@ -292,15 +296,18 @@ func _process(delta: float) -> void:
 	cooldown_remaining -= delta
 	if cooldown_remaining <= 0.0:
 		is_executing = true
-		# AI：敌机过多(>8)时禁止技能3；敌机≤3且上次不是技能3→强制技能3
-		var enemy_count = get_tree().get_nodes_in_group(&"enemies").size()
-		var s: int
-		if enemy_count > 8:
-			s = _pick_random_skill(3)
-		elif has_skill_3 and _last_skill != 3 and enemy_count <= 3:
-			s = 3
-		else:
-			s = _pick_random_skill()
+		# 测试模式：按顺序循环 1→2→3→4→5→6
+		var available: Array[int] = []
+		if has_skill_1: available.append(1)
+		if has_skill_2: available.append(2)
+		if has_skill_3: available.append(3)
+		if has_skill_4: available.append(4)
+		if has_skill_5: available.append(5)
+		if has_skill_6: available.append(6)
+		var s = 0
+		if not available.is_empty():
+			s = available[_test_seq_index % available.size()]
+			_test_seq_index += 1
 		if s != 0:
 			await _exec_skill(s)
 			_last_skill = s

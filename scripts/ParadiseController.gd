@@ -265,7 +265,7 @@ func _process(delta: float) -> void:
 		Dock.TOP:
 			max_sway = screen_size.x * 0.5 - half_body_w
 		Dock.LEFT, Dock.RIGHT:
-			max_sway = screen_size.y * 0.5 - half_body_w - 100
+			max_sway = screen_size.y * 0.5 - half_body_w + 100
 	var sway_x = sin(sway_phase) * max_sway
 	var sway_y = sin(sway_phase_2) * max_sway * 0.25
 	if not _skill_3_active:
