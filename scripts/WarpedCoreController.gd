@@ -57,7 +57,7 @@ var _initial_position: Vector2                        # 初始进场位置（BOT
 
 # 技能中对小球环绕速度的覆写
 var _orbiter_speed_override: float = 1.0               # 技能中覆写环绕速度倍率
-var _orbiter_radius_override: float = 1.0                # 技能中覆写环绕半径倍率
+var _orbiter_r_overrides: Array[float] = [1.0, 1.0, 1.0, 1.0]  # 每球独立半径覆写
 var _orbiter_trails_active: bool = false                 # 技能2 拖尾激活
 var _show_orbit_circles: bool = false                   # 技能2 圆形轨道警戒框
 var _orbit_circle_alpha: float = 0.0                     # 警戒圆环淡入淡出
@@ -368,7 +368,7 @@ func _idle_animation(delta: float) -> void:
 		if _orbiter_trails_active:
 			var prev_pos = od.sprite.position
 		od.angle += delta * od.speed * orbiter_speed_mult * od.z_dir
-		var r = od.radius * _eff_radius_mult * _orbiter_radius_override
+		var r = od.radius * _eff_radius_mult * _orbiter_r_overrides[idx]
 		od.sprite.position = Vector2(cos(od.angle) * r, sin(od.angle) * r)
 		# 碰撞体跟随小球
 		if is_instance_valid(od.area):
@@ -1250,7 +1250,7 @@ func _skill_6() -> void:
 			position = origin.lerp(target_global, e)
 
 			while elapsed >= next_spawn_at and next_spawn_at <= dur:
-				_spawn_trail_orb_group(dash_dir, dash_speed)
+				_spawn_trail_orb_group(dash_dir, dash_speed * 0.1)
 				next_spawn_at += trail_interval
 
 			await get_tree().process_frame
@@ -1368,11 +1368,10 @@ func _skill_2() -> void:
 	_brown_state = BrownState.PAUSING
 	_brown_pause_timer = 99.0
 
-	# 咆哮动画：0.25s 膨胀（同技能3）
+	# 咆哮动画：0.25s 膨胀（只胀主体+半径，不加速环绕球）
 	var tw = _make_tween()
 	tw.set_parallel(true)
 	tw.tween_method(_set_eff_body_mult, 1.0, 2.0, 0.25).set_ease(Tween.EASE_IN)
-	tw.tween_method(_set_eff_speed_mult, 1.0, 8.0, 0.25).set_ease(Tween.EASE_IN)
 	tw.tween_method(_set_eff_radius_mult, 1.0, 1.5, 0.25).set_ease(Tween.EASE_IN)
 	_eff_pulse_mult = 0.0
 	await tw.finished
@@ -1382,10 +1381,12 @@ func _skill_2() -> void:
 	_show_orbit_circles = true
 	queue_redraw()
 
-	# 半径峰值：3-10x 随机，四球同步
-	var peak_r = randf_range(3.0, 10.0)
+	# 每球独立随机峰值 3-10x
+	var peaks: Array[float] = []
+	for _j in orbiter_data.size():
+		peaks.append(randf_range(3.0, 10.0))
 
-	# 5s 扩张到峰值速度+峰值半径（维持咆哮震动）
+	# 5s 扩张到峰值速度+各自峰值半径（维持咆哮震动）
 	var expand_elapsed = 0.0
 	while expand_elapsed < 5.0:
 		if dying:
@@ -1396,7 +1397,8 @@ func _skill_2() -> void:
 		expand_elapsed += dt
 		var t = clampf(expand_elapsed / 5.0, 0.0, 1.0)
 		_orbiter_speed_override = lerpf(1.0, 3.0, t)
-		_orbiter_radius_override = lerpf(1.0, peak_r, t)
+		for idx in peaks.size():
+			_orbiter_r_overrides[idx] = lerpf(1.0, peaks[idx], t)
 		_shake_camera()
 		await get_tree().process_frame
 
@@ -1427,16 +1429,16 @@ func _skill_2() -> void:
 		shrink_elapsed += dt
 		var t = clampf(shrink_elapsed / 5.0, 0.0, 1.0)
 		_orbiter_speed_override = lerpf(3.0, 1.0, t)
-		_orbiter_radius_override = lerpf(peak_r, 1.0, t)
+		for idx in peaks.size():
+			_orbiter_r_overrides[idx] = lerpf(peaks[idx], 1.0, t)
 		_shake_camera()
 		await get_tree().process_frame
 
-	# 停止震动 + 0.5s 咆哮复原
+	# 停止震动 + 0.5s 咆哮复原（仅主体+半径）
 	_stop_camera_shake()
 	tw = _make_tween()
 	tw.set_parallel(true)
 	tw.tween_method(_set_eff_body_mult, 2.0, 1.0, 0.5).set_ease(Tween.EASE_OUT)
-	tw.tween_method(_set_eff_speed_mult, 8.0, 1.0, 0.5).set_ease(Tween.EASE_OUT)
 	tw.tween_method(_set_eff_radius_mult, 1.5, 1.0, 0.5).set_ease(Tween.EASE_OUT)
 	tw.tween_property(self, "_eff_pulse_mult", 1.0, 0.5).set_ease(Tween.EASE_OUT)
 	await tw.finished
@@ -1449,7 +1451,7 @@ func _cleanup_skill_2() -> void:
 	_orbiter_trails_active = false
 	_show_orbit_circles = false
 	_orbiter_speed_override = 1.0
-	_orbiter_radius_override = 1.0
+	_orbiter_r_overrides = [1.0, 1.0, 1.0, 1.0]
 	queue_redraw()
 	for od in orbiter_data:
 		for t in od.trails:
@@ -1459,7 +1461,8 @@ func _cleanup_skill_2() -> void:
 
 
 func _set_orbiter_radius_override(v: float) -> void:
-	_orbiter_radius_override = v
+	for idx in _orbiter_r_overrides.size():
+		_orbiter_r_overrides[idx] = v
 
 
 func _update_orbiter_trails(od: Dictionary, delta: float) -> void:
@@ -1566,10 +1569,11 @@ func _draw() -> void:
 		var half_w = _orbiter_visual_diameter * 0.5
 		if half_w < 1.0: half_w = 5.0
 		const SEGS = 64
-		for od in orbiter_data:
+		for i in orbiter_data.size():
+			var od = orbiter_data[i]
 			if not is_instance_valid(od.sprite):
 				continue
-			var r = od.radius * _eff_radius_mult * _orbiter_radius_override
+			var r = od.radius * _eff_radius_mult * _orbiter_r_overrides[i]
 			if r < half_w: continue
 			var outer_r = r + half_w
 			var inner_r = r - half_w
@@ -1792,7 +1796,8 @@ func _shake_parts() -> void:
 	for od in orbiter_data:
 		if not is_instance_valid(od.sprite):
 			continue
-		var r = od.radius * _eff_radius_mult * _orbiter_radius_override
+		var idx = orbiter_data.find(od)
+		var r = od.radius * _eff_radius_mult * _orbiter_r_overrides[idx]
 		var a = od.angle + randf_range(-0.15, 0.15)
 		od.sprite.position = Vector2(cos(a) * r, sin(a) * r) + Vector2(randf_range(-8, 8), randf_range(-8, 8))
 		if is_instance_valid(od.area):
