@@ -250,8 +250,16 @@ func _process(delta: float) -> void:
 	if not _skill_3_active:
 		sway_phase += delta * sway_speed * 0.5
 		sway_phase_2 += delta * sway_speed * (1.0 / 3.0)
-	var sway_x = sin(sway_phase) * sway_amplitude
-	var sway_y = sin(sway_phase_2) * sway_amplitude * 0.25
+	# 基于身体半宽动态计算最大偏移，确保机翼不离开屏幕
+	var half_body_w = body_sprite.texture.get_width() * body_scale.x * 0.5
+	var max_sway: float
+	match dock:
+		Dock.TOP:
+			max_sway = screen_size.x * 0.5 - half_body_w
+		Dock.LEFT, Dock.RIGHT:
+			max_sway = screen_size.y * 0.5 - half_body_w
+	var sway_x = sin(sway_phase) * max_sway
+	var sway_y = sin(sway_phase_2) * max_sway * 0.25
 	if not _skill_3_active:
 		position = dock_pos + pivot_offset + world_offset + transform.x * sway_x + transform.y * sway_y
 
@@ -787,10 +795,70 @@ func _skill_6(cannon_idx: int) -> void:
 		laser.visible = true
 
 
-# ═══════════ 技能 5：已删除 ═══════════
+# ═══════════ 技能 5: 散弹扫射（仅触发炮）═══════════
 
-func _skill_5() -> void:
-	pass
+func _skill_5(cannon_idx: int) -> void:
+	if dying:
+		return
+	var cannon = cannons[cannon_idx]
+	var laser = lasers[cannon_idx] if cannon_idx < lasers.size() else null
+	var origin = cannon.position
+
+	# y+30（同技能1）
+	_play_sfx(CANNON_MOVE_SFX, -8)
+	var tw = _make_tween()
+	tw.tween_property(cannon, "position", origin + Vector2(0, 30), 0.3)
+	await tw.finished
+
+	# 激光加粗闪烁
+	if laser:
+		var flash_end = Time.get_ticks_msec() / 1000.0 + 0.3
+		while Time.get_ticks_msec() / 1000.0 < flash_end:
+			if dying: break
+			var f = fmod(Time.get_ticks_msec() / 1000.0, 0.15) < 0.075
+			laser.width = 6.0
+			laser.default_color = Color(1, 0.1, 0.1, 0.3)
+			laser.visible = f
+			await get_tree().process_frame
+		laser.visible = true
+
+	var rounds = randi_range(3, 8)
+	for _round in rounds:
+		if dying: break
+		var bullet_count = randi_range(6, 10)
+		var spread_angle = deg_to_rad(randf_range(60.0, 90.0))
+		var player = get_tree().get_first_node_in_group(&"player")
+		var center_angle: float
+		if player:
+			var world_dir = (player.global_position - cannon.global_position).normalized()
+			center_angle = world_dir.angle()
+		else:
+			center_angle = cannon.global_rotation
+
+		var start_angle = center_angle - spread_angle * 0.5
+		var step = spread_angle / (bullet_count - 1) if bullet_count > 1 else 0.0
+		for i in bullet_count:
+			var dir = Vector2.RIGHT.rotated(start_angle + step * i)
+			var bullet = EnemyBulletScene.instantiate()
+			bullet.position = cannon.global_position + Vector2(0, 30)
+			bullet.direction = dir
+			bullet.damage = skill_5_bullet_dmg
+			bullet.speed = 500
+			bullet.z_index = -80
+			bullet.scale = Vector2(1.84, 1.84)
+			bullet.rotation = dir.angle()
+			get_tree().current_scene.add_child(bullet)
+		await get_tree().create_timer(0.25).timeout
+
+	# 恢复
+	if laser:
+		laser.width = 3.0
+		laser.default_color = Color(1, 0.1, 0.1, 0.5)
+		await get_tree().create_timer(0.3).timeout
+
+	tw = _make_tween()
+	tw.tween_property(cannon, "position", origin, 0.3)
+	await tw.finished
 
 
 # ═══════════ 工具函数 ═══════════
