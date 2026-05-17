@@ -83,6 +83,10 @@ const LASER_ZAP_SFX = preload("res://assets/audio/laser_zap.wav")
 var cannon_executing: Array[bool] = [false, false, false, false]
 var cannon_skill_cd: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
+# 每门炮血量（总HP/4）与存活状态
+var cannon_hp: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var cannon_alive: Array[bool] = [true, true, true, true]
+
 # 技能4 共享旋转方向（CW=0, CCW=1）
 var _skill_4_dir: int = 0
 var _skill_4_active_count: int = 0
@@ -113,6 +117,9 @@ var _skill_tweens: Array[Tween] = []
 func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
 	boss_hp = max_hp
+	for i in CANNON_COUNT:
+		cannon_hp[i] = max_hp / 4.0
+		cannon_alive[i] = true
 	if not body_tex:
 		body_tex = preload("res://assets/images/paradise/paradise_body_v4_cutout.png")
 	if not cannon_tex:
@@ -191,6 +198,7 @@ func _build_cannons() -> void:
 		c.add_child(col)
 		c.position = offsets[i] + Vector2(0, -200)
 		c.z_index = 45
+		c.cannon_index = i
 		add_child(c)
 		cannons.append(c)
 	_create_lasers()
@@ -265,6 +273,8 @@ func _process(delta: float) -> void:
 
 	# 每门炮独立技能冷却（技能3排队期间不发起新技能）
 	for i in cannons.size():
+		if not cannon_alive[i]:
+			continue
 		if cannon_executing[i]:
 			continue
 		if _skill_3_pending:
@@ -347,6 +357,8 @@ func _run_skill_3_async() -> void:
 func _skill_1(cannon_idx: int) -> void:
 	if dying:
 		return
+	if not cannon_alive[cannon_idx]:
+		return
 	var cannon = cannons[cannon_idx]
 	var laser = lasers[cannon_idx] if cannon_idx < lasers.size() else null
 	var origin = cannon.position
@@ -408,6 +420,8 @@ func _skill_1(cannon_idx: int) -> void:
 
 func _skill_2(cannon_idx: int) -> void:
 	if dying:
+		return
+	if not cannon_alive[cannon_idx]:
 		return
 	var cannon = cannons[cannon_idx]
 	var laser = lasers[cannon_idx] if cannon_idx < lasers.size() else null
@@ -575,6 +589,8 @@ func _skill_3() -> void:
 func _skill_4(cannon_idx: int) -> void:
 	if dying:
 		return
+	if not cannon_alive[cannon_idx]:
+		return
 	var cannon = cannons[cannon_idx]
 	var laser = lasers[cannon_idx] if cannon_idx < lasers.size() else null
 	var origin = cannon.position
@@ -694,6 +710,8 @@ func _check_single_laser_hit(laser: Line2D) -> bool:
 func _skill_6(cannon_idx: int) -> void:
 	if dying:
 		return
+	if not cannon_alive[cannon_idx]:
+		return
 	var cannon = cannons[cannon_idx]
 	var laser = lasers[cannon_idx] if cannon_idx < lasers.size() else null
 	var origin = cannon.position
@@ -800,6 +818,8 @@ func _skill_6(cannon_idx: int) -> void:
 func _skill_5(cannon_idx: int) -> void:
 	if dying:
 		return
+	if not cannon_alive[cannon_idx]:
+		return
 	var cannon = cannons[cannon_idx]
 	var laser = lasers[cannon_idx] if cannon_idx < lasers.size() else null
 	var origin = cannon.position
@@ -866,6 +886,7 @@ func _skill_5(cannon_idx: int) -> void:
 func _fire_cannon(idx: int) -> void:
 	if dying: return
 	if idx >= cannons.size(): return
+	if not cannon_alive[idx]: return
 	var cannon = cannons[idx]
 	if not is_instance_valid(cannon): return
 	var bullet = EnemyBulletScene.instantiate()
@@ -1104,6 +1125,9 @@ func _entrance_process(delta: float) -> void:
 			cannon_cooldowns.append((CANNON_BASE_CD - randf_range(0.0, CANNON_RANDOM_CD)) * 0.5)
 		for i in CANNON_COUNT:
 			cannon_skill_cd[i] = 0.0
+		for i in CANNON_COUNT:
+			cannon_alive[i] = true
+			cannon_hp[i] = max_hp / 4.0
 
 
 func _activate_lasers() -> void:
@@ -1115,6 +1139,9 @@ func _activate_lasers() -> void:
 func _update_laser_line(l: Line2D) -> void:
 	var idx = lasers.find(l)
 	if idx < 0 or idx >= cannons.size(): return
+	if not cannon_alive[idx]:
+		l.visible = false
+		return
 	var cannon = cannons[idx]
 	if not is_instance_valid(cannon): return
 	var start = l.to_local(cannon.global_position)
@@ -1163,6 +1190,36 @@ func apply_damage(amount: int) -> void:
 		_die()
 	else:
 		_play_sfx(HIT_SFX, -5)
+
+
+func apply_cannon_damage(idx: int, amount: int) -> void:
+	if entering or dying:
+		return
+	if idx < 0 or idx >= CANNON_COUNT or not cannon_alive[idx]:
+		return
+	cannon_hp[idx] -= amount
+	if cannon_hp[idx] <= 0:
+		cannon_hp[idx] = 0
+		cannon_alive[idx] = false
+		_destroy_cannon(idx)
+
+
+func _destroy_cannon(idx: int) -> void:
+	var cannon = cannons[idx]
+	if not is_instance_valid(cannon):
+		return
+	var sprite = cannon.get_child(0) if cannon.get_child_count() > 0 else null
+	if sprite:
+		sprite.modulate = Color(0.35, 0.35, 0.4, 1)
+	cannon.tracking = false
+	cannon.monitoring = false
+	cannon.collision_layer = 0
+	cannon.collision_mask = 0
+	var laser = lasers[idx] if idx < lasers.size() else null
+	if laser:
+		laser.visible = false
+	_spawn_skill6_explosion(cannon.global_position)
+	_play_sfx(EXPLOSION_SFX, -5)
 
 
 func _die() -> void:
