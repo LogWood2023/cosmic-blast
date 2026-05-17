@@ -5,6 +5,7 @@ extends Node2D
 const CRYSTAL_TEX = preload("res://assets/images/divine_messenger/crystal_cutout.png")
 const CROWN_TEX = preload("res://assets/images/divine_messenger/crown_cutout.png")
 const WINGS_TEX = preload("res://assets/images/divine_messenger/wings_cutout.png")
+const WINGS_OPEN_TEX = preload("res://assets/images/divine_messenger/wings_open_cutout.png")
 
 # ═══════════ 基本属性 ═══════════
 @export var max_hp: int = 1000
