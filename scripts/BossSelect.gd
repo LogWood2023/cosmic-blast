@@ -17,6 +17,7 @@ const BOSS_SCENES = {
 	"Boss14Button": "res://scenes/BossBattle_Sentry.tscn",
 	"Boss15Button": "res://scenes/BossBattle_Admin.tscn",
 	"Boss16Button": "res://scenes/BossBattle_Gate.tscn",
+	"Boss17Button": "res://scenes/BossBattle_DivineMessenger.tscn",
 }
 
 
