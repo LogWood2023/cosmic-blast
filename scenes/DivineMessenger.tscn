@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bcgn0e47y5ty5"]
+[gd_scene format=3 uid="uid://brf0vxp8w35wt"]
 
 [ext_resource type="Script" uid="uid://dwni3w85py4c5" path="res://scripts/DivineMessenger.gd" id="1"]
 
@@ -7,12 +7,15 @@ script = ExtResource("1")
 crystal_scale = Vector2(0.3, 0.3)
 crown_scale = Vector2(0.1, 0.1)
 crown_pos = Vector2(0, -150)
-wings_scale = Vector2(1, 1)
-wings_z_index = 40
 overall_scale = 0.9
-wings_open = true
-wings_shake_angle = 3.0
-wing_pivot_left_pos = Vector2(-20, -40)
-wing_pivot_right_pos = Vector2(20, -40)
-wing_left_offset = Vector2(-250, -170)
-wing_right_offset = Vector2(250, -170)
+wings_closed_wings_z_index = 52
+wings_closed_wings_shake_angle = 3.0
+wings_closed_wing_pivot_left_pos = Vector2(-40, -60)
+wings_closed_wing_pivot_right_pos = Vector2(40, -60)
+wings_closed_wing_left_offset = Vector2(-100, 200)
+wings_closed_wing_right_offset = Vector2(100, 200)
+wings_open_wings_scale = Vector2(1, 1)
+wings_open_wing_pivot_left_pos = Vector2(40, -60)
+wings_open_wing_pivot_right_pos = Vector2(-40, -60)
+wings_open_wing_left_offset = Vector2(-220, -160)
+wings_open_wing_right_offset = Vector2(220, -160)
