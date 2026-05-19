@@ -641,6 +641,9 @@ func _init_close_start() -> void:
 	_snapshot_open()
 	wing_pivot_left_node.rotation = 0.0
 	wing_pivot_right_node.rotation = 0.0
+	crystal_sprite.position = crystal_pos
+	crown_sprite.position = crown_pos
+	_apply_wing_sprite_props()
 	_save_switch_visual()
 
 
