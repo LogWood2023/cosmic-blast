@@ -63,6 +63,9 @@ var _overlay_rect: ColorRect
 var _overlay_label: Label
 var _phase_debug_layer: CanvasLayer
 var _phase_debug_label: Label
+var _intro_debug_layer: CanvasLayer
+var _intro_debug_label: Label
+var _debug_start_time: int = 0
 
 # 翅膀配置硬切换测试
 var _test_toggle_timer: float = 0.0
@@ -279,7 +282,7 @@ func _process(delta: float) -> void:
 	else:
 		_idle_animation(delta)
 
-	if _phase_debug_label:
+	if _phase_debug_label or _intro_debug_label:
 		_update_phase_debug()
 
 	if _body_shake_intensity > 0 or _screen_shake_intensity > 0:
@@ -400,6 +403,26 @@ func _setup_phase_debug_overlay() -> void:
 	_phase_debug_label.name = "PhaseDebugLabel"
 	_phase_debug_layer.add_child(_phase_debug_label)
 
+	_intro_debug_layer = CanvasLayer.new()
+	_intro_debug_layer.layer = 200
+	_intro_debug_layer.follow_viewport_enabled = true
+	_intro_debug_layer.name = "IntroDebugLayer"
+	add_child(_intro_debug_layer)
+	_intro_debug_label = Label.new()
+	_intro_debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_intro_debug_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_intro_debug_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_intro_debug_label.offset_left = 10
+	_intro_debug_label.offset_top = 10
+	_intro_debug_label.offset_right = 460
+	_intro_debug_label.offset_bottom = 712
+	_intro_debug_label.modulate = Color(0, 1, 0, 1)
+	_intro_debug_label.add_theme_font_size_override(&"font_size", 12)
+	_intro_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_intro_debug_label.name = "IntroDebugLabel"
+	_intro_debug_layer.add_child(_intro_debug_label)
+	_debug_start_time = Time.get_ticks_msec()
+
 const _PHASE_NAMES: Array = [
 	"P0 Spread 下移50px",
 	"P1 Spread 停顿",
@@ -413,12 +436,86 @@ const _SIDE_NAMES: Array = ["BOTH", "LEFT", "RIGHT"]
 const _KIND_NAMES: Array = ["SPREAD", "CLOSE"]
 
 func _update_phase_debug() -> void:
-	if not _phase_debug_label:
-		return
-	var pn: String = _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
-	var kn: String = _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
-	var sn: String = _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
-	_phase_debug_label.text = "Phase:%d %s  Kind:%s Side:%s  T:%.3f closing:%s playing:%s intro:%s" % [_spread_phase, pn, kn, sn, _spread_timer, str(_is_closing), str(_is_wing_spread_playing), str(_is_intro)]
+	if _phase_debug_label:
+		var pn: String = _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
+		var kn: String = _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
+		var sn: String = _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
+		_phase_debug_label.text = "Phase:%d %s  Kind:%s Side:%s  T:%.3f closing:%s playing:%s intro:%s" % [_spread_phase, pn, kn, sn, _spread_timer, str(_is_closing), str(_is_wing_spread_playing), str(_is_intro)]
+
+	if _intro_debug_label:
+		var elapsed := (Time.get_ticks_msec() - _debug_start_time) / 1000.0
+		var lines: PackedStringArray = PackedStringArray()
+
+		lines.append("=== 神明使者 开场动画 Debug ===")
+		lines.append("Time: %.3fs | Frame: %d" % [elapsed, Engine.get_process_frames()])
+		lines.append("")
+
+		lines.append("── 动画核心状态 ──")
+		lines.append("  _is_intro:         %s" % _is_intro)
+		lines.append("  _is_wing_spread_playing: %s" % _is_wing_spread_playing)
+		var pn2: String = _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
+		lines.append("  _spread_phase:     %d (%s)" % [_spread_phase, pn2])
+		lines.append("  _spread_timer:     %.4f" % _spread_timer)
+		lines.append("  _spread_switched:  %s" % _spread_switched)
+		lines.append("  _is_closing:       %s" % _is_closing)
+		var kn2: String = _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
+		var sn2: String = _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
+		lines.append("  _anim_kind:        %d (%s)" % [_anim_kind, kn2])
+		lines.append("  _anim_side:        %d (%s)" % [_anim_side, sn2])
+		lines.append("")
+
+		lines.append("── 翅膀/配置状态 ──")
+		lines.append("  _wings_open:       %s" % _wings_open)
+		lines.append("  wings_scale:       (%.2f, %.2f)" % [wings_scale.x, wings_scale.y])
+		lines.append("  wings_z_index:     %d" % wings_z_index)
+		lines.append("  wings_shake_angle: %.1f" % wings_shake_angle)
+		if _switch_eased_t != 0:
+			lines.append("  _switch_eased_t:   %.4f" % _switch_eased_t)
+		lines.append("")
+
+		lines.append("── 节点位置 & 旋转 ──")
+		lines.append("  _base_position:    (%.0f, %.0f)" % [_base_position.x, _base_position.y])
+		if crystal_sprite:
+			lines.append("  crystal_sprite:    (%.0f, %.0f)" % [crystal_sprite.position.x, crystal_sprite.position.y])
+		if crown_sprite:
+			lines.append("  crown_sprite:      (%.0f, %.0f)" % [crown_sprite.position.x, crown_sprite.position.y])
+		if wing_pivot_left_node:
+			lines.append("  left_pivot:        (%.0f, %.0f) rot=%.2f°" % [wing_pivot_left_node.position.x, wing_pivot_left_node.position.y, rad_to_deg(wing_pivot_left_node.rotation)])
+		if wing_pivot_right_node:
+			lines.append("  right_pivot:       (%.0f, %.0f) rot=%.2f°" % [wing_pivot_right_node.position.x, wing_pivot_right_node.position.y, rad_to_deg(wing_pivot_right_node.rotation)])
+		if wings_left:
+			lines.append("  wings_left:        (%.0f, %.0f)" % [wings_left.position.x, wings_left.position.y])
+		if wings_right:
+			lines.append("  wings_right:       (%.0f, %.0f)" % [wings_right.position.x, wings_right.position.y])
+		lines.append("")
+
+		lines.append("── 闭合/张开快照 ──")
+		lines.append("  closed_crystal:   (%.0f, %.0f)" % [_closed_crystal_pos.x, _closed_crystal_pos.y])
+		lines.append("  closed_crown:     (%.0f, %.0f)" % [_closed_crown_pos.x, _closed_crown_pos.y])
+		lines.append("  open_crystal:     (%.0f, %.0f)" % [_open_crystal_pos.x, _open_crystal_pos.y])
+		lines.append("  open_crown:       (%.0f, %.0f)" % [_open_crown_pos.x, _open_crown_pos.y])
+		lines.append("")
+
+		lines.append("── 切换瞬间视觉(P2/P4) ──")
+		lines.append("  switch_crystal:   (%.0f, %.0f)" % [_switch_crystal_pos.x, _switch_crystal_pos.y])
+		lines.append("  switch_crown:     (%.0f, %.0f)" % [_switch_crown_pos.x, _switch_crown_pos.y])
+		lines.append("  switch_wl_pivot:  (%.0f, %.0f) rot=%.2f°" % [_switch_wl_pivot_pos.x, _switch_wl_pivot_pos.y, rad_to_deg(_switch_wl_rot)])
+		lines.append("  switch_wr_pivot:  (%.0f, %.0f) rot=%.2f°" % [_switch_wr_pivot_pos.x, _switch_wr_pivot_pos.y, rad_to_deg(_switch_wr_rot)])
+		lines.append("")
+
+		lines.append("── modulate / 抖动 / 特效 ──")
+		lines.append("  modulate:        (%.2f,%.2f,%.2f,%.2f)" % [modulate.r, modulate.g, modulate.b, modulate.a])
+		lines.append("  _intro_modulate: (%.2f,%.2f,%.2f,%.2f)" % [_intro_modulate.r, _intro_modulate.g, _intro_modulate.b, _intro_modulate.a])
+		lines.append("  _body_shake:     %.1f" % _body_shake_intensity)
+		lines.append("  _screen_shake:   %.1f" % _screen_shake_intensity)
+		var gi := _get_glow_intensity()
+		var sb := _get_scale_boost()
+		var st := _get_spread_t()
+		lines.append("  glow_intensity:  %.3f" % gi)
+		lines.append("  scale_boost:     %.3f" % sb)
+		lines.append("  spread_t:        %.3f" % st)
+
+		_intro_debug_label.text = "\n".join(lines)
 
 
 func _start_anim_sequence() -> void:
