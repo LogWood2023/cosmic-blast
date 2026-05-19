@@ -23,7 +23,8 @@ var crystal_sprite: Sprite2D
 var crown_sprite: Sprite2D
 var wings_left: Sprite2D
 var wings_right: Sprite2D
-var _wing_glow_mats: Array[ShaderMaterial] = []
+var _wing_glow_mat_left: ShaderMaterial
+var _wing_glow_mat_right: ShaderMaterial
 var _point_light_left: Sprite2D
 var _point_light_right: Sprite2D
 var _wings_open: bool = false
@@ -35,12 +36,19 @@ var _crown_speed: float = 1.2
 var _wings_speed: float = 1.2
 var _wings_shake_phase: float = 0.0
 
-# 展翅动画（当前停用，改用简单切换）
+# 展翅动画
+enum AnimSide { BOTH, LEFT_WING, RIGHT_WING }
+enum AnimKind { SPREAD, CLOSE }
+
 var _is_wing_spread_playing: bool = false
 var _spread_timer: float = 0.0
 var _spread_phase: int = 0
 var _spread_switched: bool = false
 var _is_closing: bool = false
+var _anim_side: int = AnimSide.BOTH
+var _anim_kind: int = AnimKind.SPREAD
+var _anim_seq: Array[Dictionary] = []
+var _anim_seq_idx: int = 0
 
 # 翅膀配置硬切换测试
 var _test_toggle_timer: float = 0.0
@@ -196,7 +204,7 @@ func _ready() -> void:
 	position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio)
 	cooldown_remaining = 2.0
 	_start_bgm()
-	_start_wing_spread_animation()
+	_start_anim_sequence()
 
 
 func _process(delta: float) -> void:
@@ -282,16 +290,63 @@ func _test_toggle_cycle(delta: float) -> void:
 		_set_wings_open(_test_toggle_open)
 
 
-## ── 展翅动画 ──
+## ── 展翅/闭翅动画 ──
 
-func _start_wing_spread_animation() -> void:
-	apply_wings_closed_state()
-	_set_wings_open(false)
-	_sync_all_node_props()
-	_snapshot_closed()
+func _build_anim_sequence() -> void:
+	_anim_seq.clear()
+	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.LEFT_WING})
+	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.LEFT_WING})
+	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.RIGHT_WING})
+	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.RIGHT_WING})
+	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.BOTH})
+	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.BOTH})
+
+
+func _start_anim_sequence() -> void:
+	_build_anim_sequence()
+	_anim_seq_idx = 0
+	_anim_kind = _anim_seq[0].kind
+	_anim_side = _anim_seq[0].side
 	_spread_switched = false
+	_is_closing = (_anim_kind == AnimKind.CLOSE)
 	_spread_timer = 0.0
-	_spread_phase = 0
+	if _anim_kind == AnimKind.CLOSE:
+		_init_close_start()
+		_spread_phase = 5
+	else:
+		if _anim_side == AnimSide.BOTH:
+			apply_wings_closed_state()
+		_set_wings_open(false)
+		_sync_all_node_props()
+		_snapshot_closed()
+		_spread_phase = 0
+	_is_wing_spread_playing = true
+
+
+func play_left_spread() -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.LEFT_WING)
+func play_left_close() -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.LEFT_WING)
+func play_right_spread() -> void: _start_side_anim(AnimKind.SPREAD, AnimSide.RIGHT_WING)
+func play_right_close() -> void:  _start_side_anim(AnimKind.CLOSE,  AnimSide.RIGHT_WING)
+func play_both_spread() -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.BOTH)
+func play_both_close() -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.BOTH)
+
+
+func _start_side_anim(kind: int, side: int) -> void:
+	_anim_kind = kind
+	_anim_side = side
+	_spread_switched = false
+	_is_closing = (kind == AnimKind.CLOSE)
+	_spread_timer = 0.0
+	if kind == AnimKind.CLOSE:
+		_init_close_start()
+		_spread_phase = 5
+	else:
+		if kind == AnimKind.SPREAD and side == AnimSide.BOTH:
+			apply_wings_closed_state()
+		_set_wings_open(false)
+		_sync_all_node_props()
+		_snapshot_closed()
+		_spread_phase = 0
 	_is_wing_spread_playing = true
 
 
@@ -343,38 +398,37 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_apply_p4(t)
 			else:
 				_save_switch_visual()
-				_spread_switched = false
-				_is_closing = true
-				_spread_timer = 0.0
-				_spread_phase = 5
-		5: # close_4 — 0→0.5s：向上50px缓入，反向旋转
-			if _spread_timer <= 0.5:
-				var t = ease_in(_spread_timer / 0.5)
-				_apply_close4(t)
-			else:
-				_spread_timer = 0.0
-				_spread_phase = 6
-		6: # close_2 — 0→0.3s：向下100px缓出，0.1s时切换回闭合
-			var t = ease_out(_spread_timer / 0.3)
-			if _spread_timer >= 0.1 and not _spread_switched:
+				if _anim_kind == AnimKind.CLOSE:
+					_spread_switched = false
+					_is_closing = true
+					_spread_timer = 0.0
+					_spread_phase = 5
+				else:
+					_advance_anim_sequence()
+		5: # close_a — 0→0.3s ease_in, left CCW10° right CW10°, 0.2s switch to closed
+			var t = ease_in(_spread_timer / 0.3)
+			if _spread_timer >= 0.2 and not _spread_switched:
 				_spread_switched = true
 				_save_switch_visual()
 				apply_wings_closed_state()
 				_set_wings_open(false)
 				_restore_switch_visual()
 				_apply_wing_sprite_props()
-			_apply_close2(t)
+			_apply_close_a(t)
 			if _spread_timer >= 0.3:
 				_spread_timer = 0.0
-				_spread_phase = 7
-		7: # close_1 — 0→0.3s：停顿
-			if _spread_timer <= 0.3:
-				_apply_close2(1.0)
+				_spread_phase = 6
+		6: # close_hold — 0→0.2s hold
+			if _spread_timer <= 0.2:
+				_apply_close_a(1.0)
 			else:
 				_spread_timer = 0.0
-				_spread_phase = 0
-				_is_closing = false
-				_restart_wing_spread_animation()
+				_spread_phase = 7
+		7: # close_b — 0→0.3s ease_out, left CW10° right CCW10° (return)
+			var t = ease_out(_spread_timer / 0.3)
+			_apply_close_b(t)
+			if _spread_timer >= 0.3:
+				_advance_anim_sequence()
 	
 	if not _is_closing:
 		_apply_wing_glow()
@@ -383,23 +437,50 @@ func _process_wing_spread_animation(delta: float) -> void:
 	_apply_wing_spread_offset()
 
 
-func _restart_wing_spread_animation() -> void:
-	apply_wings_closed_state()
-	_set_wings_open(false)
-	_sync_all_node_props()
-	_snapshot_closed()
+func _is_left_active() -> bool:
+	return _anim_side == AnimSide.LEFT_WING or _anim_side == AnimSide.BOTH
+
+
+func _is_right_active() -> bool:
+	return _anim_side == AnimSide.RIGHT_WING or _anim_side == AnimSide.BOTH
+
+
+func _advance_anim_sequence() -> void:
+	_anim_seq_idx += 1
+	if _anim_seq_idx >= _anim_seq.size():
+		_anim_seq_idx = 0
+	_anim_kind = _anim_seq[_anim_seq_idx].kind
+	_anim_side = _anim_seq[_anim_seq_idx].side
 	_spread_switched = false
-	_is_closing = false
+	_is_closing = (_anim_kind == AnimKind.CLOSE)
 	_spread_timer = 0.0
-	_spread_phase = 0
-	for mat in _wing_glow_mats:
-		mat.set_shader_parameter("glow_intensity", 0.0)
+	if _anim_kind == AnimKind.CLOSE:
+		_init_close_start()
+		_spread_phase = 5
+	else:
+		if _anim_side == AnimSide.BOTH:
+			apply_wings_closed_state()
+		_set_wings_open(false)
+		_sync_all_node_props()
+		_snapshot_closed()
+		_spread_phase = 0
+	if _wing_glow_mat_left:
+		_wing_glow_mat_left.set_shader_parameter("glow_intensity", 0.0)
+	if _wing_glow_mat_right:
+		_wing_glow_mat_right.set_shader_parameter("glow_intensity", 0.0)
 	if _point_light_left:
 		_point_light_left.scale = Vector2.ZERO
 		_point_light_left.modulate.a = 0.0
 	if _point_light_right:
 		_point_light_right.scale = Vector2.ZERO
 		_point_light_right.modulate.a = 0.0
+
+
+func _init_close_start() -> void:
+	apply_wings_open_state()
+	_set_wings_open(true)
+	_snapshot_open()
+	_save_switch_visual()
 
 
 func _sync_all_node_props() -> void:
@@ -413,8 +494,10 @@ func _sync_all_node_props() -> void:
 		crown_sprite.z_index = crown_z_index
 	if wing_pivot_left_node:
 		wing_pivot_left_node.position = wing_pivot_left_pos
+		wing_pivot_left_node.rotation = 0.0
 	if wing_pivot_right_node:
 		wing_pivot_right_node.position = wing_pivot_right_pos
+		wing_pivot_right_node.rotation = 0.0
 	if wings_left:
 		wings_left.position = wing_left_offset
 		wings_left.scale = wings_scale
@@ -426,11 +509,11 @@ func _sync_all_node_props() -> void:
 
 
 func _apply_wing_sprite_props() -> void:
-	if wings_left:
+	if wings_left and _is_left_active():
 		wings_left.scale = wings_scale
 		wings_left.position = wing_left_offset
 		wings_left.z_index = wings_z_index
-	if wings_right:
+	if wings_right and _is_right_active():
 		wings_right.scale = wings_scale
 		wings_right.position = wing_right_offset
 		wings_right.z_index = wings_z_index
@@ -474,8 +557,8 @@ func _restore_switch_visual() -> void:
 	crystal_sprite.position = _switch_crystal_pos
 	crown_sprite.position = _switch_crown_pos
 	wing_pivot_left_node.position = _switch_wl_pivot_pos
-	wing_pivot_right_node.position = _switch_wr_pivot_pos
 	wing_pivot_left_node.rotation = _switch_wl_rot
+	wing_pivot_right_node.position = _switch_wr_pivot_pos
 	wing_pivot_right_node.rotation = _switch_wr_rot
 
 
@@ -494,9 +577,14 @@ func _apply_p0(t: float) -> void:
 	crown_sprite.position = _closed_crown_pos + Vector2(0, move_y)
 	wing_pivot_left_node.position = _closed_wl_pivot_pos + Vector2(0, move_y)
 	wing_pivot_right_node.position = _closed_wr_pivot_pos + Vector2(0, move_y)
-	var rot = deg_to_rad(10.0) * t
-	wing_pivot_left_node.rotation = -rot
-	wing_pivot_right_node.rotation = rot
+	if _is_left_active():
+		wing_pivot_left_node.rotation = -deg_to_rad(10.0) * t
+	else:
+		wing_pivot_left_node.rotation = 0.0
+	if _is_right_active():
+		wing_pivot_right_node.rotation = deg_to_rad(10.0) * t
+	else:
+		wing_pivot_right_node.rotation = 0.0
 
 
 func _apply_p2(t: float) -> void:
@@ -504,7 +592,6 @@ func _apply_p2(t: float) -> void:
 	var base_y = 50.0
 	
 	if _spread_switched:
-		# 切换后：从切换瞬间的视觉位置继续向上
 		var switch_t = _switch_eased_t
 		var remaining_move = -100.0 * (t - switch_t)
 		crystal_sprite.position = _switch_crystal_pos + Vector2(0, remaining_move)
@@ -517,11 +604,16 @@ func _apply_p2(t: float) -> void:
 		wing_pivot_left_node.position = _closed_wl_pivot_pos + Vector2(0, base_y + move_y)
 		wing_pivot_right_node.position = _closed_wr_pivot_pos + Vector2(0, base_y + move_y)
 	
-	# 旋转：从±10°到∓10°，各有20°变化
 	var start_rot = deg_to_rad(10.0)
 	var delta_rot = deg_to_rad(-20.0) * t
-	wing_pivot_left_node.rotation = -start_rot + (-delta_rot)
-	wing_pivot_right_node.rotation = start_rot + delta_rot
+	if _is_left_active():
+		wing_pivot_left_node.rotation = -start_rot + (-delta_rot)
+	else:
+		wing_pivot_left_node.rotation = 0.0
+	if _is_right_active():
+		wing_pivot_right_node.rotation = start_rot + delta_rot
+	else:
+		wing_pivot_right_node.rotation = 0.0
 
 
 func _apply_p4(t: float) -> void:
@@ -530,37 +622,46 @@ func _apply_p4(t: float) -> void:
 	crown_sprite.position = _p4_crown_pos + Vector2(0, move_y)
 	wing_pivot_left_node.position = _p4_wl_pivot_pos + Vector2(0, move_y)
 	wing_pivot_right_node.position = _p4_wr_pivot_pos + Vector2(0, move_y)
-	
-	var start_rot_l = _p4_wl_rot
-	var start_rot_r = _p4_wr_rot
+	if _is_left_active():
+		wing_pivot_left_node.rotation = _p4_wl_rot - deg_to_rad(10.0) * t
+	else:
+		wing_pivot_left_node.rotation = 0.0
+	if _is_right_active():
+		wing_pivot_right_node.rotation = _p4_wr_rot + deg_to_rad(10.0) * t
+	else:
+		wing_pivot_right_node.rotation = 0.0
+
+
+func _apply_close_a(t: float) -> void:
+	crystal_sprite.position = _switch_crystal_pos
+	crown_sprite.position = _switch_crown_pos
+	wing_pivot_left_node.position = _switch_wl_pivot_pos
+	wing_pivot_right_node.position = _switch_wr_pivot_pos
 	var delta = deg_to_rad(10.0) * t
-	wing_pivot_left_node.rotation = start_rot_l - delta
-	wing_pivot_right_node.rotation = start_rot_r + delta
+	if _is_left_active():
+		wing_pivot_left_node.rotation = _switch_wl_rot - delta
+	else:
+		wing_pivot_left_node.rotation = 0.0
+	if _is_right_active():
+		wing_pivot_right_node.rotation = _switch_wr_rot + delta
+	else:
+		wing_pivot_right_node.rotation = 0.0
 
 
-func _apply_close4(t: float) -> void:
-	var move_y = -50.0 * t
-	crystal_sprite.position = _switch_crystal_pos + Vector2(0, move_y)
-	crown_sprite.position = _switch_crown_pos + Vector2(0, move_y)
-	wing_pivot_left_node.position = _switch_wl_pivot_pos + Vector2(0, move_y)
-	wing_pivot_right_node.position = _switch_wr_pivot_pos + Vector2(0, move_y)
-	var start_rot_l = _switch_wl_rot
-	var start_rot_r = _switch_wr_rot
-	var delta = deg_to_rad(-10.0) * t
-	wing_pivot_left_node.rotation = start_rot_l - delta
-	wing_pivot_right_node.rotation = start_rot_r + delta
-
-
-func _apply_close2(t: float) -> void:
-	var move_y = 100.0 * t
-	var base_y = -50.0
-	crystal_sprite.position = _closed_crystal_pos + Vector2(0, base_y + move_y)
-	crown_sprite.position = _closed_crown_pos + Vector2(0, base_y + move_y)
-	wing_pivot_left_node.position = _closed_wl_pivot_pos + Vector2(0, base_y + move_y)
-	wing_pivot_right_node.position = _closed_wr_pivot_pos + Vector2(0, base_y + move_y)
-	var rot = deg_to_rad(10.0) * (1.0 - 2.0 * t)
-	wing_pivot_left_node.rotation = rot
-	wing_pivot_right_node.rotation = -rot
+func _apply_close_b(t: float) -> void:
+	crystal_sprite.position = _switch_crystal_pos
+	crown_sprite.position = _switch_crown_pos
+	wing_pivot_left_node.position = _switch_wl_pivot_pos
+	wing_pivot_right_node.position = _switch_wr_pivot_pos
+	var delta = deg_to_rad(10.0) * (1.0 - t)
+	if _is_left_active():
+		wing_pivot_left_node.rotation = _switch_wl_rot - delta
+	else:
+		wing_pivot_left_node.rotation = 0.0
+	if _is_right_active():
+		wing_pivot_right_node.rotation = _switch_wr_rot + delta
+	else:
+		wing_pivot_right_node.rotation = 0.0
 
 
 func _get_glow_intensity() -> float:
@@ -579,7 +680,7 @@ func _get_glow_intensity() -> float:
 
 func _get_scale_boost() -> float:
 	match _spread_phase:
-		0, 1, 7: return 1.0
+		0, 1, 5, 6, 7: return 1.0
 		2:
 			if _spread_timer <= 0.2:
 				return 1.0
@@ -587,30 +688,26 @@ func _get_scale_boost() -> float:
 			return lerpf(1.0, wing_scale_boost_mult, t)
 		3: return wing_scale_boost_mult
 		4: return lerpf(wing_scale_boost_mult, 1.0, ease_out(_spread_timer / 0.5))
-		5: return lerpf(1.0, wing_scale_boost_mult, ease_in(_spread_timer / 0.5))
-		6: return lerpf(wing_scale_boost_mult, 1.0, ease_out(_spread_timer / 0.3))
 		_: return 1.0
 
 
 func _apply_wing_scale_boost() -> void:
 	var boost = _get_scale_boost()
-	if wings_left:
+	if wings_left and _is_left_active():
 		wings_left.scale = wings_scale * Vector2(boost, boost)
-	if wings_right:
+	if wings_right and _is_right_active():
 		wings_right.scale = wings_scale * Vector2(boost, boost)
 
 
 func _get_spread_t() -> float:
 	match _spread_phase:
-		0, 1, 7: return 0.0
+		0, 1, 5, 6, 7: return 0.0
 		2:
 			if _spread_timer <= 0.2:
 				return 0.0
 			return ease_in((_spread_timer - 0.2) / 0.1)
 		3: return 1.0
 		4: return 1.0 - ease_out(_spread_timer / 0.5)
-		5: return ease_in(_spread_timer / 0.5)
-		6: return 1.0 - ease_out(_spread_timer / 0.3)
 		_: return 0.0
 
 
@@ -618,9 +715,9 @@ func _apply_wing_spread_offset() -> void:
 	var t = _get_spread_t()
 	var spread_x = wing_spread_offset * t
 	var rise_y = wing_spread_rise * t
-	if wings_left:
+	if wings_left and _is_left_active():
 		wings_left.position = Vector2(wing_left_offset.x - spread_x, wing_left_offset.y - rise_y)
-	if wings_right:
+	if wings_right and _is_right_active():
 		wings_right.position = Vector2(wing_right_offset.x + spread_x, wing_right_offset.y - rise_y)
 
 
@@ -629,10 +726,10 @@ func _apply_point_lights() -> void:
 	var tex_size = 256.0
 	var target_scale = point_light_size / tex_size
 	var alpha = t * point_light_max_brightness
-	if _point_light_left:
+	if _point_light_left and _is_left_active():
 		_point_light_left.scale = Vector2.ONE * target_scale * t
 		_point_light_left.modulate.a = alpha
-	if _point_light_right:
+	if _point_light_right and _is_right_active():
 		_point_light_right.scale = Vector2.ONE * target_scale * t
 		_point_light_right.modulate.a = alpha
 
@@ -660,8 +757,10 @@ func _point_light_tex() -> Texture2D:
 
 func _apply_wing_glow() -> void:
 	var intensity = _get_glow_intensity() * wing_glow_max_brightness
-	for mat in _wing_glow_mats:
-		mat.set_shader_parameter("glow_intensity", intensity)
+	if _wing_glow_mat_left and _is_left_active():
+		_wing_glow_mat_left.set_shader_parameter("glow_intensity", intensity)
+	if _wing_glow_mat_right and _is_right_active():
+		_wing_glow_mat_right.set_shader_parameter("glow_intensity", intensity)
 
 
 # 缓出函数
@@ -708,7 +807,7 @@ func _setup_body() -> void:
 	mat_l.set_shader_parameter("glow_size", wing_glow_size)
 	mat_l.set_shader_parameter("glow_spread", wing_glow_spread)
 	wings_left.material = mat_l
-	_wing_glow_mats.append(mat_l)
+	_wing_glow_mat_left = mat_l
 	
 	# 左旋转中心红点（子节点，也放在容器上，位置是 (0,0)）
 	wing_pivot_left_sprite = _create_red_dot_sprite()
@@ -754,7 +853,7 @@ func _setup_body() -> void:
 	mat_r.set_shader_parameter("glow_size", wing_glow_size)
 	mat_r.set_shader_parameter("glow_spread", wing_glow_spread)
 	wings_right.material = mat_r
-	_wing_glow_mats.append(mat_r)
+	_wing_glow_mat_right = mat_r
 	
 	# 右旋转中心红点
 	wing_pivot_right_sprite = _create_red_dot_sprite()
@@ -1110,23 +1209,23 @@ func _create_red_dot_sprite() -> Sprite2D:
 func _set_wings_open(open: bool) -> void:
 	_wings_open = open
 	if open:
-		if wings_left:
+		if wings_left and _is_left_active():
 			wings_left.texture = WINGS_OPEN_TEX
 			wings_left.region_enabled = true
 			if WINGS_OPEN_TEX:
 				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, WINGS_OPEN_TEX.get_size().y))
-		if wings_right:
+		if wings_right and _is_right_active():
 			wings_right.texture = WINGS_OPEN_TEX
 			wings_right.region_enabled = true
 			if WINGS_OPEN_TEX:
 				wings_right.region_rect = Rect2(Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, 0), Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, WINGS_OPEN_TEX.get_size().y))
 	else:
-		if wings_left:
+		if wings_left and _is_left_active():
 			wings_left.texture = WINGS_TEX
 			wings_left.region_enabled = true
 			if WINGS_TEX:
 				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(WINGS_TEX.get_size().x / 2.0, WINGS_TEX.get_size().y))
-		if wings_right:
+		if wings_right and _is_right_active():
 			wings_right.texture = WINGS_TEX
 			wings_right.region_enabled = true
 			if WINGS_TEX:
