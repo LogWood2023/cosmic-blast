@@ -50,6 +50,16 @@ var _anim_kind: int = AnimKind.SPREAD
 var _anim_seq: Array[Dictionary] = []
 var _anim_seq_idx: int = 0
 
+# 开场动画
+var _is_intro: bool = true
+var _base_position: Vector2
+var _intro_modulate: Color = Color.WHITE
+var _body_shake_intensity: float = 0.0
+var _screen_shake_intensity: float = 0.0
+var _boss_name_overlay: CanvasLayer
+var _overlay_rect: ColorRect
+var _overlay_label: Label
+
 # 翅膀配置硬切换测试
 var _test_toggle_timer: float = 0.0
 var _test_toggle_open: bool = false
@@ -197,15 +207,43 @@ func _ready() -> void:
 	_wings_speed = randf_range(1.0, 1.4)
 	scale = Vector2(overall_scale, overall_scale)
 	_setup_bgm()
-	# 先初始化运行时变量为闭合状态（从 @export 配置读取）
 	_init_runtime_wings_from_closed()
 	_setup_body()
+	_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 50)
+	position = _base_position
+	modulate = Color(10, 10, 10, 0)
+	_setup_intro_overlay()
 	active = true
-	position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio)
 	cooldown_remaining = 2.0
 	_start_bgm()
-	# 动画已暂停，由外部调用 play_* 函数启动
-	# _start_anim_sequence()
+	_start_intro()
+
+
+func _setup_intro_overlay() -> void:
+	_boss_name_overlay = CanvasLayer.new()
+	_boss_name_overlay.layer = 100
+	_boss_name_overlay.follow_viewport_enabled = true
+	_boss_name_overlay.name = "IntroOverlay"
+	add_child(_boss_name_overlay)
+	_overlay_rect = ColorRect.new()
+	_overlay_rect.color = Color(0, 0, 0, 0)
+	_overlay_rect.anchor_left = 0.0; _overlay_rect.anchor_top = 0.0
+	_overlay_rect.anchor_right = 1.0; _overlay_rect.anchor_bottom = 1.0
+	_overlay_rect.offset_left = -150; _overlay_rect.offset_top = -150
+	_overlay_rect.offset_right = 150; _overlay_rect.offset_bottom = 150
+	_overlay_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay_rect.name = "BlackRect"
+	_boss_name_overlay.add_child(_overlay_rect)
+	_overlay_label = Label.new()
+	_overlay_label.text = boss_name
+	_overlay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_overlay_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_overlay_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_overlay_label.modulate = Color(1, 1, 1, 0)
+	_overlay_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay_label.name = "BossNameLabel"
+	_overlay_label.add_theme_font_size_override(&"font_size", 72)
+	_boss_name_overlay.add_child(_overlay_label)
 
 
 func _process(delta: float) -> void:
@@ -223,6 +261,14 @@ func _process(delta: float) -> void:
 		_process_wing_spread_animation(delta)
 	else:
 		_idle_animation(delta)
+
+	if _body_shake_intensity > 0 or _screen_shake_intensity > 0:
+		_apply_shake(delta)
+	if _screen_shake_intensity <= 0:
+		position = _base_position
+
+	if _is_intro:
+		return
 
 	if is_executing:
 		return
@@ -324,6 +370,83 @@ func _start_anim_sequence() -> void:
 	_is_wing_spread_playing = true
 
 
+func _start_intro() -> void:
+	var tree := get_tree()
+	var phase3_half: bool = false
+	var phase3_done: bool = false
+	var fade_start: int = 0
+	var fade_duration: float = 0.25
+	
+	var tw := create_tween()
+	tw.tween_property(self, "modulate:a", 1.0, 0.5)
+	await tw.finished
+	
+	play_both_spread()
+	
+	while _is_wing_spread_playing and _is_intro:
+		await tree.process_frame
+		if _spread_phase < 2:
+			continue
+		if _spread_phase == 2:
+			if fade_start == 0:
+				fade_start = Time.get_ticks_msec()
+			var elapsed := (Time.get_ticks_msec() - fade_start) / 1000.0
+			var ft := clampf(elapsed / fade_duration, 0.0, 1.0)
+			_intro_modulate = Color(10, 10, 10, 1).lerp(Color(1, 1, 1, 1), ft)
+			modulate = _intro_modulate
+			continue
+		if _spread_phase == 3 and not phase3_half:
+			phase3_half = true
+			_body_shake_intensity = 4.0
+			_screen_shake_intensity = 6.0
+			await tree.create_timer(0.5).timeout
+			_show_boss_name()
+			await tree.create_timer(1.0).timeout
+			_hide_boss_name()
+			await tree.create_timer(0.5).timeout
+		if _spread_phase >= 4 and not phase3_done:
+			phase3_done = true
+			_body_shake_intensity = 0.0
+			_screen_shake_intensity = 0.0
+			_intro_modulate = Color(1, 1, 1, 1)
+			modulate = _intro_modulate
+			break
+	
+	_body_shake_intensity = 0.0
+	_screen_shake_intensity = 0.0
+	_intro_modulate = Color(1, 1, 1, 1)
+	modulate = _intro_modulate
+	
+	var target_y := _base_position.y + 50
+	var pt := create_tween()
+	pt.tween_method(_set_base_y, _base_position.y, target_y, 0.5)
+	await pt.finished
+	
+	await tree.create_timer(1.5).timeout
+	play_both_close()
+	
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	
+	_sync_all_node_props()
+	_is_intro = false
+	_body_shake_intensity = 0.0
+	_screen_shake_intensity = 0.0
+	_intro_modulate = Color(1, 1, 1, 1)
+	modulate = _intro_modulate
+
+
+func _show_boss_name() -> void:
+	_overlay_rect.color = Color(0, 0, 0, 1)
+	_overlay_label.modulate = Color(1, 1, 1, 1)
+	_overlay_label.text = boss_name
+
+
+func _hide_boss_name() -> void:
+	_overlay_rect.color = Color(0, 0, 0, 0)
+	_overlay_label.modulate = Color(1, 1, 1, 0)
+
+
 func play_left_spread() -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.LEFT_WING)
 func play_left_close() -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.LEFT_WING)
 func play_right_spread() -> void: _start_side_anim(AnimKind.SPREAD, AnimSide.RIGHT_WING)
@@ -404,6 +527,8 @@ func _process_wing_spread_animation(delta: float) -> void:
 					_is_closing = true
 					_spread_timer = 0.0
 					_spread_phase = 5
+				elif _is_intro:
+					_is_wing_spread_playing = false
 				else:
 					_advance_anim_sequence()
 		5: # close_a — 0→0.3s ease_in, left CCW10° right CW10°, 0.2s switch to closed
@@ -429,7 +554,10 @@ func _process_wing_spread_animation(delta: float) -> void:
 			var t = ease_out(_spread_timer / 0.3)
 			_apply_close_b(t)
 			if _spread_timer >= 0.3:
-				_advance_anim_sequence()
+				if _is_intro:
+					_is_wing_spread_playing = false
+				else:
+					_advance_anim_sequence()
 	
 	if not _is_closing:
 		_apply_wing_glow()
@@ -447,6 +575,9 @@ func _is_right_active() -> bool:
 
 
 func _advance_anim_sequence() -> void:
+	if _anim_seq.is_empty():
+		_is_wing_spread_playing = false
+		return
 	_anim_seq_idx += 1
 	if _anim_seq_idx >= _anim_seq.size():
 		_anim_seq_idx = 0
@@ -481,6 +612,16 @@ func _init_close_start() -> void:
 	apply_wings_open_state()
 	_set_wings_open(true)
 	_snapshot_open()
+	if _anim_side == AnimSide.BOTH:
+		wing_pivot_left_node.position = wing_pivot_left_pos
+		wing_pivot_left_node.rotation = 0.0
+		wing_pivot_right_node.position = wing_pivot_right_pos
+		wing_pivot_right_node.rotation = 0.0
+		crystal_sprite.position = crystal_pos
+		crown_sprite.position = crown_pos
+	else:
+		wing_pivot_left_node.rotation = 0.0
+		wing_pivot_right_node.rotation = 0.0
 	_save_switch_visual()
 
 
@@ -509,6 +650,10 @@ func _sync_all_node_props() -> void:
 		wings_right.z_index = wings_z_index
 
 
+func _set_base_y(y: float) -> void:
+	_base_position.y = y
+
+
 func _apply_wing_sprite_props() -> void:
 	if wings_left and _is_left_active():
 		wings_left.scale = wings_scale
@@ -518,6 +663,25 @@ func _apply_wing_sprite_props() -> void:
 		wings_right.scale = wings_scale
 		wings_right.position = wing_right_offset
 		wings_right.z_index = wings_z_index
+
+
+func _apply_shake(_delta: float) -> void:
+	if _body_shake_intensity > 0:
+		var bx := (randf() * 2.0 - 1.0) * _body_shake_intensity
+		var by := (randf() * 2.0 - 1.0) * _body_shake_intensity
+		var offset := Vector2(bx, by)
+		if crystal_sprite:
+			crystal_sprite.position += offset
+		if crown_sprite:
+			crown_sprite.position += offset
+		if wings_left:
+			wings_left.position += offset
+		if wings_right:
+			wings_right.position += offset
+	if _screen_shake_intensity > 0:
+		var sx := (randf() * 2.0 - 1.0) * _screen_shake_intensity
+		var sy := (randf() * 2.0 - 1.0) * _screen_shake_intensity
+		position = _base_position + Vector2(sx, sy)
 
 
 func _init_runtime_wings_from_closed() -> void:
