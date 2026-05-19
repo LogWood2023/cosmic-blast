@@ -451,7 +451,8 @@ func _start_intro() -> void:
 	await pt.finished
 	
 	await tree.create_timer(1.5).timeout
-	_sync_all_node_props()
+	_restore_switch_visual()
+	_apply_wing_sprite_props()
 	play_both_close()
 	
 	while _is_wing_spread_playing:
