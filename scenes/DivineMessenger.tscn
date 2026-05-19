@@ -4,7 +4,6 @@
 
 [node name="DivineMessenger" type="Node2D" unique_id=1521675849]
 script = ExtResource("1")
-debug_mode = true
 crystal_scale = Vector2(0.3, 0.3)
 crown_scale = Vector2(0.1, 0.1)
 crown_pos = Vector2(0, -150)
