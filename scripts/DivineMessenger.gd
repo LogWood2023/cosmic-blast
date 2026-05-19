@@ -12,6 +12,7 @@ const WINGS_OPEN_TEX = preload("res://assets/images/divine_messenger/wings_open_
 @export var boss_name: String = "神明使者"
 @export var spawn_y_ratio: float = 0.4
 @export var debug_mode: bool = false
+@export var debug_phase_overlay: bool = false
 var boss_hp: int
 var screen_size: Vector2
 
@@ -60,6 +61,8 @@ var _screen_shake_intensity: float = 0.0
 var _boss_name_overlay: CanvasLayer
 var _overlay_rect: ColorRect
 var _overlay_label: Label
+var _phase_debug_layer: CanvasLayer
+var _phase_debug_label: Label
 
 # 翅膀配置硬切换测试
 var _test_toggle_timer: float = 0.0
@@ -210,6 +213,8 @@ func _ready() -> void:
 	_setup_bgm()
 	_init_runtime_wings_from_closed()
 	_setup_body()
+	if debug_phase_overlay:
+		_setup_phase_debug_overlay()
 	if debug_mode:
 		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio)
 		position = _base_position
@@ -273,6 +278,9 @@ func _process(delta: float) -> void:
 		_process_wing_spread_animation(delta)
 	else:
 		_idle_animation(delta)
+
+	if _phase_debug_label:
+		_update_phase_debug()
 
 	if _body_shake_intensity > 0 or _screen_shake_intensity > 0:
 		_apply_shake(delta)
@@ -372,6 +380,45 @@ func _build_debug_sequence() -> void:
 	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.LEFT_WING})
 	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.RIGHT_WING})
 	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.RIGHT_WING})
+
+
+func _setup_phase_debug_overlay() -> void:
+	_phase_debug_layer = CanvasLayer.new()
+	_phase_debug_layer.layer = 200
+	_phase_debug_layer.follow_viewport_enabled = true
+	_phase_debug_layer.name = "PhaseDebugLayer"
+	add_child(_phase_debug_layer)
+	_phase_debug_label = Label.new()
+	_phase_debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_phase_debug_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	_phase_debug_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_phase_debug_label.offset_left = -600
+	_phase_debug_label.offset_top = -80
+	_phase_debug_label.modulate = Color(0, 1, 0, 1)
+	_phase_debug_label.add_theme_font_size_override(&"font_size", 20)
+	_phase_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_phase_debug_label.name = "PhaseDebugLabel"
+	_phase_debug_layer.add_child(_phase_debug_label)
+
+const _PHASE_NAMES: Array = [
+	"P0 Spread 下移50px",
+	"P1 Spread 停顿",
+	"P2 Spread 上移100px+切换",
+	"P3 Spread 顶峰",
+	"P4 Spread 回落50px",
+	"P5 Close close_a",
+	"P6 Close close_b",
+]
+const _SIDE_NAMES: Array = ["BOTH", "LEFT", "RIGHT"]
+const _KIND_NAMES: Array = ["SPREAD", "CLOSE"]
+
+func _update_phase_debug() -> void:
+	if not _phase_debug_label:
+		return
+	var pn := _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
+	var kn := _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
+	var sn := _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
+	_phase_debug_label.text = "Phase:%d %s  Kind:%s Side:%s  T:%.3f closing:%s playing:%s intro:%s" % [_spread_phase, pn, kn, sn, _spread_timer, str(_is_closing), str(_is_wing_spread_playing), str(_is_intro)]
 
 
 func _start_anim_sequence() -> void:
