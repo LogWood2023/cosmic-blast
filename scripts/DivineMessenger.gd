@@ -639,7 +639,9 @@ func _init_close_start() -> void:
 	apply_wings_open_state()
 	_set_wings_open(true)
 	_snapshot_open()
+	wing_pivot_left_node.position = wing_pivot_left_pos
 	wing_pivot_left_node.rotation = 0.0
+	wing_pivot_right_node.position = wing_pivot_right_pos
 	wing_pivot_right_node.rotation = 0.0
 	crystal_sprite.position = crystal_pos
 	crown_sprite.position = crown_pos
