@@ -563,22 +563,20 @@ func _process_wing_spread_animation(delta: float) -> void:
 			var t = ease_in(_spread_timer / 0.3)
 			if _spread_timer >= 0.2 and not _spread_switched:
 				_spread_switched = true
+				var saved_l_rot = _switch_wl_rot
+				var saved_r_rot = _switch_wr_rot
 				_save_switch_visual()
 				apply_wings_closed_state()
 				_set_wings_open(false)
 				_restore_switch_visual()
 				_apply_wing_sprite_props()
+				_switch_wl_rot = saved_l_rot
+				_switch_wr_rot = saved_r_rot
 			_apply_close_a(t)
 			if _spread_timer >= 0.3:
 				_spread_timer = 0.0
 				_spread_phase = 6
-		6: # close_hold — 0→0.2s hold
-			if _spread_timer <= 0.2:
-				_apply_close_a(1.0)
-			else:
-				_spread_timer = 0.0
-				_spread_phase = 7
-		7: # close_b — 0→0.3s ease_out, left CW10° right CCW10° (return)
+		6: # close_b — 0→0.3s ease_out, left CW10° right CCW10° (return)
 			var t = ease_out(_spread_timer / 0.3)
 			_apply_close_b(t)
 			if _spread_timer >= 0.3:
@@ -872,7 +870,7 @@ func _get_glow_intensity() -> float:
 
 func _get_scale_boost() -> float:
 	match _spread_phase:
-		0, 1, 5, 6, 7: return 1.0
+		0, 1, 5, 6: return 1.0
 		2:
 			if _spread_timer <= 0.2:
 				return 1.0
@@ -893,7 +891,7 @@ func _apply_wing_scale_boost() -> void:
 
 func _get_spread_t() -> float:
 	match _spread_phase:
-		0, 1, 5, 6, 7: return 0.0
+		0, 1, 5, 6: return 0.0
 		2:
 			if _spread_timer <= 0.2:
 				return 0.0
