@@ -204,7 +204,8 @@ func _ready() -> void:
 	position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio)
 	cooldown_remaining = 2.0
 	_start_bgm()
-	_start_anim_sequence()
+	# 动画已暂停，由外部调用 play_* 函数启动
+	# _start_anim_sequence()
 
 
 func _process(delta: float) -> void:
