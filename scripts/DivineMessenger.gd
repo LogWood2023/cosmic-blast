@@ -638,14 +638,13 @@ func _advance_anim_sequence() -> void:
 func _init_close_start() -> void:
 	apply_wings_open_state()
 	_set_wings_open(true)
-	_snapshot_open()
-	wing_pivot_left_node.position = wing_pivot_left_pos
-	wing_pivot_left_node.rotation = 0.0
-	wing_pivot_right_node.position = wing_pivot_right_pos
-	wing_pivot_right_node.rotation = 0.0
-	crystal_sprite.position = crystal_pos
-	crown_sprite.position = crown_pos
-	_apply_wing_sprite_props()
+	if _anim_side == AnimSide.BOTH:
+		_sync_all_node_props()
+		_snapshot_open()
+	else:
+		wing_pivot_left_node.rotation = 0.0
+		wing_pivot_right_node.rotation = 0.0
+		_snapshot_open()
 	_save_switch_visual()
 
 
