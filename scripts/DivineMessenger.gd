@@ -415,9 +415,9 @@ const _KIND_NAMES: Array = ["SPREAD", "CLOSE"]
 func _update_phase_debug() -> void:
 	if not _phase_debug_label:
 		return
-	var pn := _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
-	var kn := _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
-	var sn := _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
+	var pn: String = _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
+	var kn: String = _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
+	var sn: String = _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
 	_phase_debug_label.text = "Phase:%d %s  Kind:%s Side:%s  T:%.3f closing:%s playing:%s intro:%s" % [_spread_phase, pn, kn, sn, _spread_timer, str(_is_closing), str(_is_wing_spread_playing), str(_is_intro)]
 
 
