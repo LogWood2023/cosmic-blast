@@ -570,6 +570,11 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_set_wings_open(false)
 				_restore_switch_visual()
 				_apply_wing_sprite_props()
+				if _anim_side == AnimSide.BOTH:
+					_switch_wl_pivot_pos = wing_pivot_left_pos
+					_switch_wr_pivot_pos = wing_pivot_right_pos
+					wing_pivot_left_node.position = wing_pivot_left_pos
+					wing_pivot_right_node.position = wing_pivot_right_pos
 				_switch_wl_rot = saved_l_rot
 				_switch_wr_rot = saved_r_rot
 			_apply_close_a(t)
