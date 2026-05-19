@@ -29,5 +29,5 @@ void fragment() {
 	glow = clamp(glow, 0.0, 1.0);
 	float final_glow = glow * glow_intensity;
 	vec3 hdr_glow = glow_color.rgb * final_glow;
-	COLOR = vec4(base.rgb + hdr_glow, base.a + final_glow * glow_color.a);
+	COLOR = (vec4(base.rgb + hdr_glow, base.a + final_glow * glow_color.a)) * COLOR;
 }

@@ -397,8 +397,8 @@ func _start_intro() -> void:
 			continue
 		if _spread_phase == 3 and not phase3_half:
 			phase3_half = true
-			_body_shake_intensity = 4.0
-			_screen_shake_intensity = 6.0
+			_body_shake_intensity = 12.0
+			_screen_shake_intensity = 25.0
 			await tree.create_timer(0.5).timeout
 			_show_boss_name()
 			await tree.create_timer(1.0).timeout
@@ -408,12 +408,16 @@ func _start_intro() -> void:
 			phase3_done = true
 			_body_shake_intensity = 0.0
 			_screen_shake_intensity = 0.0
+			var cam := get_viewport().get_camera_2d()
+			if cam: cam.offset = Vector2.ZERO
 			_intro_modulate = Color(1, 1, 1, 1)
 			modulate = _intro_modulate
 			break
 	
 	_body_shake_intensity = 0.0
 	_screen_shake_intensity = 0.0
+	var cam2 := get_viewport().get_camera_2d()
+	if cam2: cam2.offset = Vector2.ZERO
 	_intro_modulate = Color(1, 1, 1, 1)
 	modulate = _intro_modulate
 	
@@ -613,12 +617,7 @@ func _init_close_start() -> void:
 	_set_wings_open(true)
 	_snapshot_open()
 	if _anim_side == AnimSide.BOTH:
-		wing_pivot_left_node.position = wing_pivot_left_pos
-		wing_pivot_left_node.rotation = 0.0
-		wing_pivot_right_node.position = wing_pivot_right_pos
-		wing_pivot_right_node.rotation = 0.0
-		crystal_sprite.position = crystal_pos
-		crown_sprite.position = crown_pos
+		_sync_all_node_props()
 	else:
 		wing_pivot_left_node.rotation = 0.0
 		wing_pivot_right_node.rotation = 0.0
@@ -666,6 +665,7 @@ func _apply_wing_sprite_props() -> void:
 
 
 func _apply_shake(_delta: float) -> void:
+	var cam := get_viewport().get_camera_2d()
 	if _body_shake_intensity > 0:
 		var bx := (randf() * 2.0 - 1.0) * _body_shake_intensity
 		var by := (randf() * 2.0 - 1.0) * _body_shake_intensity
@@ -678,10 +678,12 @@ func _apply_shake(_delta: float) -> void:
 			wings_left.position += offset
 		if wings_right:
 			wings_right.position += offset
-	if _screen_shake_intensity > 0:
+	if _screen_shake_intensity > 0 and cam:
 		var sx := (randf() * 2.0 - 1.0) * _screen_shake_intensity
 		var sy := (randf() * 2.0 - 1.0) * _screen_shake_intensity
-		position = _base_position + Vector2(sx, sy)
+		cam.offset = Vector2(sx, sy)
+	else:
+		position = _base_position
 
 
 func _init_runtime_wings_from_closed() -> void:
