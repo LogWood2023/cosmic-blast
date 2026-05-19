@@ -605,6 +605,12 @@ func _process_wing_spread_animation(delta: float) -> void:
 					_spread_timer = 0.0
 					_spread_phase = 5
 				elif _is_intro:
+					wing_pivot_left_node.position = wing_pivot_left_pos
+					wing_pivot_right_node.position = wing_pivot_right_pos
+					wing_pivot_left_node.rotation = 0.0
+					wing_pivot_right_node.rotation = 0.0
+					crystal_sprite.position = crystal_pos
+					crown_sprite.position = crown_pos
 					_is_wing_spread_playing = false
 				else:
 					_advance_anim_sequence()
