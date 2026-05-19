@@ -211,44 +211,58 @@ DivineMessenger (Node2D)
 - 翅膀：正弦波上下浮动（±8px）+ 正弦波旋转摇晃（角度 ±`wings_shake_angle`）
 - 三个动画各自的相位和速度均随机，避免同步
 
-### 5.6 展翅动画（5阶段循环，~3.9s/周期）
+### 5.6 展翅/闭翅动画（10阶段完整循环，~5.4s/周期）
 
-| 阶段 | 时长 | 描述 |
-|------|------|------|
-| 0 | 0.8s | 水晶/王冠/翅膀向下移动50px（缓出），左翅膀逆时针10°、右顺时针10° |
-| 1 | 0.3s | 峰值停顿 |
-| 2 | 0.3s | 向上移动100px（缓入），左右各反向旋转20°；0.2s时切换为张开翅膀配置 |
-| 3 | 2.0s | 最高点停顿 |
-| 4 | 0.5s | 向下移动50px回位（缓出），左逆时针10°、右顺时针10° |
+**展翅 (Phase 0–4)**：
 
-- 循环：完成后自动回到阶段0
-- 配置切换时保存绝对视觉状态（位置+旋转），切换后恢复，确保无缝过渡
+| 阶段 | 时长 | 缓动 | 描述 |
+|------|------|------|------|
+| 0 | 0.8s | ease_out ↓50px | 水晶/王冠/翅膀向下50px，左逆10°右顺10° |
+| 1 | 0.3s | 停顿 | 峰值停顿 |
+| 2 | 0.3s | ease_in ↑100px | 向上100px，左右各反向20°；0.2s切换张开配置 |
+| 3 | 2.0s | 维持顶峰 | 最高点停顿，所有效果全开 |
+| 4 | 0.5s | ease_out ↓50px | 向下50px回位，效果渐消 |
+
+**闭翅 (Phase 5–7)**：展翅的倒放（4→2→1），无 stage-3 维持。
+
+| 阶段 | 时长 | 缓动 | 描述 |
+|------|------|------|------|
+| 5 (close_4) | 0.5s | ease_in ↑50px | 反向回升至顶峰 |
+| 6 (close_2) | 0.3s | ease_out ↓100px | 向下100px回落，0.1s切换闭合配置 |
+| 7 (close_1) | 0.3s | 停顿 | 底部停顿，然后回到阶段0 |
+
 - 缓动函数：`ease_out(t) = 1-(1-t)³`，`ease_in(t) = t³`
-- **当前状态**：展翅动画暂停，改为 `_test_toggle_cycle()` 每5秒硬切换开/合配置用于测试
+- 配置切换时保存绝对视觉状态（位置+旋转），切换后恢复，确保无缝过渡
+- **闭翅阶段不触发 shader 描边光源和 Point Light 方向性发光**
 
-### 5.7 检查器暴露参数
+### 5.7 翅膀变形效果（阶段2缓入→阶段3维持→阶段4缓出）
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `crystal_scale` | `Vector2` | 水晶缩放 |
-| `crystal_pos` | `Vector2` | 水晶位置 |
-| `crystal_z_index` | `int` | 水晶层级 |
-| `crown_scale` | `Vector2` | 王冠缩放 |
-| `crown_pos` | `Vector2` | 王冠位置 |
-| `crown_z_index` | `int` | 王冠层级 |
-| `wings_scale` | `Vector2` | 翅膀缩放 |
-| `wings_z_index` | `int` | 翅膀层级 |
-| `overall_scale` | `float` | 整体缩放 |
-| `wings_open` | `bool` | 翅膀开/合（编辑器预览） |
-| `wings_shake_angle` | `float` | 翅膀摇晃角度 |
-| `wings_shake_speed` | `float` | 翅膀摇晃速度 |
-| `wing_pivot_left_pos` | `Vector2` | 左枢轴位置 |
-| `wing_pivot_right_pos` | `Vector2` | 右枢轴位置 |
-| `wing_left_offset` | `Vector2` | 左翅膀相对偏移 |
-| `wing_right_offset` | `Vector2` | 右翅膀相对偏移 |
-| `show_pivot_dots` | `bool` | 显示/隐藏旋转中心红点 |
-| `max_hp` / `spawn_y_ratio` | `int` / `float` | 生命值 / 出生Y比例 |
-| `has_skill_1~6` | `bool` | 技能开关（当前全部待实现） |
+| 效果 | 实现 | 阶段2 | 阶段3 | 阶段4 |
+|------|------|:--:|:--:|:--:|
+| **边缘发光** | `wing_glow.gdshader` HDR shader + WorldEnvironment Glow | 0→1 | 1 | 1→0 |
+| **缩放提升** | `wing_scale_boost_mult` (默认1.4x) | 1→1.4 | 1.4 | 1.4→1 |
+| **翅膀外扩** | 左右各外移80px + 上移50px | 0→80/50 | 80/50 | 80/50→0 |
+| **Point Light** | 枢轴中心径向光晕 sprite | 0→600px | 600px | 600px→0 |
+
+### 5.8 检查器暴露参数
+
+| 分组 | 参数 | 类型 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| Crystal/Crown | `crystal_scale/pos/z_index` | `Vector2/V2/int` | — | 水晶/王冠配置 |
+| — | `overall_scale` | `float` | 1.0 | 整体缩放 |
+| Wings Closed State | `wings_closed_*` | 各类型 | — | 闭合翅膀配置(8项) |
+| Wings Open State | `wings_open_*` | 各类型 | — | 张开翅膀配置(8项) |
+| Wing Glow (HDR) | `wing_glow_size` | `float` | 0.008 | shader发光扩散半径(UV) |
+| — | `wing_glow_max_brightness` | `float` | 2.0 | 峰值HDR亮度 |
+| — | `wing_glow_spread` | `int` | 5 | 发光扩散圈数(1~10) |
+| Wing Scale Boost | `wing_scale_boost_mult` | `float` | 1.4 | 翅膀缩放倍数 |
+| Wing Spread | `wing_spread_offset` | `float` | 80.0 | 水平外扩像素 |
+| — | `wing_spread_rise` | `float` | 50.0 | 垂直上升像素 |
+| Point Lights | `point_light_size` | `float` | 600.0 | 光晕像素直径 |
+| — | `point_light_max_brightness` | `float` | 0.5 | 峰值透明度 |
+| Other | `show_pivot_dots` | `bool` | false | 显示旋转中心红点 |
+| — | `max_hp / spawn_y_ratio` | `int / float` | — | 生命值/出生Y比例 |
+| — | `has_skill_1~6` | `bool` | — | 技能开关 |
 
 ---
 
