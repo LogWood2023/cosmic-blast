@@ -11,6 +11,7 @@ const WINGS_OPEN_TEX = preload("res://assets/images/divine_messenger/wings_open_
 @export var max_hp: int = 1000
 @export var boss_name: String = "神明使者"
 @export var spawn_y_ratio: float = 0.4
+@export var debug_mode: bool = false
 var boss_hp: int
 var screen_size: Vector2
 
@@ -209,14 +210,24 @@ func _ready() -> void:
 	_setup_bgm()
 	_init_runtime_wings_from_closed()
 	_setup_body()
-	_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 50)
-	position = _base_position
-	modulate = Color(10, 10, 10, 0)
-	_setup_intro_overlay()
-	active = true
-	cooldown_remaining = 2.0
-	_start_bgm()
-	_start_intro()
+	if debug_mode:
+		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio)
+		position = _base_position
+		modulate = Color(1, 1, 1, 1)
+		active = true
+		cooldown_remaining = 2.0
+		_start_bgm()
+		_build_debug_sequence()
+		_start_anim_sequence()
+	else:
+		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 50)
+		position = _base_position
+		modulate = Color(10, 10, 10, 0)
+		_setup_intro_overlay()
+		active = true
+		cooldown_remaining = 2.0
+		_start_bgm()
+		_start_intro()
 
 
 func _setup_intro_overlay() -> void:
@@ -266,6 +277,9 @@ func _process(delta: float) -> void:
 		_apply_shake(delta)
 	if _screen_shake_intensity <= 0:
 		position = _base_position
+
+	if debug_mode:
+		return
 
 	if _is_intro:
 		return
@@ -349,8 +363,17 @@ func _build_anim_sequence() -> void:
 	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.BOTH})
 
 
+func _build_debug_sequence() -> void:
+	_anim_seq.clear()
+	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.BOTH})
+	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.BOTH})
+	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.LEFT_WING})
+	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.LEFT_WING})
+	_anim_seq.append({kind = AnimKind.SPREAD, side = AnimSide.RIGHT_WING})
+	_anim_seq.append({kind = AnimKind.CLOSE,  side = AnimSide.RIGHT_WING})
+
+
 func _start_anim_sequence() -> void:
-	_build_anim_sequence()
 	_anim_seq_idx = 0
 	_anim_kind = _anim_seq[0].kind
 	_anim_side = _anim_seq[0].side
