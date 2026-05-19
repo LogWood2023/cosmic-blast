@@ -633,6 +633,7 @@ func _advance_anim_sequence() -> void:
 	if _point_light_right:
 		_point_light_right.scale = Vector2.ZERO
 		_point_light_right.modulate.a = 0.0
+	_is_wing_spread_playing = true
 
 
 func _init_close_start() -> void:
