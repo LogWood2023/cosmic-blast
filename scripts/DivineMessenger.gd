@@ -451,14 +451,11 @@ func _start_intro() -> void:
 	await pt.finished
 	
 	await tree.create_timer(1.5).timeout
-	_restore_switch_visual()
-	_apply_wing_sprite_props()
 	play_both_close()
 	
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
-	_sync_all_node_props()
 	_is_intro = false
 	_body_shake_intensity = 0.0
 	_screen_shake_intensity = 0.0
@@ -640,6 +637,8 @@ func _advance_anim_sequence() -> void:
 func _init_close_start() -> void:
 	apply_wings_open_state()
 	_set_wings_open(true)
+	if _anim_side == AnimSide.BOTH:
+		_sync_all_node_props()
 	wing_pivot_left_node.rotation = 0.0
 	wing_pivot_right_node.rotation = 0.0
 	_snapshot_open()
