@@ -219,6 +219,7 @@ func _ready() -> void:
 		_start_bgm()
 		_build_debug_sequence()
 		_start_anim_sequence()
+		_is_intro = false
 	else:
 		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 50)
 		position = _base_position
