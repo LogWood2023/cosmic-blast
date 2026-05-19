@@ -40,6 +40,7 @@ var _is_wing_spread_playing: bool = false
 var _spread_timer: float = 0.0
 var _spread_phase: int = 0
 var _spread_switched: bool = false
+var _is_closing: bool = false
 
 # 翅膀配置硬切换测试
 var _test_toggle_timer: float = 0.0
@@ -341,14 +342,45 @@ func _process_wing_spread_animation(delta: float) -> void:
 				var t = ease_out(_spread_timer / 0.5)
 				_apply_p4(t)
 			else:
+				_save_switch_visual()
+				_spread_switched = false
+				_is_closing = true
+				_spread_timer = 0.0
+				_spread_phase = 5
+		5: # close_4 — 0→0.5s：向上50px缓入，反向旋转
+			if _spread_timer <= 0.5:
+				var t = ease_in(_spread_timer / 0.5)
+				_apply_close4(t)
+			else:
+				_spread_timer = 0.0
+				_spread_phase = 6
+		6: # close_2 — 0→0.3s：向下100px缓出，0.1s时切换回闭合
+			var t = ease_out(_spread_timer / 0.3)
+			if _spread_timer >= 0.1 and not _spread_switched:
+				_spread_switched = true
+				_save_switch_visual()
+				apply_wings_closed_state()
+				_set_wings_open(false)
+				_restore_switch_visual()
+				_apply_wing_sprite_props()
+			_apply_close2(t)
+			if _spread_timer >= 0.3:
+				_spread_timer = 0.0
+				_spread_phase = 7
+		7: # close_1 — 0→0.3s：停顿
+			if _spread_timer <= 0.3:
+				_apply_close2(1.0)
+			else:
 				_spread_timer = 0.0
 				_spread_phase = 0
+				_is_closing = false
 				_restart_wing_spread_animation()
-
-	_apply_wing_glow()
+	
+	if not _is_closing:
+		_apply_wing_glow()
+		_apply_point_lights()
 	_apply_wing_scale_boost()
 	_apply_wing_spread_offset()
-	_apply_point_lights()
 
 
 func _restart_wing_spread_animation() -> void:
@@ -357,6 +389,7 @@ func _restart_wing_spread_animation() -> void:
 	_sync_all_node_props()
 	_snapshot_closed()
 	_spread_switched = false
+	_is_closing = false
 	_spread_timer = 0.0
 	_spread_phase = 0
 	for mat in _wing_glow_mats:
@@ -505,7 +538,34 @@ func _apply_p4(t: float) -> void:
 	wing_pivot_right_node.rotation = start_rot_r + delta
 
 
+func _apply_close4(t: float) -> void:
+	var move_y = -50.0 * t
+	crystal_sprite.position = _switch_crystal_pos + Vector2(0, move_y)
+	crown_sprite.position = _switch_crown_pos + Vector2(0, move_y)
+	wing_pivot_left_node.position = _switch_wl_pivot_pos + Vector2(0, move_y)
+	wing_pivot_right_node.position = _switch_wr_pivot_pos + Vector2(0, move_y)
+	var start_rot_l = _switch_wl_rot
+	var start_rot_r = _switch_wr_rot
+	var delta = deg_to_rad(-10.0) * t
+	wing_pivot_left_node.rotation = start_rot_l - delta
+	wing_pivot_right_node.rotation = start_rot_r + delta
+
+
+func _apply_close2(t: float) -> void:
+	var move_y = 100.0 * t
+	var base_y = -50.0
+	crystal_sprite.position = _closed_crystal_pos + Vector2(0, base_y + move_y)
+	crown_sprite.position = _closed_crown_pos + Vector2(0, base_y + move_y)
+	wing_pivot_left_node.position = _closed_wl_pivot_pos + Vector2(0, base_y + move_y)
+	wing_pivot_right_node.position = _closed_wr_pivot_pos + Vector2(0, base_y + move_y)
+	var rot = deg_to_rad(10.0) * (1.0 - 2.0 * t)
+	wing_pivot_left_node.rotation = rot
+	wing_pivot_right_node.rotation = -rot
+
+
 func _get_glow_intensity() -> float:
+	if _is_closing:
+		return 0.0
 	match _spread_phase:
 		0, 1: return 0.0
 		2:
@@ -519,7 +579,7 @@ func _get_glow_intensity() -> float:
 
 func _get_scale_boost() -> float:
 	match _spread_phase:
-		0, 1: return 1.0
+		0, 1, 7: return 1.0
 		2:
 			if _spread_timer <= 0.2:
 				return 1.0
@@ -527,6 +587,8 @@ func _get_scale_boost() -> float:
 			return lerpf(1.0, wing_scale_boost_mult, t)
 		3: return wing_scale_boost_mult
 		4: return lerpf(wing_scale_boost_mult, 1.0, ease_out(_spread_timer / 0.5))
+		5: return lerpf(1.0, wing_scale_boost_mult, ease_in(_spread_timer / 0.5))
+		6: return lerpf(wing_scale_boost_mult, 1.0, ease_out(_spread_timer / 0.3))
 		_: return 1.0
 
 
@@ -540,13 +602,15 @@ func _apply_wing_scale_boost() -> void:
 
 func _get_spread_t() -> float:
 	match _spread_phase:
-		0, 1: return 0.0
+		0, 1, 7: return 0.0
 		2:
 			if _spread_timer <= 0.2:
 				return 0.0
 			return ease_in((_spread_timer - 0.2) / 0.1)
 		3: return 1.0
 		4: return 1.0 - ease_out(_spread_timer / 0.5)
+		5: return ease_in(_spread_timer / 0.5)
+		6: return 1.0 - ease_out(_spread_timer / 0.3)
 		_: return 0.0
 
 
