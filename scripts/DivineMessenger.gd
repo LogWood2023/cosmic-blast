@@ -23,6 +23,9 @@ var crystal_sprite: Sprite2D
 var crown_sprite: Sprite2D
 var wings_left: Sprite2D
 var wings_right: Sprite2D
+var _wing_glow_mats: Array[ShaderMaterial] = []
+var _point_light_left: Sprite2D
+var _point_light_right: Sprite2D
 var _wings_open: bool = false
 var _crown_phase: float = 0.0
 var _crystal_pulse: float = 0.0
@@ -85,6 +88,18 @@ var wing_pivot_right_sprite: Sprite2D
 @export var crown_z_index: int = 51
 @export var overall_scale: float = 1.0
 @export var show_pivot_dots: bool = false
+@export_group("Wing Glow (HDR)")
+@export var wing_glow_size: float = 0.008
+@export var wing_glow_max_brightness: float = 2.0
+@export var wing_glow_spread: int = 5
+@export_group("Wing Scale Boost")
+@export var wing_scale_boost_mult: float = 1.4
+@export_group("Wing Spread")
+@export var wing_spread_offset: float = 80.0
+@export var wing_spread_rise: float = 50.0
+@export_group("Point Lights")
+@export var point_light_size: float = 600.0
+@export var point_light_max_brightness: float = 0.5
 
 # ═══════ 翅膀闭合状态配置 ═══════
 @export_group("Wings Closed State")
@@ -151,6 +166,7 @@ var bgm_player: AudioStreamPlayer
 # ═══════════ 资源预加载 ═══════════
 const HIT_SFX = preload("res://assets/audio/boss_hit.wav")
 const EXPLOSION_SFX = preload("res://assets/audio/explosion.wav")
+const WING_GLOW_SHADER = preload("res://shaders/wing_glow.gdshader")
 const ROAR_SFX = preload("res://assets/audio/boss_roar.wav")
 const EXPLOSION_TEX = preload("res://assets/images/fx/explosion.png")
 const DEBRIS_TEX = preload("res://assets/images/fx/debris.png")
@@ -329,6 +345,11 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_spread_phase = 0
 				_restart_wing_spread_animation()
 
+	_apply_wing_glow()
+	_apply_wing_scale_boost()
+	_apply_wing_spread_offset()
+	_apply_point_lights()
+
 
 func _restart_wing_spread_animation() -> void:
 	apply_wings_closed_state()
@@ -338,6 +359,14 @@ func _restart_wing_spread_animation() -> void:
 	_spread_switched = false
 	_spread_timer = 0.0
 	_spread_phase = 0
+	for mat in _wing_glow_mats:
+		mat.set_shader_parameter("glow_intensity", 0.0)
+	if _point_light_left:
+		_point_light_left.scale = Vector2.ZERO
+		_point_light_left.modulate.a = 0.0
+	if _point_light_right:
+		_point_light_right.scale = Vector2.ZERO
+		_point_light_right.modulate.a = 0.0
 
 
 func _sync_all_node_props() -> void:
@@ -476,6 +505,101 @@ func _apply_p4(t: float) -> void:
 	wing_pivot_right_node.rotation = start_rot_r + delta
 
 
+func _get_glow_intensity() -> float:
+	match _spread_phase:
+		0, 1: return 0.0
+		2:
+			if _spread_timer <= 0.2:
+				return 0.0
+			return ease_in((_spread_timer - 0.2) / 0.1)
+		3: return 1.0
+		4: return 1.0 - ease_out(_spread_timer / 0.5)
+		_: return 0.0
+
+
+func _get_scale_boost() -> float:
+	match _spread_phase:
+		0, 1: return 1.0
+		2:
+			if _spread_timer <= 0.2:
+				return 1.0
+			var t = ease_in((_spread_timer - 0.2) / 0.1)
+			return lerpf(1.0, wing_scale_boost_mult, t)
+		3: return wing_scale_boost_mult
+		4: return lerpf(wing_scale_boost_mult, 1.0, ease_out(_spread_timer / 0.5))
+		_: return 1.0
+
+
+func _apply_wing_scale_boost() -> void:
+	var boost = _get_scale_boost()
+	if wings_left:
+		wings_left.scale = wings_scale * Vector2(boost, boost)
+	if wings_right:
+		wings_right.scale = wings_scale * Vector2(boost, boost)
+
+
+func _get_spread_t() -> float:
+	match _spread_phase:
+		0, 1: return 0.0
+		2:
+			if _spread_timer <= 0.2:
+				return 0.0
+			return ease_in((_spread_timer - 0.2) / 0.1)
+		3: return 1.0
+		4: return 1.0 - ease_out(_spread_timer / 0.5)
+		_: return 0.0
+
+
+func _apply_wing_spread_offset() -> void:
+	var t = _get_spread_t()
+	var spread_x = wing_spread_offset * t
+	var rise_y = wing_spread_rise * t
+	if wings_left:
+		wings_left.position = Vector2(wing_left_offset.x - spread_x, wing_left_offset.y - rise_y)
+	if wings_right:
+		wings_right.position = Vector2(wing_right_offset.x + spread_x, wing_right_offset.y - rise_y)
+
+
+func _apply_point_lights() -> void:
+	var t = _get_spread_t()
+	var tex_size = 256.0
+	var target_scale = point_light_size / tex_size
+	var alpha = t * point_light_max_brightness
+	if _point_light_left:
+		_point_light_left.scale = Vector2.ONE * target_scale * t
+		_point_light_left.modulate.a = alpha
+	if _point_light_right:
+		_point_light_right.scale = Vector2.ONE * target_scale * t
+		_point_light_right.modulate.a = alpha
+
+
+var _cached_point_light_tex: Texture2D
+
+func _point_light_tex() -> Texture2D:
+	if _cached_point_light_tex:
+		return _cached_point_light_tex
+	var size = 256
+	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color.TRANSPARENT)
+	var cx = size / 2.0
+	for y in size:
+		for x in size:
+			var dx = (x - cx) / cx
+			var dy = (y - cx) / cx
+			var dist = sqrt(dx * dx + dy * dy)
+			var a = clampf(1.0 - dist, 0.0, 1.0)
+			a = a * a
+			img.set_pixel(x, y, Color(1, 1, 1, a))
+	_cached_point_light_tex = ImageTexture.create_from_image(img)
+	return _cached_point_light_tex
+
+
+func _apply_wing_glow() -> void:
+	var intensity = _get_glow_intensity() * wing_glow_max_brightness
+	for mat in _wing_glow_mats:
+		mat.set_shader_parameter("glow_intensity", intensity)
+
+
 # 缓出函数
 func ease_out(t: float) -> float:
 	return 1.0 - pow(1.0 - t, 3.0)
@@ -514,6 +638,14 @@ func _setup_body() -> void:
 		wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(wings_tex.get_size().x / 2.0, wings_tex.get_size().y))
 	wing_pivot_left_node.add_child(wings_left)
 	
+	var mat_l = ShaderMaterial.new()
+	mat_l.shader = WING_GLOW_SHADER
+	mat_l.set_shader_parameter("glow_intensity", 0.0)
+	mat_l.set_shader_parameter("glow_size", wing_glow_size)
+	mat_l.set_shader_parameter("glow_spread", wing_glow_spread)
+	wings_left.material = mat_l
+	_wing_glow_mats.append(mat_l)
+	
 	# 左旋转中心红点（子节点，也放在容器上，位置是 (0,0)）
 	wing_pivot_left_sprite = _create_red_dot_sprite()
 	wing_pivot_left_sprite.position = Vector2.ZERO
@@ -521,6 +653,17 @@ func _setup_body() -> void:
 	wing_pivot_left_sprite.name = "LeftPivotDot"
 	wing_pivot_left_sprite.visible = show_pivot_dots
 	wing_pivot_left_node.add_child(wing_pivot_left_sprite)
+	
+	_point_light_left = Sprite2D.new()
+	_point_light_left.texture = _point_light_tex()
+	_point_light_left.centered = true
+	_point_light_left.scale = Vector2.ZERO
+	_point_light_left.position = Vector2.ZERO
+	_point_light_left.z_index = -100
+	_point_light_left.modulate = Color.WHITE
+	_point_light_left.modulate.a = 0.0
+	_point_light_left.name = "PointLightLeft"
+	wing_pivot_left_node.add_child(_point_light_left)
 	
 	# 右翅膀旋转容器
 	wing_pivot_right_node = Node2D.new()
@@ -541,6 +684,14 @@ func _setup_body() -> void:
 		wings_right.region_rect = Rect2(Vector2(wings_tex.get_size().x / 2.0, 0), Vector2(wings_tex.get_size().x / 2.0, wings_tex.get_size().y))
 	wing_pivot_right_node.add_child(wings_right)
 	
+	var mat_r = ShaderMaterial.new()
+	mat_r.shader = WING_GLOW_SHADER
+	mat_r.set_shader_parameter("glow_intensity", 0.0)
+	mat_r.set_shader_parameter("glow_size", wing_glow_size)
+	mat_r.set_shader_parameter("glow_spread", wing_glow_spread)
+	wings_right.material = mat_r
+	_wing_glow_mats.append(mat_r)
+	
 	# 右旋转中心红点
 	wing_pivot_right_sprite = _create_red_dot_sprite()
 	wing_pivot_right_sprite.position = Vector2.ZERO
@@ -548,6 +699,17 @@ func _setup_body() -> void:
 	wing_pivot_right_sprite.name = "RightPivotDot"
 	wing_pivot_right_sprite.visible = show_pivot_dots
 	wing_pivot_right_node.add_child(wing_pivot_right_sprite)
+	
+	_point_light_right = Sprite2D.new()
+	_point_light_right.texture = _point_light_tex()
+	_point_light_right.centered = true
+	_point_light_right.scale = Vector2.ZERO
+	_point_light_right.position = Vector2.ZERO
+	_point_light_right.z_index = -100
+	_point_light_right.modulate = Color.WHITE
+	_point_light_right.modulate.a = 0.0
+	_point_light_right.name = "PointLightRight"
+	wing_pivot_right_node.add_child(_point_light_right)
 
 	# 水晶 — 主体，z_index 中间
 	crystal_sprite = Sprite2D.new()
