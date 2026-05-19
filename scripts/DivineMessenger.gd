@@ -559,7 +559,7 @@ func _process_wing_spread_animation(delta: float) -> void:
 					_is_wing_spread_playing = false
 				else:
 					_advance_anim_sequence()
-		5: # close_a — 0→0.3s ease_in, left CCW10° right CW10°, 0.2s switch to closed
+		5: # close_a — 0→0.3s ease_in 左CCW10°右CW10°, 0.2s切换闭合纹理/偏移
 			var t = ease_in(_spread_timer / 0.3)
 			if _spread_timer >= 0.2 and not _spread_switched:
 				_spread_switched = true
@@ -570,11 +570,6 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_set_wings_open(false)
 				_restore_switch_visual()
 				_apply_wing_sprite_props()
-				if _anim_side == AnimSide.BOTH:
-					_switch_wl_pivot_pos = wing_pivot_left_pos
-					_switch_wr_pivot_pos = wing_pivot_right_pos
-					wing_pivot_left_node.position = wing_pivot_left_pos
-					wing_pivot_right_node.position = wing_pivot_right_pos
 				_switch_wl_rot = saved_l_rot
 				_switch_wr_rot = saved_r_rot
 			_apply_close_a(t)
