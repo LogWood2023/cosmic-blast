@@ -4,11 +4,11 @@
 
 [node name="DivineMessenger" type="Node2D" unique_id=1521675849]
 script = ExtResource("1")
-debug_mode = true
 crystal_scale = Vector2(0.3, 0.3)
 crown_scale = Vector2(0.1, 0.1)
 crown_pos = Vector2(0, -150)
 overall_scale = 0.9
+show_pivot_dots = true
 wing_glow_max_brightness = 1.0
 wing_glow_spread = 1
 wings_closed_wings_z_index = 52
@@ -18,7 +18,7 @@ wings_closed_wing_pivot_right_pos = Vector2(40, -60)
 wings_closed_wing_left_offset = Vector2(-100, 200)
 wings_closed_wing_right_offset = Vector2(100, 200)
 wings_open_wings_scale = Vector2(1, 1)
-wings_open_wing_pivot_left_pos = Vector2(40, -60)
+wings_open_wing_pivot_left_pos = Vector2(80, -60)
 wings_open_wing_pivot_right_pos = Vector2(-40, -60)
 wings_open_wing_left_offset = Vector2(-220, -160)
 wings_open_wing_right_offset = Vector2(220, -160)
