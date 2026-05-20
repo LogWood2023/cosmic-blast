@@ -138,24 +138,6 @@ var wing_pivot_right_sprite: Sprite2D
 @export var wings_closed_wing_left_offset: Vector2 = Vector2(40, 0)
 @export var wings_closed_wing_right_offset: Vector2 = Vector2(-40, 0)
 
-@export_group("Skill 1 Anim Durations")
-@export var skill_1_both_close_fade_duration: float = 0.6
-@export var skill_1_right_spread_phase1_hold: float = 1.0
-@export var skill_1_right_spread_fade_duration: float = 0.3
-@export var skill_1_right_close_fade_duration: float = 0.6
-@export var skill_1_both_spread_fade_duration: float = 0.3
-
-@export_group("Wing Anim Durations")
-@export var both_spread_phase3_hold: float = 2.0
-@export var both_close_phase5_duration: float = 0.3
-@export var both_close_phase6_duration: float = 0.3
-@export var left_spread_phase1_hold: float = 0.3
-@export var left_close_phase5_duration: float = 0.3
-@export var left_close_phase6_duration: float = 0.3
-@export var right_spread_phase1_hold: float = 0.3
-@export var right_close_phase5_duration: float = 0.3
-@export var right_close_phase6_duration: float = 0.3
-
 # ═══════ 翅膀张开状态配置 ═══════
 @export_group("Wings Open State")
 @export var wings_open_wings_scale: Vector2 = Vector2(0.5, 0.5)
@@ -221,6 +203,32 @@ const DebrisScript = preload("res://scripts/Debris.gd")
 # ═══════════ Tween 管理 ═══════════
 var _skill_tweens: Array[Tween] = []
 var _skill_p1_hold: float = 0.0
+var _anim_p0_duration: float = 0.8
+var _anim_p1_duration: float = 0.3
+var _anim_p2_duration: float = 0.3
+var _anim_p3_duration: float = 2.0
+var _anim_p4_duration: float = 0.5
+var _anim_close_a_duration: float = 0.3
+var _anim_close_b_duration: float = 0.3
+var _anim_close_switch_time: float = 0.2
+var skill_1_both_close_fade_duration: float = 0.6
+var skill_1_right_spread_phase1_hold: float = 3.0
+var skill_1_right_spread_fade_duration: float = 0.3
+var skill_1_right_close_fade_duration: float = 0.6
+var skill_1_both_spread_fade_duration: float = 0.3
+var _flap_active: bool = false
+var _flap_side: int = AnimSide.RIGHT_WING
+var _flap_close_durations: Dictionary = {}
+var _flap_appear_duration: float = -1.0
+var _flap_disappear_duration: float = -1.0
+var _skill1_warn_layer: Node2D
+var _skill1_bar_layer: Node2D
+var _skill1_warn_frame: Polygon2D
+var _skill1_warn_inner: Polygon2D
+var _skill1_warn_borders: Array[Polygon2D] = []
+var _skill1_warn_bar: Polygon2D
+var _skill1_warn_bar_outline: Polygon2D
+var _skill1_fx_side: int = AnimSide.RIGHT_WING
 
 
 func _ready() -> void:
@@ -606,15 +614,73 @@ func _hide_boss_name() -> void:
 	_overlay_label.modulate = Color(1, 1, 1, 0)
 
 
-func play_left_spread() -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.LEFT_WING)
-func play_left_close() -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.LEFT_WING)
-func play_right_spread() -> void: _start_side_anim(AnimKind.SPREAD, AnimSide.RIGHT_WING)
-func play_right_close() -> void:  _start_side_anim(AnimKind.CLOSE,  AnimSide.RIGHT_WING)
-func play_both_spread() -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.BOTH)
-func play_both_close() -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.BOTH)
+func play_left_spread(durations: Dictionary = {}) -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.LEFT_WING, durations)
+func play_left_close(durations: Dictionary = {}) -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.LEFT_WING, durations)
+func play_right_spread(durations: Dictionary = {}) -> void: _start_side_anim(AnimKind.SPREAD, AnimSide.RIGHT_WING, durations)
+func play_right_close(durations: Dictionary = {}) -> void:  _start_side_anim(AnimKind.CLOSE,  AnimSide.RIGHT_WING, durations)
+func play_both_spread(durations: Dictionary = {}) -> void:  _start_side_anim(AnimKind.SPREAD, AnimSide.BOTH, durations)
+func play_both_close(durations: Dictionary = {}) -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.BOTH, durations)
 
 
-func _start_side_anim(kind: int, side: int) -> void:
+func 左扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0, attack_fx: bool = false) -> void:
+	await _flap_anim(AnimSide.LEFT_WING, spread_durations, close_durations, appear_duration, phase1_hold, disappear_duration, attack_fx)
+
+
+func 右扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0, attack_fx: bool = false) -> void:
+	await _flap_anim(AnimSide.RIGHT_WING, spread_durations, close_durations, appear_duration, phase1_hold, disappear_duration, attack_fx)
+
+
+func 双扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0, attack_fx: bool = false) -> void:
+	await _flap_anim(AnimSide.BOTH, spread_durations, close_durations, appear_duration, phase1_hold, disappear_duration, attack_fx)
+
+
+func _flap_anim(side: int, spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0, attack_fx: bool = false) -> void:
+	var tree := get_tree()
+	_flap_active = true
+	_flap_side = side
+	_flap_close_durations = close_durations
+	_flap_appear_duration = appear_duration
+	_flap_disappear_duration = disappear_duration
+	_skill_p1_hold = phase1_hold
+	play_right_spread(spread_durations) if side == AnimSide.RIGHT_WING else play_left_spread(spread_durations) if side == AnimSide.LEFT_WING else play_both_spread(spread_durations)
+	var appear_started := false
+	var disappear_started := false
+	var warn_started := false
+	var warn_faded := false
+	while _is_wing_spread_playing:
+		if appear_duration >= 0.0 and not appear_started and _anim_kind == AnimKind.SPREAD and _spread_phase == 1 and _anim_side == side:
+			appear_started = true
+			变白出现(appear_duration)
+		if attack_fx and (side == AnimSide.RIGHT_WING or side == AnimSide.LEFT_WING):
+			if not warn_started and _anim_kind == AnimKind.SPREAD and _spread_phase == 1 and _spread_timer >= _anim_p1_duration:
+				warn_started = true
+				_skill1_fx_side = side
+				await _skill1_warn_sequence(phase1_hold)
+			elif warn_started and not warn_faded and _anim_kind == AnimKind.SPREAD and _spread_phase >= 2:
+				warn_faded = true
+		if disappear_duration >= 0.0 and not disappear_started and _anim_kind == AnimKind.CLOSE and _anim_side == side:
+			disappear_started = true
+			变白消失(disappear_duration)
+		await tree.process_frame
+	_flap_active = false
+	_flap_close_durations = {}
+	_flap_appear_duration = -1.0
+	_flap_disappear_duration = -1.0
+
+
+func _apply_anim_durations(durations: Dictionary = {}) -> void:
+	_anim_p0_duration = float(durations.get("p0", 0.8))
+	_anim_p1_duration = float(durations.get("p1", 0.3))
+	_anim_p2_duration = float(durations.get("p2", 0.3))
+	_anim_p3_duration = float(durations.get("p3", 2.0))
+	_anim_p4_duration = float(durations.get("p4", 0.5))
+	_anim_close_a_duration = float(durations.get("close_a", 0.3))
+	_anim_close_b_duration = float(durations.get("close_b", 0.3))
+	_anim_close_switch_time = float(durations.get("close_switch", minf(0.2, minf(_anim_p2_duration, _anim_close_a_duration))))
+
+
+func _start_side_anim(kind: int, side: int, durations: Dictionary = {}) -> void:
+	_apply_anim_durations(durations)
 	_anim_kind = kind
 	_anim_side = side
 	_spread_switched = false
@@ -634,6 +700,214 @@ func _start_side_anim(kind: int, side: int) -> void:
 	_is_wing_spread_playing = true
 
 
+func _start_close_from_peak(side: int, durations: Dictionary = {}) -> void:
+	_apply_anim_durations(durations)
+	_anim_kind = AnimKind.CLOSE
+	_anim_side = side
+	_spread_switched = false
+	_is_closing = true
+	_spread_timer = 0.0
+	_spread_phase = 5
+	if side == AnimSide.RIGHT_WING and wings_right:
+		wing_right_offset = wings_right.position
+		wings_scale = wings_right.scale
+	elif side == AnimSide.LEFT_WING and wings_left:
+		wing_left_offset = wings_left.position
+		wings_scale = wings_left.scale
+	elif side == AnimSide.BOTH:
+		if wings_left:
+			wing_left_offset = wings_left.position
+		if wings_right:
+			wing_right_offset = wings_right.position
+		if wings_left:
+			wings_scale = wings_left.scale
+	_set_wings_open(true)
+	_save_switch_visual()
+	_is_wing_spread_playing = true
+
+
+func _ensure_skill1_warn_layer() -> void:
+	if not is_instance_valid(_skill1_warn_layer):
+		_skill1_warn_layer = Node2D.new()
+		_skill1_warn_layer.z_index = -100
+		_skill1_warn_layer.z_as_relative = false
+		_skill1_warn_layer.name = "Skill1WarnLayer"
+		get_tree().current_scene.add_child(_skill1_warn_layer)
+	if not is_instance_valid(_skill1_bar_layer):
+		_skill1_bar_layer = Node2D.new()
+		_skill1_bar_layer.z_index = 30
+		_skill1_bar_layer.z_as_relative = false
+		_skill1_bar_layer.name = "Skill1BarLayer"
+		get_tree().current_scene.add_child(_skill1_bar_layer)
+	if not is_instance_valid(_skill1_warn_frame):
+		_skill1_warn_frame = Polygon2D.new()
+		_skill1_warn_frame.color = Color(1, 1, 1, 0)
+		_skill1_warn_frame.name = "Skill1WarnFrame"
+		_skill1_warn_layer.add_child(_skill1_warn_frame)
+	if not is_instance_valid(_skill1_warn_inner):
+		_skill1_warn_inner = Polygon2D.new()
+		_skill1_warn_inner.color = Color(1, 1, 1, 0)
+		_skill1_warn_inner.name = "Skill1WarnInner"
+		_skill1_warn_layer.add_child(_skill1_warn_inner)
+	if _skill1_warn_borders.is_empty():
+		for i in 4:
+			var border = Polygon2D.new()
+			border.color = Color(1, 1, 1, 0)
+			border.name = "Skill1WarnBorder%d" % i
+			_skill1_warn_layer.add_child(border)
+			_skill1_warn_borders.append(border)
+	if not is_instance_valid(_skill1_warn_bar):
+		_skill1_warn_bar = Polygon2D.new()
+		_skill1_warn_bar.color = Color(1, 1, 1, 0)
+		_skill1_warn_bar.name = "Skill1WarnBar"
+		_skill1_bar_layer.add_child(_skill1_warn_bar)
+	if not is_instance_valid(_skill1_warn_bar_outline):
+		_skill1_warn_bar_outline = Polygon2D.new()
+		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 0)
+		_skill1_warn_bar_outline.name = "Skill1WarnBarOutline"
+		_skill1_bar_layer.add_child(_skill1_warn_bar_outline)
+
+
+func _skill1_get_warn_rect() -> Rect2:
+	var pivot_pos: Vector2
+	if _skill1_fx_side == AnimSide.LEFT_WING:
+		pivot_pos = wing_pivot_left_node.global_position if is_instance_valid(wing_pivot_left_node) else global_position
+	else:
+		pivot_pos = wing_pivot_right_node.global_position if is_instance_valid(wing_pivot_right_node) else global_position
+	var viewport_size = get_viewport().get_visible_rect().size
+	var px = clampf(pivot_pos.x, 0.0, viewport_size.x)
+	if _skill1_fx_side == AnimSide.LEFT_WING:
+		return Rect2(Vector2(0.0, 0.0), Vector2(maxf(1.0, px), viewport_size.y))
+	return Rect2(Vector2(px, 0.0), Vector2(maxf(1.0, viewport_size.x - px), viewport_size.y))
+
+
+func _set_poly_rect(poly: Polygon2D, rect: Rect2) -> void:
+	poly.polygon = PackedVector2Array([
+		rect.position,
+		rect.position + Vector2(rect.size.x, 0),
+		rect.position + rect.size,
+		rect.position + Vector2(0, rect.size.y),
+	])
+
+
+func _skill1_check_bar_hit(rect: Rect2) -> void:
+	var player = get_tree().get_first_node_in_group(&"player")
+	if is_instance_valid(player) and rect.has_point(player.global_position) and player.has_method(&"take_damage_from_boss"):
+		player.take_damage_from_boss(30)
+
+
+func _skill1_update_warn_inner(progress: float) -> void:
+	if not is_instance_valid(_skill1_warn_inner):
+		return
+	var rect = _skill1_get_warn_rect()
+	var h = lerpf(5.0, rect.size.y, clampf(progress, 0.0, 1.0))
+	var y = rect.position.y + rect.size.y * 0.5 - h * 0.5
+	_set_poly_rect(_skill1_warn_inner, Rect2(Vector2(rect.position.x, y), Vector2(rect.size.x, h)))
+	_skill1_warn_inner.color = Color(1, 1, 1, 0.3)
+
+
+func _skill1_update_warn_layer(opacity: float) -> void:
+	if not is_instance_valid(_skill1_warn_layer):
+		return
+	var rect = _skill1_get_warn_rect()
+	_set_poly_rect(_skill1_warn_frame, rect)
+	_skill1_warn_frame.color = Color(1, 1, 1, 0.3 * opacity)
+	var bw := 10.0
+	if _skill1_warn_borders.size() >= 4:
+		_set_poly_rect(_skill1_warn_borders[0], Rect2(rect.position, Vector2(rect.size.x, bw)))
+		_set_poly_rect(_skill1_warn_borders[1], Rect2(rect.position + Vector2(0, rect.size.y - bw), Vector2(rect.size.x, bw)))
+		_set_poly_rect(_skill1_warn_borders[2], Rect2(rect.position, Vector2(bw, rect.size.y)))
+		_set_poly_rect(_skill1_warn_borders[3], Rect2(rect.position + Vector2(rect.size.x - bw, 0), Vector2(bw, rect.size.y)))
+		for border in _skill1_warn_borders:
+			border.color = Color(1, 1, 1, opacity)
+
+
+func _skill1_clear_warn_layer() -> void:
+	if is_instance_valid(_skill1_warn_layer):
+		_skill1_warn_layer.queue_free()
+	if is_instance_valid(_skill1_bar_layer):
+		_skill1_bar_layer.queue_free()
+	_skill1_warn_layer = null
+	_skill1_bar_layer = null
+	_skill1_warn_frame = null
+	_skill1_warn_inner = null
+	_skill1_warn_borders.clear()
+	_skill1_warn_bar = null
+	_skill1_warn_bar_outline = null
+
+
+func _skill1_warn_sequence(hold_duration: float) -> void:
+	_ensure_skill1_warn_layer()
+	var tw_inner = create_tween()
+	tw_inner.tween_method(func(t): _skill1_update_warn_inner(t), 0.0, 1.0, hold_duration + 0.2)
+	var tw_in = create_tween()
+	tw_in.tween_method(func(a): _skill1_update_warn_layer(a), 0.0, 1.0, 0.2)
+	await tw_in.finished
+	await get_tree().create_timer(maxf(0.0, hold_duration - 0.2)).timeout
+	var tw_out = create_tween()
+	tw_out.tween_method(func(a): _skill1_update_warn_layer(a), 1.0, 0.0, 0.2)
+	await tw_out.finished
+	if is_instance_valid(_skill1_warn_frame):
+		_skill1_warn_frame.queue_free()
+	if is_instance_valid(_skill1_warn_inner):
+		_skill1_warn_inner.queue_free()
+	await _skill1_bar_sequence()
+
+
+func _skill1_bar_sequence() -> void:
+	_ensure_skill1_warn_layer()
+	if not is_instance_valid(_skill1_warn_bar):
+		_skill1_warn_bar = Polygon2D.new()
+		_skill1_warn_bar.color = Color(1, 1, 1, 0)
+		_skill1_warn_bar.name = "Skill1WarnBar"
+		_skill1_bar_layer.add_child(_skill1_warn_bar)
+	if not is_instance_valid(_skill1_warn_bar_outline):
+		_skill1_warn_bar_outline = Polygon2D.new()
+		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 0)
+		_skill1_warn_bar_outline.name = "Skill1WarnBarOutline"
+		_skill1_bar_layer.add_child(_skill1_warn_bar_outline)
+	var rect = _skill1_get_warn_rect()
+	var start_x = rect.position.x + rect.size.x if _skill1_fx_side == AnimSide.LEFT_WING else rect.position.x
+	var end_x = 0.0 if _skill1_fx_side == AnimSide.LEFT_WING else get_viewport().get_visible_rect().size.x
+	_set_poly_rect(_skill1_warn_bar, Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
+	_skill1_warn_bar.color = Color(1, 1, 1, 1.0)
+	_set_poly_rect(_skill1_warn_bar_outline, Rect2(Vector2(start_x - 30.0 if _skill1_fx_side == AnimSide.LEFT_WING else start_x + 1.0, 0.0), Vector2(30.0, rect.size.y)))
+	_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 1.0)
+	_skill1_check_bar_hit(Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
+	var tw_expand = create_tween()
+	tw_expand.set_trans(Tween.TRANS_QUAD)
+	tw_expand.set_ease(Tween.EASE_OUT)
+	tw_expand.tween_method(func(t):
+		if not is_instance_valid(_skill1_warn_bar) or not is_instance_valid(_skill1_warn_bar_outline):
+			return
+		var cur_x = lerpf(start_x, end_x, t)
+		var left_x = minf(start_x, cur_x)
+		var cur_w = maxf(1.0, absf(cur_x - start_x))
+		var hit_rect = Rect2(Vector2(left_x, 0.0), Vector2(cur_w, rect.size.y))
+		_set_poly_rect(_skill1_warn_bar, hit_rect)
+		_set_poly_rect(_skill1_warn_bar_outline, Rect2(Vector2(left_x - 30.0 if _skill1_fx_side == AnimSide.LEFT_WING else left_x + cur_w, 0.0), Vector2(30.0, rect.size.y)))
+		_skill1_check_bar_hit(hit_rect)
+	, 0.0, 1.0, 0.2)
+	await tw_expand.finished
+	var full_hit_rect = Rect2(Vector2(minf(start_x, end_x), 0.0), Vector2(maxf(1.0, absf(end_x - start_x)), rect.size.y))
+	var tw_fade = create_tween()
+	tw_fade.tween_method(func(a):
+		if not is_instance_valid(_skill1_warn_bar) or not is_instance_valid(_skill1_warn_bar_outline):
+			return
+		_skill1_warn_bar.color = Color(1, 1, 1, a)
+		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, a)
+		_skill1_check_bar_hit(full_hit_rect)
+	, 1.0, 0.0, 0.3)
+	await tw_fade.finished
+	if is_instance_valid(_skill1_warn_bar):
+		_skill1_warn_bar.queue_free()
+	if is_instance_valid(_skill1_warn_bar_outline):
+		_skill1_warn_bar_outline.queue_free()
+	if is_instance_valid(_skill1_warn_frame):
+		_skill1_warn_frame.queue_free()
+	_skill1_clear_warn_layer()
+
+
 func _process_wing_spread_animation(delta: float) -> void:
 	if not _is_wing_spread_playing:
 		return
@@ -642,25 +916,25 @@ func _process_wing_spread_animation(delta: float) -> void:
 	
 	match _spread_phase:
 		0: # 0→0.8s：向下50px缓出，左逆10°右顺10°
-			if _spread_timer <= 0.8:
-				var t = ease_out(_spread_timer / 0.8)
+			if _spread_timer <= _anim_p0_duration:
+				var t = ease_out(_spread_timer / _anim_p0_duration) if _anim_p0_duration > 0.0 else 1.0
 				_apply_p0(t)
 			else:
 				_spread_timer = 0.0
 				_spread_phase = 1
 		1: # 0→0.3s：停顿在峰值
-			if _spread_timer <= 0.3:
+			if _spread_timer <= _anim_p1_duration:
 				_apply_p0(1.0)
 			elif _skill_p1_hold > 0.0:
-				_spread_timer = 0.3
+				_spread_timer = _anim_p1_duration
 				_skill_p1_hold -= delta
 				_apply_p0(1.0)
 			else:
 				_spread_timer = 0.0
 				_spread_phase = 2
 		2: # 0→0.3s：向上100px缓入，左右各反向20°；0.2s时切换张开配置
-			var t = ease_in(_spread_timer / 0.3)
-			if _spread_timer >= 0.2 and not _spread_switched:
+			var t = ease_in(_spread_timer / _anim_p2_duration) if _anim_p2_duration > 0.0 else 1.0
+			if _spread_timer >= _anim_close_switch_time and not _spread_switched:
 				_spread_switched = true
 				_switch_eased_t = t
 				_save_switch_visual()
@@ -670,19 +944,24 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_restore_switch_visual()
 				_apply_wing_sprite_props()
 			_apply_p2(t)
-			if _spread_timer >= 0.3:
+			if _spread_timer >= _anim_p2_duration:
 				_snapshot_p4()
 				_spread_timer = 0.0
 				_spread_phase = 3
 		3: # 0→2s：停顿在最高点
-			if _spread_timer <= both_spread_phase3_hold:
+			if _spread_timer <= _anim_p3_duration:
 				_apply_p2(1.0)
 			else:
+				if _flap_active and _anim_kind == AnimKind.SPREAD and _anim_side == _flap_side:
+					_apply_p2(1.0)
+					_save_switch_visual()
+					_start_close_from_peak(_flap_side, _flap_close_durations)
+					return
 				_spread_timer = 0.0
 				_spread_phase = 4
 		4: # 0→0.5s：向下50px缓出，左逆10°右顺10°
-			if _spread_timer <= 0.5:
-				var t = ease_out(_spread_timer / 0.5)
+			if _spread_timer <= _anim_p4_duration:
+				var t = ease_out(_spread_timer / _anim_p4_duration) if _anim_p4_duration > 0.0 else 1.0
 				_apply_p4(t)
 			else:
 				_save_switch_visual()
@@ -703,8 +982,8 @@ func _process_wing_spread_animation(delta: float) -> void:
 				else:
 					_advance_anim_sequence()
 		5: # close_a — 0→0.3s ease_in 左CCW10°右CW10°, 0.2s切换闭合纹理/偏移
-			var t = ease_in(_spread_timer / 0.3)
-			if _spread_timer >= 0.2 and not _spread_switched:
+			var t = ease_in(_spread_timer / _anim_close_a_duration) if _anim_close_a_duration > 0.0 else 1.0
+			if _spread_timer >= _anim_close_switch_time and not _spread_switched:
 				_spread_switched = true
 				var saved_l_rot = _switch_wl_rot
 				var saved_r_rot = _switch_wr_rot
@@ -716,13 +995,13 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_switch_wl_rot = saved_l_rot
 				_switch_wr_rot = saved_r_rot
 			_apply_close_a(t)
-			if _spread_timer >= 0.3:
+			if _spread_timer >= _anim_close_a_duration:
 				_spread_timer = 0.0
 				_spread_phase = 6
 		6: # close_b — 0→0.3s ease_out, left CW10° right CCW10° (return)
-			var t = ease_out(_spread_timer / 0.3)
+			var t = ease_out(_spread_timer / _anim_close_b_duration) if _anim_close_b_duration > 0.0 else 1.0
 			_apply_close_b(t)
-			if _spread_timer >= 0.3:
+			if _spread_timer >= _anim_close_b_duration:
 				if _is_intro:
 					_is_wing_spread_playing = false
 				else:
@@ -1423,11 +1702,18 @@ func apply_damage(amount: int) -> void:
 ## ── 技能1：羽翼张开扫射 ──
 
 func _skill_1() -> void:
+	if randi() % 2 == 0:
+		await _skill_1_right_variant()
+	else:
+		await _skill_1_left_variant()
+
+
+func _skill_1_right_variant() -> void:
 	if dying: return
 	var tree := get_tree()
 	var original_pos := _base_position
 	
-	play_both_close()
+	play_both_close({"close_a": skill_1_both_close_fade_duration * 0.5, "close_b": skill_1_both_close_fade_duration * 0.5, "close_switch": skill_1_both_close_fade_duration / 3.0})
 	变白消失(skill_1_both_close_fade_duration)
 	while _is_wing_spread_playing:
 		await tree.process_frame
@@ -1437,26 +1723,59 @@ func _skill_1() -> void:
 	_base_position = tele_pos
 	position = _base_position
 	
-	_skill_p1_hold = skill_1_right_spread_phase1_hold
-	play_right_spread()
-	变白出现(skill_1_right_spread_fade_duration)
-	while _is_wing_spread_playing:
-		await tree.process_frame
+	await 右扇动(
+		{"p1": skill_1_right_spread_fade_duration, "p3": 0.5},
+		{"close_a": skill_1_right_close_fade_duration * 0.5, "close_b": skill_1_right_close_fade_duration * 0.5, "close_switch": skill_1_right_close_fade_duration / 3.0},
+		skill_1_right_spread_fade_duration,
+		skill_1_right_spread_phase1_hold,
+		skill_1_right_close_fade_duration,
+		true
+	)
 	
-	play_right_close()
-	变白消失(skill_1_right_close_fade_duration)
+	modulate.a = 0.0
+	_anim_side = AnimSide.BOTH
+	apply_wings_open_state()
+	_sync_all_node_props()
+	_base_position = original_pos
+	position = _base_position
+	_skill_p1_hold = 0.0
+	变白出现(skill_1_both_spread_fade_duration)
+	await get_tree().create_timer(skill_1_both_spread_fade_duration).timeout
+
+
+func _skill_1_left_variant() -> void:
+	if dying: return
+	var tree := get_tree()
+	var original_pos := _base_position
+	
+	play_both_close({"close_a": skill_1_both_close_fade_duration * 0.5, "close_b": skill_1_both_close_fade_duration * 0.5, "close_switch": skill_1_both_close_fade_duration / 3.0})
+	变白消失(skill_1_both_close_fade_duration)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
 	modulate.a = 0.0
-	_base_position = original_pos
+	var tele_pos := Vector2(screen_size.x * 0.75, screen_size.y * 0.5)
+	_base_position = tele_pos
 	position = _base_position
 	
+	await 左扇动(
+		{"p1": skill_1_right_spread_fade_duration, "p3": 0.5},
+		{"close_a": skill_1_right_close_fade_duration * 0.5, "close_b": skill_1_right_close_fade_duration * 0.5, "close_switch": skill_1_right_close_fade_duration / 3.0},
+		skill_1_right_spread_fade_duration,
+		skill_1_right_spread_phase1_hold,
+		skill_1_right_close_fade_duration,
+		true
+	)
+	
+	modulate.a = 0.0
+	_anim_side = AnimSide.BOTH
+	apply_wings_open_state()
+	_sync_all_node_props()
+	_base_position = original_pos
+	position = _base_position
 	_skill_p1_hold = 0.0
-	play_both_spread()
 	变白出现(skill_1_both_spread_fade_duration)
-	while _is_wing_spread_playing:
-		await tree.process_frame
+	await get_tree().create_timer(skill_1_both_spread_fade_duration).timeout
 
 
 ## ── 翅膀状态管理（张开/闭合） ──
