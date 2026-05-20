@@ -6,6 +6,7 @@ const CRYSTAL_TEX = preload("res://assets/images/divine_messenger/crystal_cutout
 const CROWN_TEX = preload("res://assets/images/divine_messenger/crown_cutout.png")
 const WINGS_TEX = preload("res://assets/images/divine_messenger/wings_cutout.png")
 const WINGS_OPEN_TEX = preload("res://assets/images/divine_messenger/wings_open_cutout.png")
+const ENEMY_BULLET_SCENE = preload("res://scenes/EnemyBullet.tscn")
 const SKILL3_ENEMY_SCENES: Array[String] = [
 	"res://scenes/EnemyShooter.tscn",
 	"res://scenes/EnemyScatter.tscn",
@@ -64,6 +65,7 @@ var _base_position: Vector2
 var _intro_modulate: Color = Color.WHITE
 var _body_shake_intensity: float = 0.0
 var _screen_shake_intensity: float = 0.0
+var _skill5_parts_shake_active: bool = false
 var _boss_name_overlay: CanvasLayer
 var _overlay_rect: ColorRect
 var _overlay_label: Label
@@ -336,7 +338,7 @@ func _process(delta: float) -> void:
 	cooldown_remaining -= delta
 	if cooldown_remaining <= 0.0:
 		is_executing = true
-		await _exec_skill(3)
+		await _exec_skill(5)
 		cooldown_remaining = skill_cooldown
 		is_executing = false
 
@@ -686,6 +688,7 @@ func _apply_anim_durations(durations: Dictionary = {}) -> void:
 
 
 func _start_side_anim(kind: int, side: int, durations: Dictionary = {}) -> void:
+	_prepare_anim_start_from_current_idle()
 	_apply_anim_durations(durations)
 	_anim_kind = kind
 	_anim_side = side
@@ -696,14 +699,41 @@ func _start_side_anim(kind: int, side: int, durations: Dictionary = {}) -> void:
 		_init_close_start()
 		_spread_phase = 5
 	else:
-		if kind == AnimKind.SPREAD and side == AnimSide.BOTH:
+		if kind == AnimKind.SPREAD:
 			apply_wings_closed_state()
 		_set_wings_open(false)
 		_sync_all_node_props()
 		_snapshot_closed()
 		_save_switch_visual()
 		_spread_phase = 0
+	if side == AnimSide.LEFT_WING:
+		wing_right_offset = wings_closed_wing_right_offset
+		if wings_right:
+			wings_right.position = wings_closed_wing_right_offset
+			wings_right.scale = wings_closed_wings_scale
+	elif side == AnimSide.RIGHT_WING:
+		wing_left_offset = wings_closed_wing_left_offset
+		if wings_left:
+			wings_left.position = wings_closed_wing_left_offset
+			wings_left.scale = wings_closed_wings_scale
 	_is_wing_spread_playing = true
+
+
+func _prepare_anim_start_from_current_idle() -> void:
+	if crystal_sprite:
+		crystal_pos = crystal_sprite.position
+	if crown_sprite:
+		crown_pos = crown_sprite.position
+	if wing_pivot_left_node:
+		wing_pivot_left_pos = wing_pivot_left_node.position
+	if wing_pivot_right_node:
+		wing_pivot_right_pos = wing_pivot_right_node.position
+	if wings_left:
+		wing_left_offset = wings_left.position
+		wings_scale = wings_left.scale
+	if wings_right:
+		wing_right_offset = wings_right.position
+		wings_scale = wings_right.scale
 
 
 func _start_close_from_peak(side: int, durations: Dictionary = {}) -> void:
@@ -764,9 +794,10 @@ func _ensure_skill1_warn_layer() -> void:
 			_skill1_warn_borders.append(border)
 	if not is_instance_valid(_skill1_warn_bar):
 		_skill1_warn_bar = Polygon2D.new()
-		_skill1_warn_bar.color = _theme_color(0.0)
 		_skill1_warn_bar.name = "Skill1WarnBar"
 		_skill1_bar_layer.add_child(_skill1_warn_bar)
+		_enable_poly_glow(_skill1_warn_bar)
+		_set_theme_poly_color(_skill1_warn_bar, 0.0)
 	if not is_instance_valid(_skill1_warn_bar_outline):
 		_skill1_warn_bar_outline = Polygon2D.new()
 		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 0)
@@ -794,10 +825,77 @@ func _set_poly_rect(poly: Polygon2D, rect: Rect2) -> void:
 		rect.position + rect.size,
 		rect.position + Vector2(0, rect.size.y),
 	])
+	if poly.has_meta(&"glow"):
+		var glow: Polygon2D = poly.get_meta(&"glow")
+		var spread := 18.0
+		var glow_rect := Rect2(rect.position - Vector2(spread, spread), rect.size + Vector2(spread * 2.0, spread * 2.0))
+		glow.polygon = PackedVector2Array([
+			glow_rect.position,
+			glow_rect.position + Vector2(glow_rect.size.x, 0),
+			glow_rect.position + glow_rect.size,
+			glow_rect.position + Vector2(0, glow_rect.size.y),
+		])
 
 
 func _theme_color(alpha: float) -> Color:
 	return Color(主题色.r, 主题色.g, 主题色.b, alpha)
+
+
+func _set_theme_poly_color(poly: Polygon2D, alpha: float) -> void:
+	poly.color = _theme_color(alpha)
+	if poly.has_meta(&"glow"):
+		var glow: Polygon2D = poly.get_meta(&"glow")
+		glow.color = _theme_color(alpha * 0.35)
+
+
+func _enable_poly_glow(poly: Polygon2D) -> void:
+	if poly.has_meta(&"glow"):
+		return
+	var glow := Polygon2D.new()
+	glow.name = "%sGlow" % poly.name
+	glow.z_index = -1
+	glow.z_as_relative = true
+	glow.color = _theme_color(0.0)
+	poly.add_child(glow)
+	poly.set_meta(&"glow", glow)
+
+
+func _theme_dark_color(alpha: float) -> Color:
+	return Color(主题色.r * 0.45, 主题色.g * 0.45, 主题色.b * 0.45, alpha)
+
+
+func _set_poly_strip(poly: Polygon2D, length: float, width: float) -> void:
+	var hw = width * 0.5
+	poly.polygon = PackedVector2Array([
+		Vector2(0.0, -hw),
+		Vector2(length, -hw),
+		Vector2(length, hw),
+		Vector2(0.0, hw),
+	])
+	if poly.has_meta(&"glow"):
+		var glow: Polygon2D = poly.get_meta(&"glow")
+		var spread := 18.0
+		var ghw = hw + spread
+		glow.polygon = PackedVector2Array([
+			Vector2(-spread, -ghw),
+			Vector2(length + spread, -ghw),
+			Vector2(length + spread, ghw),
+			Vector2(-spread, ghw),
+		])
+
+
+func _skill4_pick_angle(existing_angles: Array[float]) -> float:
+	var min_gap := deg_to_rad(30.0)
+	for _i in 32:
+		var angle := randf_range(0.0, TAU)
+		var valid := true
+		for other in existing_angles:
+			if absf(angle_difference(angle, other)) < min_gap:
+				valid = false
+				break
+		if valid:
+			return angle
+	return randf_range(0.0, TAU)
 
 
 func _skill1_check_bar_hit(rect: Rect2) -> void:
@@ -884,7 +982,7 @@ func _skill1_bar_sequence() -> void:
 	var start_x = rect.position.x + rect.size.x if _skill1_fx_side == AnimSide.LEFT_WING else rect.position.x
 	var end_x = 0.0 if _skill1_fx_side == AnimSide.LEFT_WING else get_viewport().get_visible_rect().size.x
 	_set_poly_rect(_skill1_warn_bar, Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
-	_skill1_warn_bar.color = _theme_color(1.0)
+	_set_theme_poly_color(_skill1_warn_bar, 1.0)
 	_set_poly_rect(_skill1_warn_bar_outline, Rect2(Vector2(start_x - 30.0 if _skill1_fx_side == AnimSide.LEFT_WING else start_x + 1.0, 0.0), Vector2(30.0, rect.size.y)))
 	_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 1.0)
 	_skill1_check_bar_hit(Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
@@ -908,7 +1006,7 @@ func _skill1_bar_sequence() -> void:
 	tw_fade.tween_method(func(a):
 		if not is_instance_valid(_skill1_warn_bar) or not is_instance_valid(_skill1_warn_bar_outline):
 			return
-		_skill1_warn_bar.color = _theme_color(a)
+		_set_theme_poly_color(_skill1_warn_bar, a)
 		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, a)
 		_skill1_check_bar_hit(full_hit_rect)
 	, 1.0, 0.0, 0.3)
@@ -940,7 +1038,8 @@ func _skill2_warning_column(x: float) -> void:
 	var inner := Polygon2D.new()
 	warn_node.add_child(outer)
 	warn_node.add_child(inner)
-	var outer_rect := Rect2(Vector2(x, 0.0), Vector2(50.0, viewport_size.y))
+	var attack_rect := Rect2(Vector2(x, 0.0), Vector2(50.0, viewport_size.y))
+	var outer_rect := Rect2(Vector2(x + 5.0, 0.0), Vector2(40.0, viewport_size.y))
 	_set_poly_rect(outer, outer_rect)
 	outer.color = _theme_color(0.0)
 	_set_poly_rect(inner, Rect2(Vector2(x + 25.0 - 2.5, 0.0), Vector2(5.0, viewport_size.y)))
@@ -957,7 +1056,7 @@ func _skill2_warning_column(x: float) -> void:
 	grow.tween_method(func(t):
 		if not is_instance_valid(inner):
 			return
-		var w = lerpf(5.0, 50.0, t)
+		var w = lerpf(5.0, 40.0, t)
 		_set_poly_rect(inner, Rect2(Vector2(x + 25.0 - w * 0.5, 0.0), Vector2(w, viewport_size.y)))
 	, 0.0, 1.0, 1.0)
 	await get_tree().create_timer(0.85).timeout
@@ -971,7 +1070,7 @@ func _skill2_warning_column(x: float) -> void:
 	await fade_out.finished
 	if is_instance_valid(warn_node):
 		warn_node.queue_free()
-	_skill2_attack_column(outer_rect)
+	_skill2_attack_column(attack_rect)
 
 
 func _skill2_attack_column(rect: Rect2) -> void:
@@ -982,8 +1081,9 @@ func _skill2_attack_column(rect: Rect2) -> void:
 	node.name = "Skill2AttackColumn"
 	parent.add_child(node)
 	var poly := Polygon2D.new()
-	poly.color = _theme_color(1.0)
 	node.add_child(poly)
+	_enable_poly_glow(poly)
+	_set_theme_poly_color(poly, 1.0)
 	_set_poly_rect(poly, rect)
 	_check_player_hit_rect(rect, 20)
 	var tw := create_tween()
@@ -1013,6 +1113,228 @@ func _skill2_spawn_warning_columns() -> void:
 		await get_tree().create_timer(0.2).timeout
 		left_x -= step_x
 		right_x += step_x
+
+
+func _skill4_warning_blades(duration: float) -> void:
+	var parent = get_tree().current_scene
+	var pivot = crystal_sprite.global_position if is_instance_valid(crystal_sprite) else global_position
+	var root := Node2D.new()
+	root.name = "Skill4WarningBlades"
+	root.global_position = pivot
+	root.z_index = -100
+	root.z_as_relative = false
+	parent.add_child(root)
+	var blades: Array[Dictionary] = []
+	var angles: Array[float] = []
+	var count := randi_range(5, 8)
+	for i in count:
+		var blade := Node2D.new()
+		blade.rotation = _skill4_pick_angle(angles)
+		angles.append(blade.rotation)
+		root.add_child(blade)
+		var fill := Polygon2D.new()
+		var edge_top := Polygon2D.new()
+		var edge_bottom := Polygon2D.new()
+		_enable_poly_glow(fill)
+		_set_theme_poly_color(fill, 0.3)
+		edge_top.color = _theme_dark_color(1.0)
+		edge_bottom.color = _theme_dark_color(1.0)
+		blade.add_child(fill)
+		blade.add_child(edge_top)
+		blade.add_child(edge_bottom)
+		blades.append({"node": blade, "fill": fill, "top": edge_top, "bottom": edge_bottom, "angle": blade.rotation, "width": 0.0})
+	var elapsed := 0.0
+	var rot_speed := 0.0
+	var tree := get_tree()
+	while elapsed < duration and not dying:
+		var last_ticks := Time.get_ticks_usec()
+		await tree.process_frame
+		var delta := float(Time.get_ticks_usec() - last_ticks) / 1000000.0
+		elapsed += delta
+		if elapsed <= 0.5:
+			rot_speed = deg_to_rad(450.0) * ease_out(elapsed / 0.5)
+		elif elapsed >= 2.0:
+			rot_speed = deg_to_rad(450.0) * (1.0 - ease_in(clampf((elapsed - 2.0) / 1.0, 0.0, 1.0)))
+		else:
+			rot_speed = deg_to_rad(450.0)
+		for blade_data in blades:
+			var width = minf(90.0, 90.0 * elapsed / 0.5)
+			blade_data.width = width
+			blade_data.angle += rot_speed * delta
+			var node: Node2D = blade_data.node
+			node.rotation = blade_data.angle
+			_skill4_update_blade_visual(blade_data, width)
+	if is_instance_valid(root):
+		for blade_data in blades:
+			_skill4_attack_blade(pivot, blade_data.angle, 100.0)
+		root.queue_free()
+
+
+func _skill4_update_blade_visual(blade_data: Dictionary, width: float) -> void:
+	var fill: Polygon2D = blade_data.fill
+	var top: Polygon2D = blade_data.top
+	var bottom: Polygon2D = blade_data.bottom
+	_set_poly_strip(fill, 2000.0, width)
+	var edge_w := 8.0
+	_set_poly_rect(top, Rect2(Vector2(0.0, -width * 0.5), Vector2(2000.0, edge_w)))
+	_set_poly_rect(bottom, Rect2(Vector2(0.0, width * 0.5 - edge_w), Vector2(2000.0, edge_w)))
+
+
+func _skill4_attack_blade(pivot: Vector2, angle: float, width: float) -> void:
+	var parent = get_tree().current_scene
+	var node := Node2D.new()
+	node.name = "Skill4AttackBlade"
+	node.global_position = pivot
+	node.rotation = angle
+	node.z_index = 30
+	node.z_as_relative = false
+	parent.add_child(node)
+	var poly := Polygon2D.new()
+	node.add_child(poly)
+	_enable_poly_glow(poly)
+	_set_theme_poly_color(poly, 1.0)
+	var current_width := maxf(1.0, width)
+	_set_poly_strip(poly, 2000.0, current_width)
+	var tw := create_tween()
+	tw.tween_method(func(t):
+		if not is_instance_valid(poly):
+			return
+		current_width = lerpf(width, 0.0, t)
+		_set_poly_strip(poly, 2000.0, current_width)
+		_skill4_check_blade_hit(pivot, angle, current_width)
+	, 0.0, 1.0, 0.3)
+	await tw.finished
+	if is_instance_valid(node):
+		node.queue_free()
+
+
+func _skill4_check_blade_hit(pivot: Vector2, angle: float, width: float) -> void:
+	var player = get_tree().get_first_node_in_group(&"player")
+	if not is_instance_valid(player) or not player.has_method(&"take_damage_from_boss"):
+		return
+	var local = (player.global_position - pivot).rotated(-angle)
+	if local.x >= 0.0 and local.x <= 2000.0 and absf(local.y) <= width * 0.5:
+		player.take_damage_from_boss(20)
+
+
+func _skill5_apply_parts_shake() -> void:
+	var crystal_offset := Vector2.ZERO
+	if crystal_sprite:
+		crystal_offset = Vector2(randf_range(-15.0, 15.0), randf_range(-15.0, 15.0))
+		crystal_sprite.position += crystal_offset
+	if crown_sprite:
+		crown_sprite.position += Vector2(randf_range(-15.0, 15.0), randf_range(-15.0, 15.0))
+	if wings_left and _is_left_active():
+		wings_left.position += Vector2(randf_range(-10.0, 10.0), randf_range(-10.0, 10.0))
+	elif wings_left:
+		wings_left.position += crystal_offset
+	if wings_right and _is_right_active():
+		wings_right.position += Vector2(randf_range(-10.0, 10.0), randf_range(-10.0, 10.0))
+	elif wings_right:
+		wings_right.position += crystal_offset
+
+
+func _skill5_create_light(pos: Vector2 = Vector2.INF) -> Node2D:
+	var parent = get_tree().current_scene
+	var node := Node2D.new()
+	node.name = "Skill5TopLight"
+	node.position = Vector2(screen_size.x * 0.5, -120.0) if pos == Vector2.INF else pos
+	node.z_index = -120
+	node.z_as_relative = false
+	parent.add_child(node)
+	var radius := maxf(screen_size.x, screen_size.y) * 0.9
+	for i in 4:
+		var glow := Polygon2D.new()
+		glow.color = _theme_color(0.18 / float(i + 1))
+		node.add_child(glow)
+		var points := PackedVector2Array()
+		var r = radius * (1.0 + float(i) * 0.35)
+		for j in 64:
+			var a = TAU * float(j) / 64.0
+			points.append(Vector2(cos(a), sin(a)) * r)
+		glow.polygon = points
+	return node
+
+
+func _skill5_set_light_alpha(light: Node2D, alpha: float) -> void:
+	if not is_instance_valid(light):
+		return
+	for i in light.get_child_count():
+		var glow := light.get_child(i) as Polygon2D
+		if is_instance_valid(glow):
+			glow.color = _theme_color(alpha / float(i + 1))
+
+
+func _skill5_fade_out_light(light: Node2D) -> void:
+	if not is_instance_valid(light):
+		return
+	var tw := create_tween()
+	tw.tween_method(func(a):
+		_skill5_set_light_alpha(light, 0.18 * a)
+	, 1.0, 0.0, 0.5)
+	await tw.finished
+	if is_instance_valid(light):
+		light.queue_free()
+
+
+func _skill5_light_breathe(light: Node2D, duration: float) -> void:
+	var elapsed := 0.0
+	var tree := get_tree()
+	while elapsed < duration and not dying and is_instance_valid(light):
+		var last_ticks := Time.get_ticks_usec()
+		await tree.process_frame
+		var delta := float(Time.get_ticks_usec() - last_ticks) / 1000000.0
+		elapsed += delta
+		var a = 0.12 + (sin(elapsed * 2.4) * 0.5 + 0.5) * 0.14
+		_skill5_set_light_alpha(light, a)
+
+
+func _skill5_start_flicker(duration: float) -> void:
+	var elapsed := 0.0
+	var tree := get_tree()
+	while elapsed < duration and not dying:
+		var last_ticks := Time.get_ticks_usec()
+		await tree.process_frame
+		var delta := float(Time.get_ticks_usec() - last_ticks) / 1000000.0
+		elapsed += delta
+		var flash = 0.5 + sin(elapsed * 18.0) * 0.5 + randf_range(-0.12, 0.12)
+		var glow = clampf(flash, 0.0, 1.0) * wing_glow_max_brightness * 1.5
+		if _wing_glow_mat_left:
+			_wing_glow_mat_left.set_shader_parameter("glow_intensity", glow)
+		if _wing_glow_mat_right:
+			_wing_glow_mat_right.set_shader_parameter("glow_intensity", glow)
+	if _wing_glow_mat_left:
+		_wing_glow_mat_left.set_shader_parameter("glow_intensity", 0.0)
+	if _wing_glow_mat_right:
+		_wing_glow_mat_right.set_shader_parameter("glow_intensity", 0.0)
+
+
+func _skill5_spawn_bullets(duration: float, side: int = 0) -> void:
+	var elapsed := 0.0
+	while elapsed < duration and not dying:
+		_skill5_spawn_bullet(side)
+		var wait := randf_range(0.08, 0.16)
+		elapsed += wait
+		await get_tree().create_timer(wait).timeout
+
+
+func _skill5_spawn_bullet(side: int = 0) -> void:
+	var bullet = ENEMY_BULLET_SCENE.instantiate()
+	if side < 0:
+		bullet.position = Vector2(-40.0, randf_range(20.0, screen_size.y - 20.0))
+		bullet.direction = Vector2.RIGHT
+	elif side > 0:
+		bullet.position = Vector2(screen_size.x + 40.0, randf_range(20.0, screen_size.y - 20.0))
+		bullet.direction = Vector2.LEFT
+	else:
+		bullet.position = Vector2(randf_range(20.0, screen_size.x - 20.0), -40.0)
+		bullet.direction = Vector2.DOWN
+	bullet.speed = 800.0
+	bullet.damage = 10
+	bullet.rotation = bullet.direction.angle()
+	bullet.z_index = -80
+	bullet.scale = Vector2(6.0, 6.0)
+	get_tree().current_scene.add_child(bullet)
 
 
 func _process_wing_spread_animation(delta: float) -> void:
@@ -1121,6 +1443,9 @@ func _process_wing_spread_animation(delta: float) -> void:
 		_apply_point_lights()
 	_apply_wing_scale_boost()
 	_apply_wing_spread_offset()
+	_force_inactive_wing_closed()
+	if _skill5_parts_shake_active and _spread_phase == 3:
+		_skill5_apply_parts_shake()
 
 
 func _is_left_active() -> bool:
@@ -1129,6 +1454,35 @@ func _is_left_active() -> bool:
 
 func _is_right_active() -> bool:
 	return _anim_side == AnimSide.RIGHT_WING or _anim_side == AnimSide.BOTH
+
+
+func _force_inactive_wing_closed() -> void:
+	if _anim_side == AnimSide.LEFT_WING:
+		wing_right_offset = wings_closed_wing_right_offset
+		if wings_right:
+			wings_right.position = wings_closed_wing_right_offset
+			wings_right.scale = wings_closed_wings_scale
+			wings_right.z_index = wings_closed_wings_z_index
+		if wing_pivot_right_node:
+			wing_pivot_right_node.rotation = 0.0
+		if _wing_glow_mat_right:
+			_wing_glow_mat_right.set_shader_parameter("glow_intensity", 0.0)
+		if _point_light_right:
+			_point_light_right.scale = Vector2.ZERO
+			_point_light_right.modulate.a = 0.0
+	elif _anim_side == AnimSide.RIGHT_WING:
+		wing_left_offset = wings_closed_wing_left_offset
+		if wings_left:
+			wings_left.position = wings_closed_wing_left_offset
+			wings_left.scale = wings_closed_wings_scale
+			wings_left.z_index = wings_closed_wings_z_index
+		if wing_pivot_left_node:
+			wing_pivot_left_node.rotation = 0.0
+		if _wing_glow_mat_left:
+			_wing_glow_mat_left.set_shader_parameter("glow_intensity", 0.0)
+		if _point_light_left:
+			_point_light_left.scale = Vector2.ZERO
+			_point_light_left.modulate.a = 0.0
 
 
 func _advance_anim_sequence() -> void:
@@ -1190,8 +1544,6 @@ func _align_idle_breath_to_current() -> void:
 func _init_close_start() -> void:
 	apply_wings_open_state()
 	_set_wings_open(true)
-	wing_pivot_left_node.rotation = 0.0
-	wing_pivot_right_node.rotation = 0.0
 	_snapshot_open()
 	_save_switch_visual()
 
@@ -1432,10 +1784,16 @@ func _get_scale_boost() -> float:
 
 func _apply_wing_scale_boost() -> void:
 	var boost = _get_scale_boost()
-	if wings_left and _is_left_active():
-		wings_left.scale = wings_scale * Vector2(boost, boost)
-	if wings_right and _is_right_active():
-		wings_right.scale = wings_scale * Vector2(boost, boost)
+	if wings_left:
+		if _is_left_active():
+			wings_left.scale = wings_scale * Vector2(boost, boost)
+		else:
+			wings_left.scale = wings_scale
+	if wings_right:
+		if _is_right_active():
+			wings_right.scale = wings_scale * Vector2(boost, boost)
+		else:
+			wings_right.scale = wings_scale
 
 
 func _get_spread_t() -> float:
@@ -1454,10 +1812,16 @@ func _apply_wing_spread_offset() -> void:
 	var t = _get_spread_t()
 	var spread_x = wing_spread_offset * t
 	var rise_y = wing_spread_rise * t
-	if wings_left and _is_left_active():
-		wings_left.position = Vector2(wing_left_offset.x - spread_x, wing_left_offset.y - rise_y)
-	if wings_right and _is_right_active():
-		wings_right.position = Vector2(wing_right_offset.x + spread_x, wing_right_offset.y - rise_y)
+	if wings_left:
+		if _is_left_active():
+			wings_left.position = Vector2(wing_left_offset.x - spread_x, wing_left_offset.y - rise_y)
+		else:
+			wings_left.position = wing_left_offset
+	if wings_right:
+		if _is_right_active():
+			wings_right.position = Vector2(wing_right_offset.x + spread_x, wing_right_offset.y - rise_y)
+		else:
+			wings_right.position = wing_right_offset
 
 
 func _apply_point_lights() -> void:
@@ -2026,14 +2390,117 @@ func _skill3_spawn_enemy() -> void:
 
 func _skill_4() -> void:
 	if dying: return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	play_both_close()
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	play_both_spread({"p3": 3.0})
+	var started := false
+	while _is_wing_spread_playing:
+		if not started and _spread_phase == 3:
+			started = true
+			_skill4_warning_blades(3.0)
+		await tree.process_frame
+	await tree.create_timer(0.4).timeout
 
 
 ## ── 技能5：水晶散射 ──
 
 func _skill_5() -> void:
+	await _skill_5_original()
+	await _skill_5_variant_2(true)
+	await _skill_5_variant_2(false)
+
+
+func _skill_5_original() -> void:
 	if dying: return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	var hold := randf_range(6.0, 12.0)
+	play_both_close()
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	play_both_spread({"p3": hold})
+	var started := false
+	var top_light: Node2D
+	while _is_wing_spread_playing:
+		if not started and _spread_phase == 3:
+			started = true
+			_skill5_parts_shake_active = true
+			top_light = _skill5_create_light()
+			_skill5_light_breathe(top_light, hold)
+			_skill5_start_flicker(hold)
+			_skill5_spawn_bullets(hold)
+		await tree.process_frame
+	_skill5_parts_shake_active = false
+	if is_instance_valid(top_light):
+		await _skill5_fade_out_light(top_light)
+	if crystal_sprite:
+		crystal_sprite.modulate = Color.WHITE
+	if crown_sprite:
+		crown_sprite.modulate = Color.WHITE
+	if wings_left:
+		wings_left.modulate = Color.WHITE
+	if wings_right:
+		wings_right.modulate = Color.WHITE
+
+
+func _skill_5_variant_2(go_left: bool) -> void:
+	if dying: return
+	var tree := get_tree()
+	var hold := randf_range(6.0, 12.0)
+	var original_pos := _base_position
+	play_both_close()
+	变白消失(skill_1_both_close_fade_duration)
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	modulate.a = 0.0
+	_base_position = Vector2(screen_size.x * 0.25 if go_left else screen_size.x * 0.75, screen_size.y * 0.5)
+	position = _base_position
+	变白出现(skill_1_right_spread_fade_duration)
+	if go_left:
+		play_right_spread({"p3": hold})
+	else:
+		play_left_spread({"p3": hold})
+	var started := false
+	var top_light: Node2D
+	while _is_wing_spread_playing:
+		if not started and _spread_phase == 3:
+			started = true
+			_skill5_parts_shake_active = true
+			var light_pos := Vector2(-180.0 if go_left else screen_size.x + 180.0, screen_size.y * 0.5)
+			top_light = _skill5_create_light(light_pos)
+			_skill5_light_breathe(top_light, hold)
+			_skill5_start_flicker(hold)
+			_skill5_spawn_bullets(hold, -1 if go_left else 1)
+		await tree.process_frame
+	_skill5_parts_shake_active = false
+	if is_instance_valid(top_light):
+		await _skill5_fade_out_light(top_light)
+	if crystal_sprite:
+		crystal_sprite.modulate = Color.WHITE
+	if crown_sprite:
+		crown_sprite.modulate = Color.WHITE
+	if wings_left:
+		wings_left.modulate = Color.WHITE
+	if wings_right:
+		wings_right.modulate = Color.WHITE
+	_sync_all_node_props()
+	if go_left:
+		play_right_close()
+	else:
+		play_left_close()
+	变白消失(skill_1_right_close_fade_duration)
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	modulate.a = 0.0
+	_base_position = original_pos
+	position = _base_position
+	_anim_side = AnimSide.BOTH
+	apply_wings_open_state()
+	_sync_all_node_props()
+	_set_wings_open(true)
+	变白出现(skill_1_both_spread_fade_duration)
+	await tree.create_timer(skill_1_both_spread_fade_duration).timeout
 
 
 ## ── 技能6：三件套齐射 ──
