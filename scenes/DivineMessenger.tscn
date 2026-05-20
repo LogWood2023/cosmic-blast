@@ -4,12 +4,10 @@
 
 [node name="DivineMessenger" type="Node2D" unique_id=1521675849]
 script = ExtResource("1")
-debug_phase_overlay = true
 crystal_scale = Vector2(0.3, 0.3)
 crown_scale = Vector2(0.1, 0.1)
 crown_pos = Vector2(0, -150)
 overall_scale = 0.9
-show_pivot_dots = true
 wing_glow_max_brightness = 1.0
 wing_glow_spread = 1
 wings_closed_wings_z_index = 52
