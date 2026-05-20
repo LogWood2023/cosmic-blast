@@ -187,6 +187,7 @@ var won: bool = false
 
 # ═══════════ BGM ═══════════
 const BOSS_BGM = preload("res://assets/audio/warpedcore_bgm.mp3")
+const INTRO_BGM = preload("res://assets/audio/cyber_battle_bgm_2.mp3")
 var bgm_player: AudioStreamPlayer
 
 # ═══════════ 资源预加载 ═══════════
@@ -541,72 +542,59 @@ func _start_anim_sequence() -> void:
 
 func _start_intro() -> void:
 	var tree := get_tree()
-	var phase3_half: bool = false
-	var phase3_done: bool = false
-	var fade_start: int = 0
-	var fade_duration: float = 0.25
+	var shake_started: bool = false
+	var black_shown: bool = false
+	var black_hidden: bool = false
 	
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.5)
-	await tw.finished
+	modulate = Color(10, 10, 10, 0)
 	
 	play_both_spread()
 	
 	while _is_wing_spread_playing and _is_intro:
 		await tree.process_frame
-		if _spread_phase < 2:
+		if _spread_phase < 1:
+			continue
+		if _spread_phase == 1:
+			modulate.a = clampf(_spread_timer / 0.3, 0.0, 1.0)
 			continue
 		if _spread_phase == 2:
-			if fade_start == 0:
-				fade_start = Time.get_ticks_msec()
-			var elapsed := (Time.get_ticks_msec() - fade_start) / 1000.0
-			var ft := clampf(elapsed / fade_duration, 0.0, 1.0)
-			_intro_modulate = Color(10, 10, 10, 1).lerp(Color(1, 1, 1, 1), ft)
-			modulate = _intro_modulate
+			var t := clampf(_spread_timer / 0.3, 0.0, 1.0)
+			modulate = Color(10, 10, 10, 1).lerp(Color(1, 1, 1, 1), t)
 			continue
-		if _spread_phase == 3 and not phase3_half:
-			phase3_half = true
-			_body_shake_intensity = 12.0
-			_screen_shake_intensity = 25.0
-			await tree.create_timer(0.5).timeout
-			_show_boss_name()
-			await tree.create_timer(1.0).timeout
-			_hide_boss_name()
-			await tree.create_timer(0.5).timeout
-		if _spread_phase >= 4 and not phase3_done:
-			phase3_done = true
-			_body_shake_intensity = 0.0
-			_screen_shake_intensity = 0.0
-			var cam := get_viewport().get_camera_2d()
-			if cam: cam.offset = Vector2.ZERO
-			_intro_modulate = Color(1, 1, 1, 1)
-			modulate = _intro_modulate
-			break
+		if _spread_phase >= 3:
+			if not shake_started:
+				shake_started = true
+				_body_shake_intensity = 12.0
+				_screen_shake_intensity = 25.0
+				bgm_player.stop()
+				bgm_player.stream = INTRO_BGM
+				bgm_player.play()
+			if _spread_timer >= 0.5 and not black_shown:
+				black_shown = true
+				_show_boss_name()
+			if _spread_timer >= 1.5 and not black_hidden:
+				black_hidden = true
+				_hide_boss_name()
+			continue
 	
 	_body_shake_intensity = 0.0
 	_screen_shake_intensity = 0.0
-	var cam2 := get_viewport().get_camera_2d()
-	if cam2: cam2.offset = Vector2.ZERO
-	_intro_modulate = Color(1, 1, 1, 1)
-	modulate = _intro_modulate
+	var cam := get_viewport().get_camera_2d()
+	if cam: cam.offset = Vector2.ZERO
+	modulate = Color(1, 1, 1, 1)
 	
-	var target_y := _base_position.y + 50
-	var pt := create_tween()
-	pt.tween_method(_set_base_y, _base_position.y, target_y, 0.5)
-	await pt.finished
+	_base_position.y += 50
+	position = _base_position
 	
-	await tree.create_timer(1.5).timeout
-	_sync_all_node_props()
 	play_both_close()
 	
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
+	bgm_player.stop()
+	bgm_player.stream = BOSS_BGM
+	bgm_player.play()
 	_is_intro = false
-	_body_shake_intensity = 0.0
-	_screen_shake_intensity = 0.0
-	_intro_modulate = Color(1, 1, 1, 1)
-	modulate = _intro_modulate
 
 
 func _show_boss_name() -> void:
