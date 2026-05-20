@@ -230,7 +230,7 @@ func _ready() -> void:
 		_start_anim_sequence()
 		_is_intro = false
 	else:
-		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 50)
+		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 60)
 		position = _base_position
 		modulate = Color(10, 10, 10, 0)
 		_setup_intro_overlay()
@@ -583,7 +583,7 @@ func _start_intro() -> void:
 	if cam: cam.offset = Vector2.ZERO
 	modulate = Color(1, 1, 1, 1)
 	
-	_base_position.y += 50
+	_base_position.y += 60
 	position = _base_position
 	
 	_is_intro = false
