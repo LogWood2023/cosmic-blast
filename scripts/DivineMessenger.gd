@@ -19,6 +19,7 @@ const SKILL3_ENEMY_SCENES: Array[String] = [
 @export var spawn_y_ratio: float = 0.3
 @export var debug_mode: bool = false
 @export var debug_phase_overlay: bool = false
+@export var debug_wing_state_log: bool = false
 @export var 主题色: Color = Color.WHITE
 var boss_hp: int
 var screen_size: Vector2
@@ -58,6 +59,9 @@ var _anim_side: int = AnimSide.BOTH
 var _anim_kind: int = AnimKind.SPREAD
 var _anim_seq: Array[Dictionary] = []
 var _anim_seq_idx: int = 0
+var _spread_connect_from_close: bool = false
+var _spread_connect_left_rot: float = 0.0
+var _spread_connect_right_rot: float = 0.0
 
 # 开场动画
 var _is_intro: bool = true
@@ -74,6 +78,7 @@ var _phase_debug_label: Label
 var _intro_debug_layer: CanvasLayer
 var _intro_debug_label: Label
 var _debug_start_time: int = 0
+var _last_wing_trace_signature: String = ""
 
 # 翅膀配置硬切换测试
 var _test_toggle_timer: float = 0.0
@@ -167,6 +172,8 @@ var wing_pivot_right_pos: Vector2 = Vector2(80, 0)
 var wing_left_offset: Vector2 = Vector2(40, 0)
 var wing_right_offset: Vector2 = Vector2(-40, 0)
 var wings_open: bool = false
+var _left_wing_open: bool = false
+var _right_wing_open: bool = false
 
 # ═══════════ 技能 ═══════════
 @export var has_skill_1: bool = true
@@ -466,7 +473,7 @@ func _update_phase_debug() -> void:
 		var pn: String = _PHASE_NAMES[_spread_phase] if _spread_phase >= 0 and _spread_phase < _PHASE_NAMES.size() else "?"
 		var kn: String = _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?"
 		var sn: String = _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?"
-		_phase_debug_label.text = "Phase:%d %s  Kind:%s Side:%s  T:%.3f closing:%s playing:%s intro:%s" % [_spread_phase, pn, kn, sn, _spread_timer, str(_is_closing), str(_is_wing_spread_playing), str(_is_intro)]
+		_phase_debug_label.text = "Phase:%d %s  Kind:%s Side:%s  T:%.3f closing:%s playing:%s intro:%s\nWings global:%s  L_open:%s R_open:%s  L_src:%s R_src:%s" % [_spread_phase, pn, kn, sn, _spread_timer, str(_is_closing), str(_is_wing_spread_playing), str(_is_intro), str(_wings_open), str(_left_wing_open), str(_right_wing_open), "open" if _left_wing_open else "close", "open" if _right_wing_open else "close"]
 
 	if _intro_debug_label:
 		var elapsed := (Time.get_ticks_msec() - _debug_start_time) / 1000.0
@@ -492,6 +499,10 @@ func _update_phase_debug() -> void:
 
 		lines.append("── 翅膀/配置状态 ──")
 		lines.append("  _wings_open:       %s" % _wings_open)
+		lines.append("  _left_wing_open:   %s" % _left_wing_open)
+		lines.append("  _right_wing_open:  %s" % _right_wing_open)
+		lines.append("  left_source:       %s" % ("open" if _left_wing_open else "close"))
+		lines.append("  right_source:      %s" % ("open" if _right_wing_open else "close"))
 		lines.append("  wings_scale:       (%.2f, %.2f)" % [wings_scale.x, wings_scale.y])
 		lines.append("  wings_z_index:     %d" % wings_z_index)
 		lines.append("  wings_shake_angle: %.1f" % wings_shake_angle)
@@ -630,6 +641,18 @@ func play_both_spread(durations: Dictionary = {}) -> void:  _start_side_anim(Ani
 func play_both_close(durations: Dictionary = {}) -> void:   _start_side_anim(AnimKind.CLOSE,  AnimSide.BOTH, durations)
 
 
+func play_left_close_to_spread(close_durations: Dictionary = {}, spread_durations: Dictionary = {}) -> void:
+	_start_close_then_spread(AnimSide.LEFT_WING, close_durations, AnimSide.LEFT_WING, spread_durations)
+
+
+func play_right_close_to_spread(close_durations: Dictionary = {}, spread_durations: Dictionary = {}) -> void:
+	_start_close_then_spread(AnimSide.RIGHT_WING, close_durations, AnimSide.RIGHT_WING, spread_durations)
+
+
+func play_both_close_to_spread(close_durations: Dictionary = {}, spread_durations: Dictionary = {}) -> void:
+	_start_close_then_spread(AnimSide.BOTH, close_durations, AnimSide.BOTH, spread_durations)
+
+
 func 左扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0, attack_fx: bool = false) -> void:
 	await _flap_anim(AnimSide.LEFT_WING, spread_durations, close_durations, appear_duration, phase1_hold, disappear_duration, attack_fx)
 
@@ -688,7 +711,8 @@ func _apply_anim_durations(durations: Dictionary = {}) -> void:
 
 
 func _start_side_anim(kind: int, side: int, durations: Dictionary = {}) -> void:
-	_prepare_anim_start_from_current_idle()
+	if not (kind == AnimKind.CLOSE and side != AnimSide.BOTH):
+		_prepare_anim_start_from_current_idle()
 	_apply_anim_durations(durations)
 	_anim_kind = kind
 	_anim_side = side
@@ -697,6 +721,8 @@ func _start_side_anim(kind: int, side: int, durations: Dictionary = {}) -> void:
 	_spread_timer = 0.0
 	if kind == AnimKind.CLOSE:
 		_init_close_start()
+		if side != AnimSide.BOTH:
+			_force_inactive_wing_closed()
 		_spread_phase = 5
 	else:
 		if kind == AnimKind.SPREAD:
@@ -717,6 +743,13 @@ func _start_side_anim(kind: int, side: int, durations: Dictionary = {}) -> void:
 			wings_left.position = wings_closed_wing_left_offset
 			wings_left.scale = wings_closed_wings_scale
 	_is_wing_spread_playing = true
+
+
+func _start_close_then_spread(close_side: int, close_durations: Dictionary, spread_side: int, spread_durations: Dictionary) -> void:
+	_start_side_anim(AnimKind.CLOSE, close_side, close_durations)
+	_anim_seq.clear()
+	_anim_seq.append({kind = AnimKind.SPREAD, side = spread_side, durations = spread_durations, connect_from_close = true})
+	_anim_seq_idx = -1
 
 
 func _prepare_anim_start_from_current_idle() -> void:
@@ -1348,7 +1381,14 @@ func _process_wing_spread_animation(delta: float) -> void:
 			if _spread_timer <= _anim_p0_duration:
 				var t = ease_out(_spread_timer / _anim_p0_duration) if _anim_p0_duration > 0.0 else 1.0
 				_apply_p0(t)
+				if _spread_connect_from_close:
+					var rt = 1.0 - t
+					if _is_left_active():
+						wing_pivot_left_node.rotation += _spread_connect_left_rot * rt
+					if _is_right_active():
+						wing_pivot_right_node.rotation += _spread_connect_right_rot * rt
 			else:
+				_spread_connect_from_close = false
 				_spread_timer = 0.0
 				_spread_phase = 1
 		1: # 0→0.3s：停顿在峰值
@@ -1384,7 +1424,8 @@ func _process_wing_spread_animation(delta: float) -> void:
 				if _flap_active and _anim_kind == AnimKind.SPREAD and _anim_side == _flap_side:
 					_apply_p2(1.0)
 					_save_switch_visual()
-					_start_close_from_peak(_flap_side, _flap_close_durations)
+					_start_close_then_spread(_flap_side, _flap_close_durations, _flap_side, {})
+					_anim_seq.clear()
 					return
 				_spread_timer = 0.0
 				_spread_phase = 4
@@ -1437,6 +1478,8 @@ func _process_wing_spread_animation(delta: float) -> void:
 					_is_wing_spread_playing = false
 				else:
 					_advance_anim_sequence()
+		7:
+			_advance_anim_sequence()
 	
 	if not _is_closing:
 		_apply_wing_glow()
@@ -1454,6 +1497,41 @@ func _is_left_active() -> bool:
 
 func _is_right_active() -> bool:
 	return _anim_side == AnimSide.RIGHT_WING or _anim_side == AnimSide.BOTH
+
+
+func _set_wing_side_open(side: int, open: bool) -> void:
+	if side == AnimSide.LEFT_WING or side == AnimSide.BOTH:
+		_left_wing_open = open
+	if side == AnimSide.RIGHT_WING or side == AnimSide.BOTH:
+		_right_wing_open = open
+
+
+func _wing_side_scale(left: bool) -> Vector2:
+	return wings_open_wings_scale if (_left_wing_open if left else _right_wing_open) else wings_closed_wings_scale
+
+
+func _wing_side_z_index(left: bool) -> int:
+	return wings_open_wings_z_index if (_left_wing_open if left else _right_wing_open) else wings_closed_wings_z_index
+
+
+func _wing_side_offset(left: bool) -> Vector2:
+	if left:
+		return wings_open_wing_left_offset if _left_wing_open else wings_closed_wing_left_offset
+	return wings_open_wing_right_offset if _right_wing_open else wings_closed_wing_right_offset
+
+
+func _trace_wing_state(source: String, force: bool = false) -> void:
+	if not debug_wing_state_log:
+		return
+	var l_scale := wings_left.scale if wings_left else Vector2.ZERO
+	var r_scale := wings_right.scale if wings_right else Vector2.ZERO
+	var l_pos := wings_left.position if wings_left else Vector2.ZERO
+	var r_pos := wings_right.position if wings_right else Vector2.ZERO
+	var signature := "%s|%d|%d|%s|%s|%.3f,%.3f|%.3f,%.3f|%.1f,%.1f|%.1f,%.1f" % [source, _spread_phase, _anim_side, str(_left_wing_open), str(_right_wing_open), l_scale.x, l_scale.y, r_scale.x, r_scale.y, l_pos.x, l_pos.y, r_pos.x, r_pos.y]
+	if not force and signature == _last_wing_trace_signature:
+		return
+	_last_wing_trace_signature = signature
+	print("[WingTrace] src=%s kind=%s side=%s phase=%d timer=%.3f playing=%s closing=%s L_open=%s R_open=%s L_src=%s R_src=%s L_scale=(%.3f,%.3f) R_scale=(%.3f,%.3f) L_pos=(%.1f,%.1f) R_pos=(%.1f,%.1f) runtime_scale=(%.3f,%.3f)" % [source, _KIND_NAMES[_anim_kind] if _anim_kind >= 0 and _anim_kind < _KIND_NAMES.size() else "?", _SIDE_NAMES[_anim_side] if _anim_side >= 0 and _anim_side < _SIDE_NAMES.size() else "?", _spread_phase, _spread_timer, str(_is_wing_spread_playing), str(_is_closing), str(_left_wing_open), str(_right_wing_open), "open" if _left_wing_open else "close", "open" if _right_wing_open else "close", l_scale.x, l_scale.y, r_scale.x, r_scale.y, l_pos.x, l_pos.y, r_pos.x, r_pos.y, wings_scale.x, wings_scale.y])
 
 
 func _force_inactive_wing_closed() -> void:
@@ -1493,8 +1571,10 @@ func _advance_anim_sequence() -> void:
 	_anim_seq_idx += 1
 	if _anim_seq_idx >= _anim_seq.size():
 		_anim_seq_idx = 0
-	_anim_kind = _anim_seq[_anim_seq_idx].kind
-	_anim_side = _anim_seq[_anim_seq_idx].side
+	var next_anim: Dictionary = _anim_seq[_anim_seq_idx]
+	_anim_kind = next_anim.kind
+	_anim_side = next_anim.side
+	_apply_anim_durations(next_anim.get("durations", {}))
 	_spread_switched = false
 	_is_closing = (_anim_kind == AnimKind.CLOSE)
 	_spread_timer = 0.0
@@ -1502,10 +1582,17 @@ func _advance_anim_sequence() -> void:
 		_init_close_start()
 		_spread_phase = 5
 	else:
+		_spread_connect_from_close = bool(next_anim.get("connect_from_close", false))
+		if _spread_connect_from_close:
+			_spread_connect_left_rot = wing_pivot_left_node.rotation
+			_spread_connect_right_rot = wing_pivot_right_node.rotation
 		if _anim_side == AnimSide.BOTH:
 			apply_wings_closed_state()
 		_set_wings_open(false)
 		_sync_all_node_props()
+		if _spread_connect_from_close:
+			wing_pivot_left_node.rotation = _spread_connect_left_rot
+			wing_pivot_right_node.rotation = _spread_connect_right_rot
 		_snapshot_closed()
 		_save_switch_visual()
 		_spread_phase = 0
@@ -1543,6 +1630,7 @@ func _align_idle_breath_to_current() -> void:
 
 func _init_close_start() -> void:
 	apply_wings_open_state()
+	_sync_all_node_props()
 	_set_wings_open(true)
 	_snapshot_open()
 	_save_switch_visual()
@@ -1564,13 +1652,14 @@ func _sync_all_node_props() -> void:
 		wing_pivot_right_node.position = wing_pivot_right_pos
 		wing_pivot_right_node.rotation = 0.0
 	if wings_left:
-		wings_left.position = wing_left_offset
-		wings_left.scale = wings_scale
-		wings_left.z_index = wings_z_index
+		wings_left.position = _wing_side_offset(true)
+		wings_left.scale = _wing_side_scale(true)
+		wings_left.z_index = _wing_side_z_index(true)
 	if wings_right:
-		wings_right.position = wing_right_offset
-		wings_right.scale = wings_scale
-		wings_right.z_index = wings_z_index
+		wings_right.position = _wing_side_offset(false)
+		wings_right.scale = _wing_side_scale(false)
+		wings_right.z_index = _wing_side_z_index(false)
+	_trace_wing_state("_sync_all_node_props")
 
 
 func _set_base_y(y: float) -> void:
@@ -1579,13 +1668,14 @@ func _set_base_y(y: float) -> void:
 
 func _apply_wing_sprite_props() -> void:
 	if wings_left and _is_left_active():
-		wings_left.scale = wings_scale
-		wings_left.position = wing_left_offset
-		wings_left.z_index = wings_z_index
+		wings_left.scale = _wing_side_scale(true)
+		wings_left.position = _wing_side_offset(true)
+		wings_left.z_index = _wing_side_z_index(true)
 	if wings_right and _is_right_active():
-		wings_right.scale = wings_scale
-		wings_right.position = wing_right_offset
-		wings_right.z_index = wings_z_index
+		wings_right.scale = _wing_side_scale(false)
+		wings_right.position = _wing_side_offset(false)
+		wings_right.z_index = _wing_side_z_index(false)
+	_trace_wing_state("_apply_wing_sprite_props")
 
 
 func _apply_shake(_delta: float) -> void:
@@ -1786,14 +1876,15 @@ func _apply_wing_scale_boost() -> void:
 	var boost = _get_scale_boost()
 	if wings_left:
 		if _is_left_active():
-			wings_left.scale = wings_scale * Vector2(boost, boost)
+			wings_left.scale = _wing_side_scale(true) * Vector2(boost, boost)
 		else:
-			wings_left.scale = wings_scale
+			wings_left.scale = _wing_side_scale(true)
 	if wings_right:
 		if _is_right_active():
-			wings_right.scale = wings_scale * Vector2(boost, boost)
+			wings_right.scale = _wing_side_scale(false) * Vector2(boost, boost)
 		else:
-			wings_right.scale = wings_scale
+			wings_right.scale = _wing_side_scale(false)
+	_trace_wing_state("_apply_wing_scale_boost")
 
 
 func _get_spread_t() -> float:
@@ -1814,14 +1905,17 @@ func _apply_wing_spread_offset() -> void:
 	var rise_y = wing_spread_rise * t
 	if wings_left:
 		if _is_left_active():
-			wings_left.position = Vector2(wing_left_offset.x - spread_x, wing_left_offset.y - rise_y)
+			var left_offset := _wing_side_offset(true)
+			wings_left.position = Vector2(left_offset.x - spread_x, left_offset.y - rise_y)
 		else:
-			wings_left.position = wing_left_offset
+			wings_left.position = _wing_side_offset(true)
 	if wings_right:
 		if _is_right_active():
-			wings_right.position = Vector2(wing_right_offset.x + spread_x, wing_right_offset.y - rise_y)
+			var right_offset := _wing_side_offset(false)
+			wings_right.position = Vector2(right_offset.x + spread_x, right_offset.y - rise_y)
 		else:
-			wings_right.position = wing_right_offset
+			wings_right.position = _wing_side_offset(false)
+	_trace_wing_state("_apply_wing_spread_offset")
 
 
 func _apply_point_lights() -> void:
@@ -2057,12 +2151,14 @@ func _idle_animation(delta: float) -> void:
 	if wings_left and wings_right and wing_pivot_left_node and wing_pivot_right_node:
 		_wings_phase += delta * _wings_speed
 		var wing_offset = sin(_wings_phase) * 8
-		wings_left.position = Vector2(wing_left_offset.x, wing_left_offset.y + wing_offset)
-		wings_left.scale = wings_scale
-		wings_left.z_index = wings_z_index
-		wings_right.position = Vector2(wing_right_offset.x, wing_right_offset.y + wing_offset)
-		wings_right.scale = wings_scale
-		wings_right.z_index = wings_z_index
+		var left_offset := _wing_side_offset(true)
+		var right_offset := _wing_side_offset(false)
+		wings_left.position = Vector2(left_offset.x, left_offset.y + wing_offset)
+		wings_left.scale = _wing_side_scale(true)
+		wings_left.z_index = _wing_side_z_index(true)
+		wings_right.position = Vector2(right_offset.x, right_offset.y + wing_offset)
+		wings_right.scale = _wing_side_scale(false)
+		wings_right.z_index = _wing_side_z_index(false)
 		wing_pivot_left_node.position = wing_pivot_left_pos
 		wing_pivot_right_node.position = wing_pivot_right_pos
 		_wings_shake_phase += delta * wings_shake_speed
@@ -2071,6 +2167,7 @@ func _idle_animation(delta: float) -> void:
 		var right_wing_rot = sin(_wings_shake_phase + PI) * shake_rad
 		wing_pivot_left_node.rotation = left_wing_rot
 		wing_pivot_right_node.rotation = right_wing_rot
+		_trace_wing_state("_idle_animation")
 
 
 var _wing_test_timer: float = 0.0
@@ -2485,6 +2582,7 @@ func _skill_5_variant_2(go_left: bool) -> void:
 	if wings_right:
 		wings_right.modulate = Color.WHITE
 	_sync_all_node_props()
+	_force_inactive_wing_closed()
 	if go_left:
 		play_right_close()
 	else:
@@ -2539,6 +2637,7 @@ func _create_red_dot_sprite() -> Sprite2D:
 
 func _set_wings_open(open: bool) -> void:
 	_wings_open = open
+	_set_wing_side_open(_anim_side, open)
 	if open:
 		if wings_left and _is_left_active():
 			wings_left.texture = WINGS_OPEN_TEX
