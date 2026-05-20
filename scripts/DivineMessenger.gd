@@ -138,6 +138,24 @@ var wing_pivot_right_sprite: Sprite2D
 @export var wings_closed_wing_left_offset: Vector2 = Vector2(40, 0)
 @export var wings_closed_wing_right_offset: Vector2 = Vector2(-40, 0)
 
+@export_group("Skill 1 Anim Durations")
+@export var skill_1_both_close_fade_duration: float = 0.6
+@export var skill_1_right_spread_phase1_hold: float = 1.0
+@export var skill_1_right_spread_fade_duration: float = 0.3
+@export var skill_1_right_close_fade_duration: float = 0.6
+@export var skill_1_both_spread_fade_duration: float = 0.3
+
+@export_group("Wing Anim Durations")
+@export var both_spread_phase3_hold: float = 2.0
+@export var both_close_phase5_duration: float = 0.3
+@export var both_close_phase6_duration: float = 0.3
+@export var left_spread_phase1_hold: float = 0.3
+@export var left_close_phase5_duration: float = 0.3
+@export var left_close_phase6_duration: float = 0.3
+@export var right_spread_phase1_hold: float = 0.3
+@export var right_close_phase5_duration: float = 0.3
+@export var right_close_phase6_duration: float = 0.3
+
 # ═══════ 翅膀张开状态配置 ═══════
 @export_group("Wings Open State")
 @export var wings_open_wings_scale: Vector2 = Vector2(0.5, 0.5)
@@ -657,8 +675,11 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_spread_timer = 0.0
 				_spread_phase = 3
 		3: # 0→2s：停顿在最高点
-			_spread_timer = 0.0
-			_spread_phase = 4
+			if _spread_timer <= both_spread_phase3_hold:
+				_apply_p2(1.0)
+			else:
+				_spread_timer = 0.0
+				_spread_phase = 4
 		4: # 0→0.5s：向下50px缓出，左逆10°右顺10°
 			if _spread_timer <= 0.5:
 				var t = ease_out(_spread_timer / 0.5)
@@ -1407,7 +1428,7 @@ func _skill_1() -> void:
 	var original_pos := _base_position
 	
 	play_both_close()
-	变白消失(0.6)
+	变白消失(skill_1_both_close_fade_duration)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
@@ -1416,14 +1437,14 @@ func _skill_1() -> void:
 	_base_position = tele_pos
 	position = _base_position
 	
-	_skill_p1_hold = 1.0
+	_skill_p1_hold = skill_1_right_spread_phase1_hold
 	play_right_spread()
-	变白出现(0.3)
+	变白出现(skill_1_right_spread_fade_duration)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
 	play_right_close()
-	变白消失(0.6)
+	变白消失(skill_1_right_close_fade_duration)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
@@ -1433,7 +1454,7 @@ func _skill_1() -> void:
 	
 	_skill_p1_hold = 0.0
 	play_both_spread()
-	变白出现(0.3)
+	变白出现(skill_1_both_spread_fade_duration)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 
