@@ -591,9 +591,6 @@ func _start_intro() -> void:
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
-	bgm_player.stop()
-	bgm_player.stream = BOSS_BGM
-	bgm_player.play()
 	_is_intro = false
 
 
@@ -690,7 +687,12 @@ func _process_wing_spread_animation(delta: float) -> void:
 					_spread_timer = 0.0
 					_spread_phase = 5
 				elif _is_intro:
-					_sync_all_node_props()
+					wing_pivot_left_node.position = wing_pivot_left_pos
+					wing_pivot_right_node.position = wing_pivot_right_pos
+					wing_pivot_left_node.rotation = 0.0
+					wing_pivot_right_node.rotation = 0.0
+					crystal_sprite.position = crystal_pos
+					crown_sprite.position = crown_pos
 					_is_wing_spread_playing = false
 					return
 				else:
