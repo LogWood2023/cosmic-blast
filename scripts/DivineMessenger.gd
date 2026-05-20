@@ -657,11 +657,8 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_spread_timer = 0.0
 				_spread_phase = 3
 		3: # 0→2s：停顿在最高点
-			if _spread_timer <= 2.0:
-				_apply_p2(1.0)
-			else:
-				_spread_timer = 0.0
-				_spread_phase = 4
+			_spread_timer = 0.0
+			_spread_phase = 4
 		4: # 0→0.5s：向下50px缓出，左逆10°右顺10°
 			if _spread_timer <= 0.5:
 				var t = ease_out(_spread_timer / 0.5)
@@ -1410,8 +1407,7 @@ func _skill_1() -> void:
 	var original_pos := _base_position
 	
 	play_both_close()
-	var tw := create_tween()
-	tw.tween_property(self, "modulate", Color(10, 10, 10, 0), 0.6)
+	变白消失(0.6)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
@@ -1420,17 +1416,14 @@ func _skill_1() -> void:
 	_base_position = tele_pos
 	position = _base_position
 	
-	_skill_p1_hold = 3.0
+	_skill_p1_hold = 1.0
 	play_right_spread()
+	变白出现(0.3)
 	while _is_wing_spread_playing:
-		if _spread_phase == 1:
-			var t := clampf(_spread_timer / 0.3, 0.0, 1.0)
-			modulate = Color(10, 10, 10, 0).lerp(Color(1, 1, 1, 1), t)
 		await tree.process_frame
 	
 	play_right_close()
-	var tw2 := create_tween()
-	tw2.tween_property(self, "modulate", Color(10, 10, 10, 0), 0.6)
+	变白消失(0.6)
 	while _is_wing_spread_playing:
 		await tree.process_frame
 	
@@ -1438,11 +1431,10 @@ func _skill_1() -> void:
 	_base_position = original_pos
 	position = _base_position
 	
+	_skill_p1_hold = 0.0
 	play_both_spread()
+	变白出现(0.3)
 	while _is_wing_spread_playing:
-		if _spread_phase == 1:
-			var t := clampf(_spread_timer / 0.3, 0.0, 1.0)
-			modulate = Color(10, 10, 10, 0).lerp(Color(1, 1, 1, 1), t)
 		await tree.process_frame
 
 
@@ -1591,6 +1583,18 @@ func _make_tween() -> Tween:
 		return tw
 	var tw = create_tween()
 	_skill_tweens.append(tw)
+	return tw
+
+
+func 变白消失(duration: float) -> Tween:
+	var tw = _make_tween()
+	tw.tween_property(self, "modulate", Color(10, 10, 10, 0), duration)
+	return tw
+
+
+func 变白出现(duration: float) -> Tween:
+	var tw = _make_tween()
+	tw.tween_property(self, "modulate", Color(1, 1, 1, 1), duration)
 	return tw
 
 
