@@ -6,6 +6,11 @@ const CRYSTAL_TEX = preload("res://assets/images/divine_messenger/crystal_cutout
 const CROWN_TEX = preload("res://assets/images/divine_messenger/crown_cutout.png")
 const WINGS_TEX = preload("res://assets/images/divine_messenger/wings_cutout.png")
 const WINGS_OPEN_TEX = preload("res://assets/images/divine_messenger/wings_open_cutout.png")
+const SKILL3_ENEMY_SCENES: Array[String] = [
+	"res://scenes/EnemyShooter.tscn",
+	"res://scenes/EnemyScatter.tscn",
+	"res://scenes/EnemyRapid.tscn",
+]
 
 # ═══════════ 基本属性 ═══════════
 @export var max_hp: int = 1000
@@ -330,7 +335,7 @@ func _process(delta: float) -> void:
 	cooldown_remaining -= delta
 	if cooldown_remaining <= 0.0:
 		is_executing = true
-		await _exec_skill(1)
+		await _exec_skill(3)
 		cooldown_remaining = skill_cooldown
 		is_executing = false
 
@@ -791,9 +796,13 @@ func _set_poly_rect(poly: Polygon2D, rect: Rect2) -> void:
 
 
 func _skill1_check_bar_hit(rect: Rect2) -> void:
+	_check_player_hit_rect(rect, 30)
+
+
+func _check_player_hit_rect(rect: Rect2, damage: int) -> void:
 	var player = get_tree().get_first_node_in_group(&"player")
 	if is_instance_valid(player) and rect.has_point(player.global_position) and player.has_method(&"take_damage_from_boss"):
-		player.take_damage_from_boss(30)
+		player.take_damage_from_boss(damage)
 
 
 func _skill1_update_warn_inner(progress: float) -> void:
@@ -908,6 +917,99 @@ func _skill1_bar_sequence() -> void:
 	_skill1_clear_warn_layer()
 
 
+func _skill2_spawn_warning_pair(left_x: float, right_x: float) -> void:
+	_skill2_warning_column(left_x)
+	_skill2_warning_column(right_x)
+
+
+func _skill2_warning_column(x: float) -> void:
+	var parent = get_tree().current_scene
+	var viewport_size = get_viewport().get_visible_rect().size
+	var warn_node := Node2D.new()
+	warn_node.z_index = -100
+	warn_node.z_as_relative = false
+	warn_node.name = "Skill2WarningColumn"
+	parent.add_child(warn_node)
+
+	var outer := Polygon2D.new()
+	var inner := Polygon2D.new()
+	warn_node.add_child(outer)
+	warn_node.add_child(inner)
+	var outer_rect := Rect2(Vector2(x, 0.0), Vector2(50.0, viewport_size.y))
+	_set_poly_rect(outer, outer_rect)
+	outer.color = Color(1, 1, 1, 0.0)
+	_set_poly_rect(inner, Rect2(Vector2(x + 25.0 - 2.5, 0.0), Vector2(5.0, viewport_size.y)))
+	inner.color = Color(1, 1, 1, 0.0)
+	var fade_in := create_tween()
+	fade_in.tween_method(func(a):
+		if not is_instance_valid(outer) or not is_instance_valid(inner):
+			return
+		outer.color = Color(1, 1, 1, 0.3 * a)
+		inner.color = Color(1, 1, 1, 0.3 * a)
+	, 0.0, 1.0, 0.15)
+
+	var grow := create_tween()
+	grow.tween_method(func(t):
+		if not is_instance_valid(inner):
+			return
+		var w = lerpf(5.0, 50.0, t)
+		_set_poly_rect(inner, Rect2(Vector2(x + 25.0 - w * 0.5, 0.0), Vector2(w, viewport_size.y)))
+	, 0.0, 1.0, 1.0)
+	await get_tree().create_timer(0.85).timeout
+	var fade_out := create_tween()
+	fade_out.tween_method(func(a):
+		if not is_instance_valid(outer) or not is_instance_valid(inner):
+			return
+		outer.color = Color(1, 1, 1, 0.3 * a)
+		inner.color = Color(1, 1, 1, 0.3 * a)
+	, 1.0, 0.0, 0.15)
+	await fade_out.finished
+	if is_instance_valid(warn_node):
+		warn_node.queue_free()
+	_skill2_attack_column(outer_rect)
+
+
+func _skill2_attack_column(rect: Rect2) -> void:
+	var parent = get_tree().current_scene
+	var node := Node2D.new()
+	node.z_index = 30
+	node.z_as_relative = false
+	node.name = "Skill2AttackColumn"
+	parent.add_child(node)
+	var poly := Polygon2D.new()
+	poly.color = Color(1, 1, 1, 1)
+	node.add_child(poly)
+	_set_poly_rect(poly, rect)
+	_check_player_hit_rect(rect, 20)
+	var tw := create_tween()
+	tw.tween_method(func(t):
+		if not is_instance_valid(poly):
+			return
+		var w = lerpf(rect.size.x, 0.0, t)
+		var cur_rect = Rect2(Vector2(rect.position.x + rect.size.x * 0.5 - w * 0.5, rect.position.y), Vector2(maxf(0.0, w), rect.size.y))
+		_set_poly_rect(poly, cur_rect)
+		_check_player_hit_rect(cur_rect, 20)
+	, 0.0, 1.0, 0.3)
+	await tw.finished
+	if is_instance_valid(node):
+		node.queue_free()
+
+
+func _skill2_spawn_warning_columns() -> void:
+	var viewport_size = get_viewport().get_visible_rect().size
+	var step_x := randf_range(80.0, 150.0)
+	var left_x = clampf(wing_pivot_left_node.global_position.x if is_instance_valid(wing_pivot_left_node) else global_position.x, 0.0, viewport_size.x) - 25.0
+	var right_x = clampf(wing_pivot_right_node.global_position.x if is_instance_valid(wing_pivot_right_node) else global_position.x, 0.0, viewport_size.x) - 25.0
+	while left_x + 50.0 >= 0.0 or right_x <= viewport_size.x:
+		if left_x + 50.0 >= 0.0:
+			_skill2_warning_column(left_x)
+		if right_x <= viewport_size.x:
+			_skill2_warning_column(right_x)
+		await get_tree().create_timer(0.2).timeout
+		left_x -= step_x
+		right_x += step_x
+
+
 func _process_wing_spread_animation(delta: float) -> void:
 	if not _is_wing_spread_playing:
 		return
@@ -977,6 +1079,7 @@ func _process_wing_spread_animation(delta: float) -> void:
 					wing_pivot_right_node.rotation = 0.0
 					crystal_sprite.position = crystal_pos
 					crown_sprite.position = crown_pos
+					_align_idle_breath_to_current()
 					_is_wing_spread_playing = false
 					return
 				else:
@@ -1003,6 +1106,7 @@ func _process_wing_spread_animation(delta: float) -> void:
 			_apply_close_b(t)
 			if _spread_timer >= _anim_close_b_duration:
 				if _is_intro:
+					_align_idle_breath_to_current()
 					_is_wing_spread_playing = false
 				else:
 					_advance_anim_sequence()
@@ -1024,6 +1128,7 @@ func _is_right_active() -> bool:
 
 func _advance_anim_sequence() -> void:
 	if _anim_seq.is_empty():
+		_align_idle_breath_to_current()
 		_is_wing_spread_playing = false
 		return
 	_anim_seq_idx += 1
@@ -1056,6 +1161,25 @@ func _advance_anim_sequence() -> void:
 		_point_light_right.scale = Vector2.ZERO
 		_point_light_right.modulate.a = 0.0
 	_is_wing_spread_playing = true
+
+
+func _align_idle_breath_to_current() -> void:
+	if crystal_sprite:
+		var amp := 8.0
+		var v = clampf((crystal_sprite.position.y - crystal_pos.y) / amp, -1.0, 1.0)
+		_crystal_pulse = asin(v)
+	if crown_sprite:
+		var amp := 8.0
+		var v = clampf((crown_sprite.position.y - crown_pos.y) / amp, -1.0, 1.0)
+		_crown_phase = asin(v)
+	if wings_left and wing_pivot_left_node:
+		var amp := 8.0
+		var v = clampf((wings_left.position.y - wing_left_offset.y) / amp, -1.0, 1.0)
+		_wings_phase = asin(v)
+		var shake_amp = deg_to_rad(wings_shake_angle)
+		if absf(shake_amp) > 0.0001:
+			var rv = clampf(wing_pivot_left_node.rotation / shake_amp, -1.0, 1.0)
+			_wings_shake_phase = asin(rv)
 
 
 func _init_close_start() -> void:
@@ -1830,14 +1954,67 @@ func apply_wings_closed_state() -> void:
 
 func _skill_2() -> void:
 	if dying: return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	play_both_close()
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	play_both_spread()
+	var started_warnings := false
+	while _is_wing_spread_playing:
+		if not started_warnings and _spread_phase == 3:
+			started_warnings = true
+			_skill2_spawn_warning_columns()
+		await tree.process_frame
+	await tree.create_timer(1.6).timeout
 
 
 ## ── 技能3：水晶咆哮+敌机 ──
 
 func _skill_3() -> void:
 	if dying: return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	play_both_close()
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	play_both_spread({"p3": 5.0})
+	var started := false
+	while _is_wing_spread_playing:
+		if not started and _spread_phase == 3:
+			started = true
+			_body_shake_intensity = 12.0
+			_screen_shake_intensity = 20.0
+			_skill3_spawn_enemies(5.0)
+		if started and _spread_phase == 3:
+			_shake_parts()
+		await tree.process_frame
+	_body_shake_intensity = 0.0
+	_screen_shake_intensity = 0.0
+	var cam := get_viewport().get_camera_2d()
+	if cam:
+		cam.offset = Vector2.ZERO
+	_align_idle_breath_to_current()
+
+
+func _skill3_spawn_enemies(duration: float) -> void:
+	var enemy_count := randi_range(6, 12)
+	for i in enemy_count:
+		_skill3_spawn_enemy()
+		await get_tree().create_timer(duration / float(enemy_count)).timeout
+
+
+func _skill3_spawn_enemy() -> void:
+	var available: Array[String] = []
+	for path in SKILL3_ENEMY_SCENES:
+		if ResourceLoader.exists(path):
+			available.append(path)
+	if available.is_empty():
+		return
+	var enemy = load(available[randi() % available.size()]).instantiate()
+	var from_left := randf() < 0.5
+	var x := -80.0 if from_left else screen_size.x + 80.0
+	var y := randf_range(80.0, screen_size.y * 0.75)
+	enemy.position = Vector2(x, y)
+	get_tree().current_scene.add_child(enemy)
 
 
 ## ── 技能4：羽翼风暴 ──
