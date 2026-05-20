@@ -304,17 +304,7 @@ func _process(delta: float) -> void:
 	cooldown_remaining -= delta
 	if cooldown_remaining <= 0.0:
 		is_executing = true
-		var enemy_count = get_tree().get_nodes_in_group(&"enemies").size()
-		var s: int
-		if enemy_count > 8:
-			s = _pick_random_skill(3)
-		elif has_skill_3 and _last_skill != 3 and enemy_count <= 3:
-			s = 3
-		else:
-			s = _pick_random_skill()
-		if s != 0:
-			await _exec_skill(s)
-			_last_skill = s
+		await _exec_skill(1)
 		cooldown_remaining = skill_cooldown
 		is_executing = false
 
