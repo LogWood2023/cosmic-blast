@@ -234,6 +234,7 @@ DivineMessenger (Node2D)
 - 缓动函数：`ease_out(t) = 1-(1-t)³`，`ease_in(t) = t³`
 - 配置切换时保存绝对视觉状态（位置+旋转），切换后恢复，确保无缝过渡
 - **闭翅阶段不触发 shader 描边光源和 Point Light 方向性发光**
+- 详细动画 API、时长参数与扇动组合动画见 `METHOD_REFERENCE.md` 的“神明使者：羽翼动画 API”章节
 
 ### 5.7 翅膀变形效果（阶段2缓入→阶段3维持→阶段4缓出）
 

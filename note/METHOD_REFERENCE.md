@@ -29,6 +29,7 @@
 20. [地狱之眼：描边抖动系统](#二十地狱之眼描边抖动系统)
 21. [地狱之眼：进场动画](#二十一地狱之眼进场动画)
 22. [地狱之眼：检查器参数速查](#二十二地狱之眼检查器参数速查)
+23. [神明使者：羽翼动画 API](#二十三神明使者羽翼动画-api)
 
 ---
 
@@ -453,3 +454,118 @@ func _draw() -> void
 | 4 | ~10.25s | 0.25s 膨胀 + 10s 吸力 |
 | 5 | ~8~12s | 20~30 颗小球，间隔 ≈ 总长/总数 |
 | 6 | ~15~30s | 8~12 次冲刺，警戒框 2→1s 递减 |
+
+---
+
+## 二十三、神明使者：羽翼动画 API
+
+### 基础动画
+
+神明使者的羽翼动画由 `DivineMessenger.gd` 中的阶段状态机驱动。所有基础动画均支持传入 `durations: Dictionary`，不同技能可以按需覆盖时长，不通过 Inspector 暴露。
+
+```gdscript
+func play_left_spread(durations: Dictionary = {}) -> void
+func play_left_close(durations: Dictionary = {}) -> void
+func play_right_spread(durations: Dictionary = {}) -> void
+func play_right_close(durations: Dictionary = {}) -> void
+func play_both_spread(durations: Dictionary = {}) -> void
+func play_both_close(durations: Dictionary = {}) -> void
+```
+
+| 动画 | 说明 |
+|------|------|
+| `play_left_spread` | 播放左展翅，只影响左翼 |
+| `play_left_close` | 播放左闭翅，只影响左翼 |
+| `play_right_spread` | 播放右展翅，只影响右翼 |
+| `play_right_close` | 播放右闭翅，只影响右翼 |
+| `play_both_spread` | 播放全展翅，双翼同步展开 |
+| `play_both_close` | 播放全闭翅，双翼同步闭合 |
+
+### 时长参数
+
+`durations` 可覆盖以下键：
+
+| 键 | 默认值 | 阶段 | 说明 |
+|----|:--:|------|------|
+| `p0` | `0.8` | 展翅 P0 | 下移 50px，翅膀旋转到第一峰值 |
+| `p1` | `0.3` | 展翅 P1 | 第一峰值停顿 |
+| `p2` | `0.3` | 展翅 P2 | 上移 100px，并在切换点切为张开配置 |
+| `p3` | `2.0` | 展翅 P3 | 顶峰维持；技能可传 `0.0` 跳过 |
+| `p4` | `0.5` | 展翅 P4 | 回落 50px |
+| `close_a` | `0.3` | 闭翅 P5 | 闭翅第一段旋转，期间切为闭合纹理 |
+| `close_b` | `0.3` | 闭翅 P6 | 闭翅回归段 |
+| `close_switch` | `min(0.2, p2, close_a)` | P2/P5 | 纹理与配置切换时刻 |
+
+示例：
+
+```gdscript
+play_right_spread({"p1": 0.3, "p3": 0.5})
+play_right_close({"close_a": 0.3, "close_b": 0.3, "close_switch": 0.2})
+```
+
+### 扇动动画
+
+扇动动画是“展翅 P3 顶峰 → 直接接闭翅”的组合动画。它不会进入展翅 P4 回落，而是在 P3 结束时使用当前顶峰视觉状态作为闭翅初始值，以避免展翅峰值和闭翅初始配置之间的跳变。
+
+```gdscript
+func 左扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0) -> void
+func 右扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0) -> void
+func 双扇动(spread_durations: Dictionary = {}, close_durations: Dictionary = {}, appear_duration: float = -1.0, phase1_hold: float = 0.0, disappear_duration: float = -1.0) -> void
+```
+
+| 动画 | 说明 |
+|------|------|
+| `左扇动` | 左展翅到 P3 顶峰后直接左闭翅 |
+| `右扇动` | 右展翅到 P3 顶峰后直接右闭翅 |
+| `双扇动` | 全展翅到 P3 顶峰后直接全闭翅 |
+
+扇动参数：
+
+| 参数 | 默认值 | 说明 |
+|------|:--:|------|
+| `spread_durations` | `{}` | 展翅阶段时长覆盖，支持 `p0~p4` 与 `close_switch` |
+| `close_durations` | `{}` | 闭翅阶段时长覆盖，支持 `close_a`、`close_b`、`close_switch` |
+| `appear_duration` | `-1.0` | ≥0 时，在展翅 P1 开始时执行 `变白出现(duration)` |
+| `phase1_hold` | `0.0` | 展翅 P1 原始停顿后额外维持时长 |
+| `disappear_duration` | `-1.0` | ≥0 时，在进入闭翅时执行 `变白消失(duration)` |
+
+默认调用不会触发变白出现、额外延迟或变白消失：
+
+```gdscript
+await 右扇动()
+```
+
+技能 1 的右扇动调用示例：
+
+```gdscript
+await 右扇动(
+	{"p1": skill_1_right_spread_fade_duration, "p3": 0.5},
+	{"close_a": skill_1_right_close_fade_duration * 0.5, "close_b": skill_1_right_close_fade_duration * 0.5, "close_switch": skill_1_right_close_fade_duration / 3.0},
+	skill_1_right_spread_fade_duration,
+	skill_1_right_spread_phase1_hold,
+	skill_1_right_close_fade_duration
+)
+```
+
+### 通用变白动画
+
+```gdscript
+func 变白消失(duration: float) -> Tween
+func 变白出现(duration: float) -> Tween
+```
+
+| 函数 | 效果 |
+|------|------|
+| `变白消失` | 当前 Boss 整体渐变到 `Color(10,10,10,0)`，即变白并透明 |
+| `变白出现` | 当前 Boss 整体渐变到 `Color(1,1,1,1)`，即从白色透明恢复正常 |
+
+### 技能 1 当前动画流程
+
+| 步骤 | 动画 | 说明 |
+|------|------|------|
+| 1 | `play_both_close` | 全闭翅，同时 `变白消失` |
+| 2 | 瞬移 | 移动到画面水平 1/4、垂直正中 |
+| 3 | `右扇动` | 右展翅 P1 执行 `变白出现`，P1 后额外维持 1s，P3 顶峰维持 0.5s 后接右闭翅，闭翅时 `变白消失` |
+| 4 | 硬切张开 | 强制 `_anim_side = BOTH`，调用 `apply_wings_open_state()` 和 `_sync_all_node_props()` |
+| 5 | 瞬移回初始位置 | 回到技能开始前 `_base_position` |
+| 6 | `变白出现` | 不再播放全展翅，直接显示张开状态 |
