@@ -10,7 +10,7 @@ const WINGS_OPEN_TEX = preload("res://assets/images/divine_messenger/wings_open_
 # ═══════════ 基本属性 ═══════════
 @export var max_hp: int = 1000
 @export var boss_name: String = "神明使者"
-@export var spawn_y_ratio: float = 0.4
+@export var spawn_y_ratio: float = 0.3
 @export var debug_mode: bool = false
 @export var debug_phase_overlay: bool = false
 var boss_hp: int
@@ -202,6 +202,7 @@ const DebrisScript = preload("res://scripts/Debris.gd")
 
 # ═══════════ Tween 管理 ═══════════
 var _skill_tweens: Array[Tween] = []
+var _skill_p1_hold: float = 0.0
 
 
 func _ready() -> void:
@@ -230,7 +231,7 @@ func _ready() -> void:
 		_start_anim_sequence()
 		_is_intro = false
 	else:
-		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio - 60)
+		_base_position = Vector2(screen_size.x * 0.5, screen_size.y * spawn_y_ratio )
 		position = _base_position
 		modulate = Color(10, 10, 10, 0)
 		_setup_intro_overlay()
@@ -583,9 +584,6 @@ func _start_intro() -> void:
 	if cam: cam.offset = Vector2.ZERO
 	modulate = Color(1, 1, 1, 1)
 	
-	_base_position.y += 60
-	position = _base_position
-	
 	_is_intro = false
 
 
@@ -644,6 +642,10 @@ func _process_wing_spread_animation(delta: float) -> void:
 				_spread_phase = 1
 		1: # 0→0.3s：停顿在峰值
 			if _spread_timer <= 0.3:
+				_apply_p0(1.0)
+			elif _skill_p1_hold > 0.0:
+				_spread_timer = 0.3
+				_skill_p1_hold -= delta
 				_apply_p0(1.0)
 			else:
 				_spread_timer = 0.0
@@ -1414,7 +1416,44 @@ func apply_damage(amount: int) -> void:
 
 func _skill_1() -> void:
 	if dying: return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	var original_pos := _base_position
+	
+	play_both_close()
+	var tw := create_tween()
+	tw.tween_property(self, "modulate", Color(10, 10, 10, 0), 0.6)
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	
+	modulate.a = 0.0
+	var tele_pos := Vector2(screen_size.x * 0.25, screen_size.y * 0.5)
+	_base_position = tele_pos
+	position = _base_position
+	
+	_skill_p1_hold = 3.0
+	play_right_spread()
+	while _is_wing_spread_playing:
+		if _spread_phase == 1:
+			var t := clampf(_spread_timer / 0.3, 0.0, 1.0)
+			modulate = Color(10, 10, 10, 0).lerp(Color(1, 1, 1, 1), t)
+		await tree.process_frame
+	
+	play_right_close()
+	var tw2 := create_tween()
+	tw2.tween_property(self, "modulate", Color(10, 10, 10, 0), 0.6)
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	
+	modulate.a = 0.0
+	_base_position = original_pos
+	position = _base_position
+	
+	play_both_spread()
+	while _is_wing_spread_playing:
+		if _spread_phase == 1:
+			var t := clampf(_spread_timer / 0.3, 0.0, 1.0)
+			modulate = Color(10, 10, 10, 0).lerp(Color(1, 1, 1, 1), t)
+		await tree.process_frame
 
 
 ## ── 翅膀状态管理（张开/闭合） ──
