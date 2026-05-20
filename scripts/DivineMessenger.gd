@@ -534,6 +534,7 @@ func _start_anim_sequence() -> void:
 		_set_wings_open(false)
 		_sync_all_node_props()
 		_snapshot_closed()
+		_save_switch_visual()
 		_spread_phase = 0
 	_is_wing_spread_playing = true
 
@@ -595,9 +596,7 @@ func _start_intro() -> void:
 	await pt.finished
 	
 	await tree.create_timer(1.5).timeout
-	apply_wings_open_state()
-	_restore_switch_visual()
-	_apply_wing_sprite_props()
+	_sync_all_node_props()
 	play_both_close()
 	
 	while _is_wing_spread_playing:
@@ -644,6 +643,7 @@ func _start_side_anim(kind: int, side: int) -> void:
 		_set_wings_open(false)
 		_sync_all_node_props()
 		_snapshot_closed()
+		_save_switch_visual()
 		_spread_phase = 0
 	_is_wing_spread_playing = true
 
@@ -702,13 +702,9 @@ func _process_wing_spread_animation(delta: float) -> void:
 					_spread_timer = 0.0
 					_spread_phase = 5
 				elif _is_intro:
-					wing_pivot_left_node.position = wing_pivot_left_pos
-					wing_pivot_right_node.position = wing_pivot_right_pos
-					wing_pivot_left_node.rotation = 0.0
-					wing_pivot_right_node.rotation = 0.0
-					crystal_sprite.position = crystal_pos
-					crown_sprite.position = crown_pos
+					_sync_all_node_props()
 					_is_wing_spread_playing = false
+					return
 				else:
 					_advance_anim_sequence()
 		5: # close_a — 0→0.3s ease_in 左CCW10°右CW10°, 0.2s切换闭合纹理/偏移
@@ -773,6 +769,7 @@ func _advance_anim_sequence() -> void:
 		_set_wings_open(false)
 		_sync_all_node_props()
 		_snapshot_closed()
+		_save_switch_visual()
 		_spread_phase = 0
 	if _wing_glow_mat_left:
 		_wing_glow_mat_left.set_shader_parameter("glow_intensity", 0.0)
