@@ -586,11 +586,6 @@ func _start_intro() -> void:
 	_base_position.y += 50
 	position = _base_position
 	
-	play_both_close()
-	
-	while _is_wing_spread_playing:
-		await tree.process_frame
-	
 	_is_intro = false
 
 
