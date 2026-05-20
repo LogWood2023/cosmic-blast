@@ -18,6 +18,7 @@ const SKILL3_ENEMY_SCENES: Array[String] = [
 @export var spawn_y_ratio: float = 0.3
 @export var debug_mode: bool = false
 @export var debug_phase_overlay: bool = false
+@export var 主题色: Color = Color.WHITE
 var boss_hp: int
 var screen_size: Vector2
 
@@ -746,24 +747,24 @@ func _ensure_skill1_warn_layer() -> void:
 		get_tree().current_scene.add_child(_skill1_bar_layer)
 	if not is_instance_valid(_skill1_warn_frame):
 		_skill1_warn_frame = Polygon2D.new()
-		_skill1_warn_frame.color = Color(1, 1, 1, 0)
+		_skill1_warn_frame.color = _theme_color(0.0)
 		_skill1_warn_frame.name = "Skill1WarnFrame"
 		_skill1_warn_layer.add_child(_skill1_warn_frame)
 	if not is_instance_valid(_skill1_warn_inner):
 		_skill1_warn_inner = Polygon2D.new()
-		_skill1_warn_inner.color = Color(1, 1, 1, 0)
+		_skill1_warn_inner.color = _theme_color(0.0)
 		_skill1_warn_inner.name = "Skill1WarnInner"
 		_skill1_warn_layer.add_child(_skill1_warn_inner)
 	if _skill1_warn_borders.is_empty():
 		for i in 4:
 			var border = Polygon2D.new()
-			border.color = Color(1, 1, 1, 0)
+			border.color = _theme_color(0.0)
 			border.name = "Skill1WarnBorder%d" % i
 			_skill1_warn_layer.add_child(border)
 			_skill1_warn_borders.append(border)
 	if not is_instance_valid(_skill1_warn_bar):
 		_skill1_warn_bar = Polygon2D.new()
-		_skill1_warn_bar.color = Color(1, 1, 1, 0)
+		_skill1_warn_bar.color = _theme_color(0.0)
 		_skill1_warn_bar.name = "Skill1WarnBar"
 		_skill1_bar_layer.add_child(_skill1_warn_bar)
 	if not is_instance_valid(_skill1_warn_bar_outline):
@@ -795,6 +796,10 @@ func _set_poly_rect(poly: Polygon2D, rect: Rect2) -> void:
 	])
 
 
+func _theme_color(alpha: float) -> Color:
+	return Color(主题色.r, 主题色.g, 主题色.b, alpha)
+
+
 func _skill1_check_bar_hit(rect: Rect2) -> void:
 	_check_player_hit_rect(rect, 30)
 
@@ -812,7 +817,7 @@ func _skill1_update_warn_inner(progress: float) -> void:
 	var h = lerpf(5.0, rect.size.y, clampf(progress, 0.0, 1.0))
 	var y = rect.position.y + rect.size.y * 0.5 - h * 0.5
 	_set_poly_rect(_skill1_warn_inner, Rect2(Vector2(rect.position.x, y), Vector2(rect.size.x, h)))
-	_skill1_warn_inner.color = Color(1, 1, 1, 0.3)
+	_skill1_warn_inner.color = _theme_color(0.3)
 
 
 func _skill1_update_warn_layer(opacity: float) -> void:
@@ -820,7 +825,7 @@ func _skill1_update_warn_layer(opacity: float) -> void:
 		return
 	var rect = _skill1_get_warn_rect()
 	_set_poly_rect(_skill1_warn_frame, rect)
-	_skill1_warn_frame.color = Color(1, 1, 1, 0.3 * opacity)
+	_skill1_warn_frame.color = _theme_color(0.3 * opacity)
 	var bw := 10.0
 	if _skill1_warn_borders.size() >= 4:
 		_set_poly_rect(_skill1_warn_borders[0], Rect2(rect.position, Vector2(rect.size.x, bw)))
@@ -828,7 +833,7 @@ func _skill1_update_warn_layer(opacity: float) -> void:
 		_set_poly_rect(_skill1_warn_borders[2], Rect2(rect.position, Vector2(bw, rect.size.y)))
 		_set_poly_rect(_skill1_warn_borders[3], Rect2(rect.position + Vector2(rect.size.x - bw, 0), Vector2(bw, rect.size.y)))
 		for border in _skill1_warn_borders:
-			border.color = Color(1, 1, 1, opacity)
+			border.color = _theme_color(opacity)
 
 
 func _skill1_clear_warn_layer() -> void:
@@ -867,7 +872,7 @@ func _skill1_bar_sequence() -> void:
 	_ensure_skill1_warn_layer()
 	if not is_instance_valid(_skill1_warn_bar):
 		_skill1_warn_bar = Polygon2D.new()
-		_skill1_warn_bar.color = Color(1, 1, 1, 0)
+		_skill1_warn_bar.color = _theme_color(0.0)
 		_skill1_warn_bar.name = "Skill1WarnBar"
 		_skill1_bar_layer.add_child(_skill1_warn_bar)
 	if not is_instance_valid(_skill1_warn_bar_outline):
@@ -879,7 +884,7 @@ func _skill1_bar_sequence() -> void:
 	var start_x = rect.position.x + rect.size.x if _skill1_fx_side == AnimSide.LEFT_WING else rect.position.x
 	var end_x = 0.0 if _skill1_fx_side == AnimSide.LEFT_WING else get_viewport().get_visible_rect().size.x
 	_set_poly_rect(_skill1_warn_bar, Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
-	_skill1_warn_bar.color = Color(1, 1, 1, 1.0)
+	_skill1_warn_bar.color = _theme_color(1.0)
 	_set_poly_rect(_skill1_warn_bar_outline, Rect2(Vector2(start_x - 30.0 if _skill1_fx_side == AnimSide.LEFT_WING else start_x + 1.0, 0.0), Vector2(30.0, rect.size.y)))
 	_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 1.0)
 	_skill1_check_bar_hit(Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
@@ -903,7 +908,7 @@ func _skill1_bar_sequence() -> void:
 	tw_fade.tween_method(func(a):
 		if not is_instance_valid(_skill1_warn_bar) or not is_instance_valid(_skill1_warn_bar_outline):
 			return
-		_skill1_warn_bar.color = Color(1, 1, 1, a)
+		_skill1_warn_bar.color = _theme_color(a)
 		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, a)
 		_skill1_check_bar_hit(full_hit_rect)
 	, 1.0, 0.0, 0.3)
@@ -937,15 +942,15 @@ func _skill2_warning_column(x: float) -> void:
 	warn_node.add_child(inner)
 	var outer_rect := Rect2(Vector2(x, 0.0), Vector2(50.0, viewport_size.y))
 	_set_poly_rect(outer, outer_rect)
-	outer.color = Color(1, 1, 1, 0.0)
+	outer.color = _theme_color(0.0)
 	_set_poly_rect(inner, Rect2(Vector2(x + 25.0 - 2.5, 0.0), Vector2(5.0, viewport_size.y)))
-	inner.color = Color(1, 1, 1, 0.0)
+	inner.color = _theme_color(0.0)
 	var fade_in := create_tween()
 	fade_in.tween_method(func(a):
 		if not is_instance_valid(outer) or not is_instance_valid(inner):
 			return
-		outer.color = Color(1, 1, 1, 0.3 * a)
-		inner.color = Color(1, 1, 1, 0.3 * a)
+		outer.color = _theme_color(0.3 * a)
+		inner.color = _theme_color(0.3 * a)
 	, 0.0, 1.0, 0.15)
 
 	var grow := create_tween()
@@ -960,8 +965,8 @@ func _skill2_warning_column(x: float) -> void:
 	fade_out.tween_method(func(a):
 		if not is_instance_valid(outer) or not is_instance_valid(inner):
 			return
-		outer.color = Color(1, 1, 1, 0.3 * a)
-		inner.color = Color(1, 1, 1, 0.3 * a)
+		outer.color = _theme_color(0.3 * a)
+		inner.color = _theme_color(0.3 * a)
 	, 1.0, 0.0, 0.15)
 	await fade_out.finished
 	if is_instance_valid(warn_node):
@@ -977,7 +982,7 @@ func _skill2_attack_column(rect: Rect2) -> void:
 	node.name = "Skill2AttackColumn"
 	parent.add_child(node)
 	var poly := Polygon2D.new()
-	poly.color = Color(1, 1, 1, 1)
+	poly.color = _theme_color(1.0)
 	node.add_child(poly)
 	_set_poly_rect(poly, rect)
 	_check_player_hit_rect(rect, 20)
