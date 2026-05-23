@@ -1,0 +1,57 @@
+project: "宇宙隔离带瓦片素材"
+output_dir: "./generated_assets/isolation_belt"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, tile map asset, seamless horizontal tile, outer space debris isolation belt, bright green solid color background, sharp pixel edges, flat shading, top-down orthographic view"
+  color_palette: "rusty metal grey, asteroid brown, debris orange, stardust white, deep space black, bright solid green background"
+  quality: "game tile map asset, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, small scattered particles, sparse empty composition"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 48
+  contrast: 1.2
+
+assets:
+  # ===== 类别1: 破旧的宇宙走廊（外部视角）=====
+  - type: prop
+    name: "dilapidated_corridor"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green tint on subject"
+    variants:
+      - description: "exterior view of a derelict space station corridor tube section floating in outer space, damaged outer hull plating with battle scars, exposed structural framework and support beams, broken external panels, airlock doors, exterior corridor module seen from outside, filling entire frame from edge to edge, seamless tile both left and right edges perfectly match for horizontal tiling"
+        count: 3
+      - description: "exterior view of a derelict space station corridor tube section, damaged outer hull, exposed structure, left edge seamless tileable, right edge is torn open jagged broken metal ending abruptly, corridor module exterior"
+        count: 1
+      - description: "exterior view of a derelict space station corridor tube section, damaged outer hull, exposed structure, right edge seamless tileable, left edge is torn open jagged broken metal ending abruptly, corridor module exterior"
+        count: 1
+
+  # ===== 类别2: 机械碎片构成的隔离带 =====
+  - type: prop
+    name: "mechanical_debris"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green tint on subject, dense thick cluster filling entire frame"
+    variants:
+      - description: "thick dense cluster of floating mechanical debris in outer space, large broken spaceship hull fragments, thick twisted metal beams, severed thick cables, shattered engine parts, scrap metal densely packed together filling the frame completely from top to bottom left to right, seamless tile both left and right edges perfectly match for horizontal tiling"
+        count: 3
+      - description: "thick dense cluster of floating mechanical debris, large broken ship hull pieces, twisted metal beams densely packed, left edge seamless tileable, right edge breaks apart with debris pieces scattered and thinning out"
+        count: 1
+      - description: "thick dense cluster of floating mechanical debris, large broken ship hull pieces, twisted metal beams densely packed, right edge seamless tileable, left edge breaks apart with debris pieces scattered and thinning out"
+        count: 1
+
+  # ===== 类别3: 小行星和星尘碎屑和石块构成的隔离带 =====
+  - type: prop
+    name: "asteroid_stardust"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green tint on subject, dense thick cluster filling entire frame"
+    variants:
+      - description: "thick dense asteroid belt and cosmic debris field, large rocky asteroids of various sizes tightly packed together, small pebbles and cosmic dust particles filling gaps, cratered stone fragments densely clustered, filling entire frame completely from edge to edge top to bottom, seamless tile both left and right edges perfectly match for horizontal tiling"
+        count: 3
+      - description: "thick dense asteroid belt and cosmic debris field, large rocky asteroids densely packed, left edge seamless tileable, right edge breaks apart with rocks drifting away and thinning out"
+        count: 1
+      - description: "thick dense asteroid belt and cosmic debris field, large rocky asteroids densely packed, right edge seamless tileable, left edge breaks apart with rocks drifting away and thinning out"
+        count: 1

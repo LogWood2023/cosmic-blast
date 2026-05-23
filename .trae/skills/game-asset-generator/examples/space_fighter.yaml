@@ -1,0 +1,17 @@
+project: "像素宇宙战机"
+output_dir: "./generated_assets"
+
+style:
+  style_lock: "pixel art, 16-bit SNES shoot em up style, sci-fi, dark space background, metallic textures, glowing engine thrusters, vibrant energy weapon colors, clean pixel edges, top-down view game sprite"
+  color_palette: "gunmetal grey, electric blue, neon orange, silver white, deep black"
+  quality: "game asset, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, low resolution, side view, perspective view"
+
+assets:
+  - type: prop
+    name: "space_fighter"
+    variants:
+      - description: "futuristic space fighter spaceship, sharp angular wings, twin engine thrusters, cockpit canopy, energy cannons, top-down orthographic view"
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"

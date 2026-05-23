@@ -1,0 +1,54 @@
+project: "像素风场景素材"
+output_dir: "./generated_assets"
+
+style:
+  art_style: "pixel art, 16-bit retro game style, cyberpunk city, neon lights, sci-fi atmosphere"
+  quality: "high quality pixel art, clean edges, game asset, tiling friendly"
+  negative: "blurry, realistic, 3D render, photorealistic, low resolution, jpeg artifacts"
+
+assets:
+  - type: prop
+    name: "vending_machine"
+    variants:
+      - description: >
+          a futuristic vending machine, pixel art, neon glow, glass front,
+          colorful drink cans inside, cyberpunk style, metallic body,
+          game prop sprite, isometric or front view, white background
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "ground_tile"
+    variants:
+      - description: >
+          pixel art ground tile texture, sci-fi metal floor panel,
+          grid pattern with neon lines, dark grey with cyan accents,
+          seamless tiling game texture, top-down view
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "tv_monitor"
+    variants:
+      - description: >
+          a retro-futuristic CRT television monitor, pixel art,
+          screen displaying static noise or glitch art,
+          bulky design with antennas, cyberpunk aesthetic,
+          game prop sprite, white background
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "billboard_sign"
+    variants:
+      - description: >
+          a large neon billboard advertising sign, pixel art,
+          cyberpunk city street element, glowing neon text frame,
+          metal scaffold support structure, urban decoration,
+          game prop sprite, white background
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"

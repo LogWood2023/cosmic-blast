@@ -22,8 +22,5 @@ func _pick_path_target() -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
-	# 撞到玩家造成伤害
 	if area.is_in_group(&"player"):
-		area.take_damage_from(self)
-		hp = 0
-		_die()
+		handle_player_collision(area)

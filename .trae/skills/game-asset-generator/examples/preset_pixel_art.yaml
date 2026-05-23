@@ -1,0 +1,57 @@
+project: "赛博朋克像素游戏"
+output_dir: "./generated_assets"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era game sprite, cyberpunk sci-fi atmosphere, neon cyan and purple color scheme, high contrast, bold outlines, flat shading, dark background with glowing accents, Chrono Trigger aesthetic"
+  color_palette: "dark navy blue, neon cyan, electric purple, hot pink, charcoal black, silver grey"
+  quality: "game asset, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, low resolution, smooth gradients, watercolor, painterly"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 32
+  contrast: 1.15
+
+assets:
+  - type: character
+    name: "cyberpunk_girl"
+    variants:
+      - description: "young female, long straight black hair, techwear jacket with neon blue trim, idle standing pose, front view, full body"
+        count: 1
+      - description: "young female, long straight black hair, dark techwear outfit, cyan LED glow, walking side view, full body"
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "vending_machine"
+    variants:
+      - description: "vending machine, neon glow, glass front, colorful drink cans, metallic body"
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "ground_tile"
+    variants:
+      - description: "metal floor panel, grid pattern, neon cyan lines, seamless tiling, top-down view"
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "tv_monitor"
+    variants:
+      - description: "retro CRT television, glitch static screen, bulky design, antennas"
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
+
+  - type: prop
+    name: "billboard_sign"
+    variants:
+      - description: "large neon billboard, glowing neon text frame, metal scaffold"
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"

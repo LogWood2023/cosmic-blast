@@ -1,0 +1,60 @@
+project: "像素风陨石重绘（4096x4096）"
+output_dir: "./generated_assets/pixel_asteroids"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, sharp pixel edges, flat shading, asteroid/space rock"
+  color_palette: "muted grays, browns, earth tones, dark stone colors, bright lime green background"
+  quality: "game sprite, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, bright colors, green on subject"
+
+pixel_clean:
+  enabled: true
+  target_size: 512
+  num_colors: 16
+  contrast: 1.2
+
+assets:
+  - type: prop
+    name: "pixel_asteroid_1"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, pixel art asteroid/space rock"
+    variants:
+      - description: "pixel art asteroid, irregular jagged shape, stone texture, sci-fi space rock, top-down view"
+        count: 1
+
+  - type: prop
+    name: "pixel_asteroid_2"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, pixel art asteroid/space rock"
+    variants:
+      - description: "pixel art asteroid, lumpy rounded shape, rocky texture, sci-fi space rock, top-down view"
+        count: 1
+
+  - type: prop
+    name: "pixel_asteroid_3"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, pixel art asteroid/space rock"
+    variants:
+      - description: "pixel art asteroid, sharp angular shape, stone texture with cracks, sci-fi space rock, top-down view"
+        count: 1
+
+  - type: prop
+    name: "pixel_asteroid_4"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, pixel art asteroid/space rock"
+    variants:
+      - description: "pixel art asteroid, irregular shape with craters, sci-fi space rock, top-down view"
+        count: 1
+
+  - type: prop
+    name: "pixel_asteroid_5"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, pixel art asteroid/space rock"
+    variants:
+      - description: "pixel art asteroid, elongated shape, rough stone texture, sci-fi space rock, top-down view"
+        count: 1

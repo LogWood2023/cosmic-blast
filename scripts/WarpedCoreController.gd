@@ -1661,6 +1661,8 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if entering or dying:
 		return
 	if area.is_in_group(&"player"):
+		if area.get(&"atk") != null:
+			apply_damage(area.atk * 3)
 		if area.has_method(&"take_knockback_damage"):
 			var dir = (area.global_position - global_position).normalized()
 			area.take_knockback_damage(body_touch_dmg, 1000.0, 0.5, dir)
@@ -1678,6 +1680,8 @@ func _on_orbiter_area_entered(area: Area2D) -> void:
 	if entering or dying:
 		return
 	if area.is_in_group(&"player"):
+		if area.get(&"atk") != null:
+			apply_damage(area.atk * 3)
 		if area.has_method(&"take_knockback_damage"):
 			var dir = (area.global_position - global_position).normalized()
 			area.take_knockback_damage(orbiter_touch_dmg, 1200.0, 0.4, dir)

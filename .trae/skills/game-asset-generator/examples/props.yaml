@@ -1,0 +1,41 @@
+project: "像素风道具"
+output_dir: "./generated_assets/props"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, sci-fi space theme, bright solid green background, sharp pixel edges, flat shading"
+  color_palette: "gunmetal grey, cyan blue, neon accent, dark space black, white highlight, bright lime green background"
+  quality: "game sprite, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, sparse composition"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 48
+  contrast: 1.15
+
+assets:
+  - type: prop
+    name: "space_crate"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "space sci-fi storage crate, metal box with reinforced corners, panel lines, small indicator lights, slightly worn metallic finish, top-down view sprite"
+        count: 1
+      - description: "space sci-fi storage crate, heavy duty version, extra bolts and handles, slightly dented exterior, top-down view sprite"
+        count: 1
+      - description: "space sci-fi storage crate, premium sealed version, glowing cyan status ring around lid, pristine condition, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "space_crystal"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "space sci-fi crystal, glowing blue crystal shard, sharp angular facets, faint internal glow, mineral texture, top-down view sprite"
+        count: 1
+      - description: "space sci-fi crystal, neon cyan crystal cluster, multiple small shards growing together, bright glowing edges, top-down view sprite"
+        count: 1
+      - description: "space sci-fi crystal, purple mystic crystal, smooth curved facets, deep internal light refraction, floating energy particles around, top-down view sprite"
+        count: 1

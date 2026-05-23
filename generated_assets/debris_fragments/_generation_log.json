@@ -1,0 +1,151 @@
+{
+  "project": "像素风碎片素材",
+  "generated_at": "2026-05-22T16:28:08.162257",
+  "total_assets": 18,
+  "entries": [
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_1\\crate_fragment_1_00_1024x1024_db59.png",
+      "type": "prop",
+      "name": "crate_fragment_1",
+      "variant_description": "broken fragment of space storage crate, small piece, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:06:57.267845"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_1\\crate_fragment_1_00_1024x1024_3b79.png",
+      "type": "prop",
+      "name": "crate_fragment_1",
+      "variant_description": "another broken fragment of space storage crate, different shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:07:46.476825"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_1\\crate_fragment_1_00_1024x1024_b286.png",
+      "type": "prop",
+      "name": "crate_fragment_1",
+      "variant_description": "third broken fragment of space storage crate, another shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:09:12.519823"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_2\\crate_fragment_2_00_1024x1024_b0c1.png",
+      "type": "prop",
+      "name": "crate_fragment_2",
+      "variant_description": "broken fragment of heavy-duty space storage crate, small piece, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:10:30.025653"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_2\\crate_fragment_2_00_1024x1024_8116.png",
+      "type": "prop",
+      "name": "crate_fragment_2",
+      "variant_description": "another broken fragment of heavy-duty space storage crate, different shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:11:44.127398"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_2\\crate_fragment_2_00_1024x1024_e332.png",
+      "type": "prop",
+      "name": "crate_fragment_2",
+      "variant_description": "third broken fragment of heavy-duty space storage crate, another shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:13:09.454686"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_3\\crate_fragment_3_00_1024x1024_c7aa.png",
+      "type": "prop",
+      "name": "crate_fragment_3",
+      "variant_description": "broken fragment of premium sealed space storage crate, small piece, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:14:31.869687"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_3\\crate_fragment_3_00_1024x1024_6e02.png",
+      "type": "prop",
+      "name": "crate_fragment_3",
+      "variant_description": "another broken fragment of premium sealed space storage crate, different shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:15:42.848224"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crate_fragment_3\\crate_fragment_3_00_1024x1024_548b.png",
+      "type": "prop",
+      "name": "crate_fragment_3",
+      "variant_description": "third broken fragment of premium sealed space storage crate, another shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:17:00.939142"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_1\\crystal_fragment_1_00_1024x1024_a69a.png",
+      "type": "prop",
+      "name": "crystal_fragment_1",
+      "variant_description": "broken shard of blue space crystal, small piece, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:18:07.891249"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_1\\crystal_fragment_1_00_1024x1024_c71e.png",
+      "type": "prop",
+      "name": "crystal_fragment_1",
+      "variant_description": "another broken shard of blue space crystal, different shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:19:25.276190"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_1\\crystal_fragment_1_00_1024x1024_5995.png",
+      "type": "prop",
+      "name": "crystal_fragment_1",
+      "variant_description": "third broken shard of blue space crystal, another shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:20:45.132475"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_2\\crystal_fragment_2_00_1024x1024_f7b6.png",
+      "type": "prop",
+      "name": "crystal_fragment_2",
+      "variant_description": "broken shard of cyan space crystal cluster, small piece, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:21:42.808632"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_2\\crystal_fragment_2_00_1024x1024_a9b5.png",
+      "type": "prop",
+      "name": "crystal_fragment_2",
+      "variant_description": "another broken shard of cyan space crystal cluster, different shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:23:03.468558"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_2\\crystal_fragment_2_00_1024x1024_6bbf.png",
+      "type": "prop",
+      "name": "crystal_fragment_2",
+      "variant_description": "third broken shard of cyan space crystal cluster, another shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:24:26.495961"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_3\\crystal_fragment_3_00_1024x1024_56cc.png",
+      "type": "prop",
+      "name": "crystal_fragment_3",
+      "variant_description": "broken shard of purple mystic space crystal, small piece, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:25:43.494377"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_3\\crystal_fragment_3_00_1024x1024_c829.png",
+      "type": "prop",
+      "name": "crystal_fragment_3",
+      "variant_description": "another broken shard of purple mystic space crystal, different shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:26:56.323355"
+    },
+    {
+      "filepath": "./generated_assets/debris_fragments\\props\\crystal_fragment_3\\crystal_fragment_3_00_1024x1024_be8b.png",
+      "type": "prop",
+      "name": "crystal_fragment_3",
+      "variant_description": "third broken shard of purple mystic space crystal, another shape, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T16:28:08.161116"
+    }
+  ]
+}

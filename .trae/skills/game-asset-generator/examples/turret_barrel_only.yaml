@@ -1,0 +1,28 @@
+project: "像素风机械炮管（仅炮管）"
+output_dir: "./generated_assets/turret_barrel_only"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, sharp pixel edges, flat shading, ONLY the turret barrel, no other parts"
+  color_palette: "muted colors, dark grays, metal blues, bright lime green background"
+  quality: "game sprite, clean pixel edges, ONLY the barrel"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, base, turret, complete turret, muzzle brake, vents, fins, extra parts"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 12
+  contrast: 1.1
+
+assets:
+  - type: prop
+    name: "turret_barrel_simple"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, ONLY the barrel"
+    variants:
+      - description: "simple thin rectangular turret barrel, pixel art, sci-fi metal barrel, only the barrel, no other parts, top-down view"
+        count: 1
+      - description: "simple thin rectangular turret barrel, pixel art, slightly thicker sci-fi metal barrel, only the barrel, no other parts, top-down view"
+        count: 1
+      - description: "simple thin rectangular turret barrel, pixel art, long thin sci-fi metal barrel, only the barrel, no other parts, top-down view"
+        count: 1

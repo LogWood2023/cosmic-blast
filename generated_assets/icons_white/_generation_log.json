@@ -1,0 +1,23 @@
+{
+  "project": "像素风纯白色Icon",
+  "generated_at": "2026-05-22T15:25:39.147154",
+  "total_assets": 2,
+  "entries": [
+    {
+      "filepath": "./generated_assets/icons_white\\props\\white_crystal_icon\\white_crystal_icon_00_1024x1024_025b.png",
+      "type": "prop",
+      "name": "white_crystal_icon",
+      "variant_description": "space sci-fi crystal icon, pure white crystal shard with sharp angular facets, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T15:24:34.635199"
+    },
+    {
+      "filepath": "./generated_assets/icons_white\\props\\white_crate_icon\\white_crate_icon_00_1024x1024_47da.png",
+      "type": "prop",
+      "name": "white_crate_icon",
+      "variant_description": "space sci-fi storage crate icon, pure white metal box with reinforced corners, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T15:25:39.146153"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "project": "test_explosion_sfx",
+  "generated_at": "2026-05-22T17:54:54.469662",
+  "total_sfx": 1,
+  "entries": [
+    {
+      "filepath": "assets/audio\\ai_explosion_00_4217.wav",
+      "import_file": "assets/audio\\ai_explosion_00_4217.wav.import",
+      "category": "explosion",
+      "name": "ai_explosion",
+      "variant_description": "A large spaceship explosion, sharp crack followed by deep rumbling boom and debris",
+      "duration": 3.0,
+      "timestamp": "2026-05-22T17:54:54.469662"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+project: "像素风避雷针"
+output_dir: "./generated_assets/pixel_lightning_rod"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, sharp pixel edges, flat shading, lightning rod/air terminal"
+  color_palette: "muted grays, dark grays, silver, metallic blue, bright lime green background"
+  quality: "game sprite, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, bright colors, green on subject"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 16
+  contrast: 1.2
+
+assets:
+  - type: prop
+    name: "lightning_rod_1"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, pixel art lightning rod/air terminal, metallic, top-down view"
+    variants:
+      - description: "pixel art lightning rod, simple straight rod with pointed tip, metallic, top-down view"
+        count: 1
+      - description: "pixel art lightning rod, with small base and attached wires, metallic, top-down view"
+        count: 1
+      - description: "pixel art lightning rod, industrial design with multiple points, metallic, top-down view"
+        count: 1

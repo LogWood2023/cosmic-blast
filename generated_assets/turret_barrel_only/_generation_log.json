@@ -1,0 +1,31 @@
+{
+  "project": "像素风机械炮管（仅炮管）",
+  "generated_at": "2026-05-22T17:48:47.126296",
+  "total_assets": 3,
+  "entries": [
+    {
+      "filepath": "./generated_assets/turret_barrel_only\\props\\turret_barrel_simple\\turret_barrel_simple_00_1024x1024_c213.png",
+      "type": "prop",
+      "name": "turret_barrel_simple",
+      "variant_description": "simple thin rectangular turret barrel, pixel art, sci-fi metal barrel, only the barrel, no other parts, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T17:47:09.853468"
+    },
+    {
+      "filepath": "./generated_assets/turret_barrel_only\\props\\turret_barrel_simple\\turret_barrel_simple_00_1024x1024_5d92.png",
+      "type": "prop",
+      "name": "turret_barrel_simple",
+      "variant_description": "simple thin rectangular turret barrel, pixel art, slightly thicker sci-fi metal barrel, only the barrel, no other parts, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T17:47:49.686406"
+    },
+    {
+      "filepath": "./generated_assets/turret_barrel_only\\props\\turret_barrel_simple\\turret_barrel_simple_00_1024x1024_95de.png",
+      "type": "prop",
+      "name": "turret_barrel_simple",
+      "variant_description": "simple thin rectangular turret barrel, pixel art, long thin sci-fi metal barrel, only the barrel, no other parts, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T17:48:47.126296"
+    }
+  ]
+}

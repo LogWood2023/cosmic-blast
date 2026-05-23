@@ -6,9 +6,13 @@ extends Area2D
 @export var bullet_scene: PackedScene
 @export var fire_rate: float = 0.25
 @export var atk: int = 10
+@export var movement_bounds: Rect2 = Rect2(Vector2.ZERO, Vector2.ZERO)
+@export var blocked_by_space_rocks: bool = false
 
 var screen_size: Vector2
 var fire_cooldown: float = 0.0
+var current_velocity: Vector2 = Vector2.ZERO
+var collision_radius: float = 27.0
 
 # 无敌帧
 var invincible: bool = false
@@ -30,9 +34,14 @@ const HURT_SOUND = preload("res://assets/audio/player_hurt.wav")
 
 func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
+	if movement_bounds.size == Vector2.ZERO:
+		movement_bounds = Rect2(Vector2.ZERO, screen_size)
+	var shape_node: CollisionShape2D = $CollisionShape2D
+	if shape_node and shape_node.shape is CapsuleShape2D:
+		collision_radius = shape_node.shape.height * 0.5
 	add_to_group(&"player")
 	collision_layer = 1
-	collision_mask = 2     # 检测 Boss 组件
+	collision_mask = 6     # 检测 Boss 组件 (2) + ExploreReward (4)
 
 
 func _process(delta: float) -> void:
@@ -50,12 +59,17 @@ func _process(delta: float) -> void:
 		knockback_elapsed += delta
 		var t = knockback_elapsed / knockback_duration
 		var spd = lerp(knockback_speed, 0.0, t)
-		position += knockback_dir * spd * delta
-		position.x = clamp(position.x, 0, screen_size.x)
-		position.y = clamp(position.y, 0, screen_size.y)
+		current_velocity = knockback_dir * spd
+		_move_with_space_rock_block(knockback_dir * spd * delta)
+		_clamp_to_movement_bounds()
 		if t >= 1.0:
 			is_knocked_back = false
+			current_velocity = Vector2.ZERO
 		return    # 击飞期间无法行动
+
+	if GameManager.command_console_open:
+		current_velocity = Vector2.ZERO
+		return
 
 	# ── 移动 ──
 	var input_dir: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -66,12 +80,12 @@ func _process(delta: float) -> void:
 		var pull = GameManager.suction_center - global_position
 		if pull.length() > 1.0:
 			total_move += pull.normalized() * 0.8
-	position += total_move * speed * delta
-	position.x = clamp(position.x, 0, screen_size.x)
-	position.y = clamp(position.y, 0, screen_size.y)
+	current_velocity = total_move * speed
+	_move_with_space_rock_block(total_move * speed * delta)
+	_clamp_to_movement_bounds()
 
 	# ── 朝向 ──
-	var is_shooting: bool = Input.is_action_pressed("shoot")
+	var is_shooting: bool = Input.is_action_pressed("shoot") and not _is_mouse_over_map()
 	var target_angle: float
 	if is_shooting:
 		var mp = get_global_mouse_position()
@@ -95,6 +109,8 @@ func _shoot() -> void:
 	var forward = Vector2(0, -1).rotated(rotation)
 	bullet.direction = forward
 	bullet.atk = atk
+	if movement_bounds.size != screen_size:
+		bullet.world_bounds = movement_bounds
 	bullet.position = global_position + 50 * forward
 	bullet.rotation = rotation - PI / 2.0    # PNG 朝右，-90° 对齐飞行方向
 	bullet.z_index = -80            # 子弹层
@@ -184,3 +200,38 @@ func _play_sfx(stream: AudioStream) -> void:
 	get_tree().current_scene.add_child(sfx)
 	sfx.play()
 	sfx.finished.connect(sfx.queue_free)
+
+
+func _is_mouse_over_map() -> bool:
+	for map in get_tree().get_nodes_in_group(&"map_ui"):
+		if map.visible and map.get_global_rect().has_point(get_viewport().get_mouse_position()):
+			return true
+	return false
+
+
+func _clamp_to_movement_bounds() -> void:
+	position.x = clamp(position.x, movement_bounds.position.x, movement_bounds.position.x + movement_bounds.size.x)
+	position.y = clamp(position.y, movement_bounds.position.y, movement_bounds.position.y + movement_bounds.size.y)
+
+
+func _move_with_space_rock_block(delta_pos: Vector2) -> void:
+	if not blocked_by_space_rocks or delta_pos == Vector2.ZERO:
+		position += delta_pos
+		return
+	var next_pos = position + delta_pos
+	for rock in get_tree().get_nodes_in_group(&"space_rocks"):
+		if not is_instance_valid(rock):
+			continue
+		if rock.has_method(&"get_push_out_position"):
+			next_pos = rock.get_push_out_position(next_pos, collision_radius)
+	for reward in get_tree().get_nodes_in_group(&"explore_rewards"):
+		if not is_instance_valid(reward) or not reward.visible:
+			continue
+		if reward.has_method(&"get_push_out_position"):
+			next_pos = reward.get_push_out_position(next_pos, collision_radius)
+	for band in get_tree().get_nodes_in_group(&"isolation_bands"):
+		if not is_instance_valid(band) or not band.visible:
+			continue
+		if band.has_method(&"get_push_out_position"):
+			next_pos = band.get_push_out_position(next_pos, collision_radius)
+	position = next_pos

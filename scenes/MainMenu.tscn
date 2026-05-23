@@ -16,24 +16,32 @@ theme_override_font_sizes/font_size = 56
 
 [node name="StartButton" type="Button" parent="."]
 offset_left = 860.0
-offset_top = 523.0
+offset_top = 500.0
 offset_right = 1060.0
-offset_bottom = 573.0
+offset_bottom = 550.0
 text = "开始游戏"
+theme_override_font_sizes/font_size = 24
+
+[node name="ExploreButton" type="Button" parent="."]
+offset_left = 860.0
+offset_top = 590.0
+offset_right = 1060.0
+offset_bottom = 640.0
+text = "探索房间"
 theme_override_font_sizes/font_size = 24
 
 [node name="BossButton" type="Button" parent="."]
 offset_left = 820.0
-offset_top = 628.0
+offset_top = 680.0
 offset_right = 1100.0
-offset_bottom = 678.0
+offset_bottom = 730.0
 text = "Boss挑战"
 theme_override_font_sizes/font_size = 22
 
 [node name="QuitButton" type="Button" parent="."]
 offset_left = 860.0
-offset_top = 733.0
+offset_top = 770.0
 offset_right = 1060.0
-offset_bottom = 783.0
+offset_bottom = 820.0
 text = "退出游戏"
 theme_override_font_sizes/font_size = 24

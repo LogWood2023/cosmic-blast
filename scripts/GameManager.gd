@@ -13,6 +13,7 @@ const BGM = preload("res://assets/audio/bgm.mp3")
 var suction_active: bool = false
 var suction_center: Vector2 = Vector2.ZERO
 var controls_inverted: bool = false
+var command_console_open: bool = false
 
 # 测试功能：游戏场景缩放（正式版移除）
 var test_scale_enabled: bool = false

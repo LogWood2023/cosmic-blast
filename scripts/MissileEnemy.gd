@@ -26,6 +26,12 @@ func _process(delta: float) -> void:
 		queue_free()
 		return
 
+	if knockback_duration > 0.0:
+		_update_knockback(delta)
+		if is_shaking:
+			_update_shake(delta)
+		return
+
 	var dir = (player.global_position - global_position).normalized()
 	position += dir * move_speed * delta
 	rotation = dir.angle() - PI / 2.0
@@ -39,6 +45,4 @@ func _process(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"player"):
-		area.take_damage_from(self)
-		hp = 0
-		_die()
+		handle_player_collision(area)

@@ -1,0 +1,33 @@
+project: "像素风彩色Icon"
+output_dir: "./generated_assets/icons_color"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, relatively simple muted color scheme, sharp pixel edges, flat shading"
+  color_palette: "muted colors, low saturation, earth tones, dark blues, grays, subtle pastels, bright lime green background"
+  quality: "game sprite, clean pixel edges, simple color palette, not too many colors"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, sparse composition, bright saturated neon colors, rainbow colors"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 12
+  contrast: 1.1
+
+assets:
+  - type: prop
+    name: "color_crystal_icon"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "space sci-fi crystal icon, muted blue-gray crystal shard with subtle highlights, sharp angular facets, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "color_crate_icon"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "space sci-fi storage crate icon, muted dark gray metal box with reinforced corners, subtle blue accent lights, top-down view sprite"
+        count: 1

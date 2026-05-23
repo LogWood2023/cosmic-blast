@@ -1,0 +1,15 @@
+{
+  "project": "宇宙背景",
+  "generated_at": "2026-05-22T14:04:49.864062",
+  "total_assets": 1,
+  "entries": [
+    {
+      "filepath": "./generated_assets/space_background\\backgrounds\\deep_space\\deep_space_00_1024x1024_d7be.png",
+      "type": "background",
+      "name": "deep_space",
+      "variant_description": "deep dark blue outer space void background, scattered tiny distant stars, faint cosmic dust clouds, subtle nebula haze, seamless tile both left and right edges perfectly match for horizontal tiling, filling entire frame",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:04:49.864062"
+    }
+  ]
+}

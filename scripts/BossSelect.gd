@@ -18,6 +18,9 @@ const BOSS_SCENES = {
 	"Boss15Button": "res://scenes/BossBattle_Admin.tscn",
 	"Boss16Button": "res://scenes/BossBattle_Gate.tscn",
 	"Boss17Button": "res://scenes/BossBattle_DivineMessenger.tscn",
+	"Boss18Button": "res://scenes/BossBattle_ImitationAngel.tscn",
+	"Boss19Button": "res://scenes/BossBattle_HolyBloodBrokenSword.tscn",
+	"Boss20Button": "res://scenes/BossBattle_CrystalMother.tscn",
 }
 
 

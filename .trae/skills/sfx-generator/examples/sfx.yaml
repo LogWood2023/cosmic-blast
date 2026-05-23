@@ -1,0 +1,92 @@
+# AI 音效生成管线配置
+# 基于 Hugging Face 线上 text-to-audio 模型，默认自动按类别选择模型并失败重试
+
+project: "打飞机游戏_SFX"
+
+# 输出到 Godot 项目的 assets/audio/ 目录
+output_dir: "assets/audio"
+
+# 全局风格设置
+style:
+  # 音效风格提示词（会追加到所有 prompt 后面）
+  audio_style: "game sound effect, clean, high quality"
+  # 质量描述
+  quality: "professional foley, crisp, punchy"
+
+# 音效素材列表
+assets:
+  # ===== 武器音效 =====
+  - name: "shoot"
+    category: "weapon"
+    variants:
+      - description: "A single laser gun shot, sci-fi blaster, short and punchy"
+        count: 2
+        duration: 2.0
+
+  - name: "laser_zap"
+    category: "weapon"
+    variants:
+      - description: "A powerful laser beam charging then firing, energy weapon"
+        count: 2
+        duration: 3.0
+
+  # ===== 爆炸音效 =====
+  - name: "explosion"
+    category: "explosion"
+    variants:
+      - description: "A large explosion with debris, deep boom with rumble"
+        count: 2
+        duration: 4.0
+
+  - name: "bomb_explode"
+    category: "explosion"
+    variants:
+      - description: "A bomb blast, sharp initial crack followed by rolling thunder"
+        count: 1
+        duration: 4.0
+
+  # ===== 受击音效 =====
+  - name: "hit"
+    category: "impact"
+    variants:
+      - description: "A metallic hit impact, like bullet hitting armor"
+        count: 2
+        duration: 2.0
+
+  - name: "boss_hit"
+    category: "impact"
+    variants:
+      - description: "A heavy impact on large mechanical creature, deep thud with echo"
+        count: 1
+        duration: 3.0
+
+  # ===== 生物/怪物音效 =====
+  - name: "boss_roar"
+    category: "creature"
+    variants:
+      - description: "A monstrous mechanical roar, deep and powerful, sci-fi creature"
+        count: 2
+        duration: 4.0
+
+  # ===== 环境音效 =====
+  - name: "cannon_move"
+    category: "vehicle"
+    variants:
+      - description: "Heavy mechanical turret rotating, gears and servos"
+        count: 1
+        duration: 3.0
+
+  # ===== UI/提示音效 =====
+  - name: "powerup"
+    category: "ui"
+    variants:
+      - description: "A positive power-up chime, ascending notes, magical sparkle"
+        count: 2
+        duration: 2.0
+
+  - name: "menu_click"
+    category: "ui"
+    variants:
+      - description: "A crisp UI click sound, button press, short and snappy"
+        count: 1
+        duration: 1.0

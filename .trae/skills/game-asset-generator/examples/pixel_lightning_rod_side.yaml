@@ -1,0 +1,28 @@
+project: "像素风避雷针（平视视角）"
+output_dir: "./generated_assets/pixel_lightning_rod_side"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, side view, bright solid green background, sharp pixel edges, flat shading, lightning rod/air terminal, straight metal rod on a simple rectangular base"
+  color_palette: "muted grays, dark grays, silver, metallic blue, bright lime green background"
+  quality: "game sprite, clean pixel edges, side view, no top-down"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, bright colors, green on subject, top-down view, overhead view, 2.5D, isometric"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 16
+  contrast: 1.2
+
+assets:
+  - type: prop
+    name: "lightning_rod_side_1"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, side view 2D sprite, centered filling frame, pixel art lightning rod, straight metal rod with pointed tip on a simple rectangular base, metallic, side view"
+    variants:
+      - description: "pixel art lightning rod, simple straight rod with pointed tip on a rectangular base, metallic, side view"
+        count: 1
+      - description: "pixel art lightning rod, straight rod with simple top on a rectangular base, metallic, side view"
+        count: 1
+      - description: "pixel art lightning rod, straight rod with small details on a rectangular base, metallic, side view"
+        count: 1

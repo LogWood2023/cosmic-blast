@@ -21,6 +21,13 @@ func _process(delta: float) -> void:
 		_die()
 		return
 
+	if knockback_duration > 0.0:
+		_update_knockback(delta)
+		if is_shaking:
+			_update_shake(delta)
+		queue_redraw()
+		return
+
 	search_timer -= delta
 	if search_timer <= 0.0 or not is_instance_valid(heal_target):
 		heal_target = _find_wounded_ally()
@@ -101,6 +108,4 @@ func _draw() -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"player"):
-		area.take_damage_from(self)
-		hp = 0
-		_die()
+		handle_player_collision(area)

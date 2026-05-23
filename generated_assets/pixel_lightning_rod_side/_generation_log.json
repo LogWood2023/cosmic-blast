@@ -1,0 +1,31 @@
+{
+  "project": "像素风避雷针（平视视角）",
+  "generated_at": "2026-05-23T10:37:50.202814",
+  "total_assets": 3,
+  "entries": [
+    {
+      "filepath": "./generated_assets/pixel_lightning_rod_side\\props\\lightning_rod_side_1\\lightning_rod_side_1_00_1024x1024_c2af.png",
+      "type": "prop",
+      "name": "lightning_rod_side_1",
+      "variant_description": "pixel art lightning rod, simple straight rod with pointed tip on a rectangular base, metallic, side view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-23T10:36:22.553517"
+    },
+    {
+      "filepath": "./generated_assets/pixel_lightning_rod_side\\props\\lightning_rod_side_1\\lightning_rod_side_1_00_1024x1024_9e80.png",
+      "type": "prop",
+      "name": "lightning_rod_side_1",
+      "variant_description": "pixel art lightning rod, straight rod with simple top on a rectangular base, metallic, side view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-23T10:36:56.812901"
+    },
+    {
+      "filepath": "./generated_assets/pixel_lightning_rod_side\\props\\lightning_rod_side_1\\lightning_rod_side_1_00_1024x1024_c6e7.png",
+      "type": "prop",
+      "name": "lightning_rod_side_1",
+      "variant_description": "pixel art lightning rod, straight rod with small details on a rectangular base, metallic, side view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-23T10:37:50.202814"
+    }
+  ]
+}

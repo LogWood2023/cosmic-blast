@@ -1,0 +1,54 @@
+project: "示例RPG游戏"
+output_dir: "./generated_assets"
+
+style:
+  art_style: "pixel art, 16-bit retro game style, vibrant colors"
+  quality: "high quality pixel art, clean edges, game sprite"
+  negative: "blurry, realistic, 3D, photorealistic, low resolution"
+
+assets:
+  - type: character
+    name: "hero_knight"
+    variants:
+      - description: "idle standing pose, front view, blue armor, sword on back"
+        count: 1
+      - description: "attack pose, sword swing, action frame"
+        count: 1
+    size: "1024x1024"
+
+  - type: character
+    name: "slime_enemy"
+    variants:
+      - description: "green slime monster, cute, bouncing, idle"
+        count: 1
+    size: "512x512"
+
+  - type: background
+    name: "forest_level"
+    variants:
+      - description: "enchanted forest, trees, sunlight rays, path through woods"
+        count: 1
+    size: "1792x1024"
+
+  - type: prop
+    name: "treasure_chest"
+    variants:
+      - description: "golden treasure chest, closed, sparkling"
+        count: 1
+      - description: "golden treasure chest, open, coins and gems inside"
+        count: 1
+    size: "512x512"
+
+  - type: ui
+    name: "health_bar"
+    variants:
+      - description: "red health bar, metallic frame, game UI element"
+        count: 1
+    size: "512x512"
+
+  - type: icon
+    name: "sword_icon"
+    variants:
+      - description: "pixel art sword icon, inventory item style"
+        count: 1
+    size: "256x256"

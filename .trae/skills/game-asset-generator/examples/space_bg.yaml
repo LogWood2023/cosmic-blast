@@ -1,0 +1,24 @@
+project: "宇宙背景"
+output_dir: "./generated_assets/space_background"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, deep space background, tile map background, seamless horizontal tile, dark blue cosmic theme, sharp pixel edges, flat shading"
+  color_palette: "deep navy blue, dark indigo, midnight blue, star white, faint nebula cyan, dark void black"
+  quality: "seamless tile background, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, gradient, soft edges, anti-aliased, watermark, text, character, planets, sun, bright colors, green, red, yellow, orange"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 48
+  contrast: 1.1
+
+assets:
+  - type: background
+    name: "deep_space"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "dark deep blue space void, scattered distant stars, subtle nebula wisps, purely space scene no foreground objects"
+    variants:
+      - description: "deep dark blue outer space void background, scattered tiny distant stars, faint cosmic dust clouds, subtle nebula haze, seamless tile both left and right edges perfectly match for horizontal tiling, filling entire frame"
+        count: 1

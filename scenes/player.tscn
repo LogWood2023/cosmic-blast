@@ -9,6 +9,7 @@ height = 54.0
 
 [node name="player" type="Area2D" unique_id=1952497223]
 script = ExtResource("1_v6fml")
+speed = 1000.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1496012804]
 scale = Vector2(0.0625, 0.0625)

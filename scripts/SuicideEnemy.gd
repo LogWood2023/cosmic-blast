@@ -43,6 +43,4 @@ func _explode_bullets() -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"player"):
-		area.take_damage_from(self)
-		hp = 0
-		_die()
+		handle_player_collision(area)

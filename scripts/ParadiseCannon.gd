@@ -28,6 +28,12 @@ func _process(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"player"):
+		if area.get(&"atk") != null:
+			var player_hit_parent = get_parent()
+			if cannon_index >= 0 and player_hit_parent.has_method(&"apply_cannon_damage"):
+				player_hit_parent.apply_cannon_damage(cannon_index, area.atk * 3)
+			else:
+				player_hit_parent.apply_damage(area.atk * 3)
 		area.take_knockback_damage(15, 800, 0.4)
 		return
 	if area.get(&"atk") != null:

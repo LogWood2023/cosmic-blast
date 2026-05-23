@@ -1,0 +1,33 @@
+project: "像素风纯白色Icon"
+output_dir: "./generated_assets/icons_white"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, all elements pure white, sharp pixel edges, flat shading"
+  color_palette: "white, bright lime green background"
+  quality: "game sprite, clean pixel edges, all object color white only"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, sparse composition, color, any color other than white and green background"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 2
+  contrast: 1.0
+
+assets:
+  - type: prop
+    name: "white_crystal_icon"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, entire object only pure white color"
+    variants:
+      - description: "space sci-fi crystal icon, pure white crystal shard with sharp angular facets, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "white_crate_icon"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame, entire object only pure white color"
+    variants:
+      - description: "space sci-fi storage crate icon, pure white metal box with reinforced corners, top-down view sprite"
+        count: 1

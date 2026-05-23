@@ -21,6 +21,12 @@ const SKILL3_ENEMY_SCENES: Array[String] = [
 @export var debug_phase_overlay: bool = false
 @export var debug_wing_state_log: bool = false
 @export var 主题色: Color = Color.WHITE
+@export_group("Textures")
+@export var crystal_texture: Texture2D = CRYSTAL_TEX
+@export var crown_texture: Texture2D = CROWN_TEX
+@export var wings_texture: Texture2D = WINGS_TEX
+@export var wings_open_texture: Texture2D = WINGS_OPEN_TEX
+@export var draw_crown: bool = true
 var boss_hp: int
 var screen_size: Vector2
 
@@ -70,6 +76,7 @@ var _intro_modulate: Color = Color.WHITE
 var _body_shake_intensity: float = 0.0
 var _screen_shake_intensity: float = 0.0
 var _skill5_parts_shake_active: bool = false
+var _fade_tween: Tween
 var _boss_name_overlay: CanvasLayer
 var _overlay_rect: ColorRect
 var _overlay_label: Label
@@ -198,6 +205,9 @@ const DEATH_DURATION: float = 5.0
 var death_timer: float = 0.0
 var death_explosion_cd: float = 0.0
 var death_sfx_cd: float = 0.0
+var _death_particle_timer: float = 0.0
+var _death_particle_tex: Texture2D
+var _death_particle_color: Color = Color.WHITE
 var won: bool = false
 
 # ═══════════ BGM ═══════════
@@ -345,7 +355,8 @@ func _process(delta: float) -> void:
 	cooldown_remaining -= delta
 	if cooldown_remaining <= 0.0:
 		is_executing = true
-		await _exec_skill(5)
+		var skill := _choose_next_skill()
+		await _exec_skill(skill)
 		cooldown_remaining = skill_cooldown
 		is_executing = false
 
@@ -833,7 +844,7 @@ func _ensure_skill1_warn_layer() -> void:
 		_set_theme_poly_color(_skill1_warn_bar, 0.0)
 	if not is_instance_valid(_skill1_warn_bar_outline):
 		_skill1_warn_bar_outline = Polygon2D.new()
-		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 0)
+		_skill1_warn_bar_outline.color = _theme_dark_color(0.0)
 		_skill1_warn_bar_outline.name = "Skill1WarnBarOutline"
 		_skill1_bar_layer.add_child(_skill1_warn_bar_outline)
 
@@ -1008,7 +1019,7 @@ func _skill1_bar_sequence() -> void:
 		_skill1_bar_layer.add_child(_skill1_warn_bar)
 	if not is_instance_valid(_skill1_warn_bar_outline):
 		_skill1_warn_bar_outline = Polygon2D.new()
-		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 0)
+		_skill1_warn_bar_outline.color = _theme_dark_color(0.0)
 		_skill1_warn_bar_outline.name = "Skill1WarnBarOutline"
 		_skill1_bar_layer.add_child(_skill1_warn_bar_outline)
 	var rect = _skill1_get_warn_rect()
@@ -1017,7 +1028,7 @@ func _skill1_bar_sequence() -> void:
 	_set_poly_rect(_skill1_warn_bar, Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
 	_set_theme_poly_color(_skill1_warn_bar, 1.0)
 	_set_poly_rect(_skill1_warn_bar_outline, Rect2(Vector2(start_x - 30.0 if _skill1_fx_side == AnimSide.LEFT_WING else start_x + 1.0, 0.0), Vector2(30.0, rect.size.y)))
-	_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, 1.0)
+	_skill1_warn_bar_outline.color = _theme_dark_color(1.0)
 	_skill1_check_bar_hit(Rect2(Vector2(start_x, 0.0), Vector2(1.0, rect.size.y)))
 	var tw_expand = create_tween()
 	tw_expand.set_trans(Tween.TRANS_QUAD)
@@ -1031,6 +1042,7 @@ func _skill1_bar_sequence() -> void:
 		var hit_rect = Rect2(Vector2(left_x, 0.0), Vector2(cur_w, rect.size.y))
 		_set_poly_rect(_skill1_warn_bar, hit_rect)
 		_set_poly_rect(_skill1_warn_bar_outline, Rect2(Vector2(left_x - 30.0 if _skill1_fx_side == AnimSide.LEFT_WING else left_x + cur_w, 0.0), Vector2(30.0, rect.size.y)))
+		_skill1_warn_bar_outline.color = _theme_dark_color(1.0)
 		_skill1_check_bar_hit(hit_rect)
 	, 0.0, 1.0, 0.2)
 	await tw_expand.finished
@@ -1040,7 +1052,7 @@ func _skill1_bar_sequence() -> void:
 		if not is_instance_valid(_skill1_warn_bar) or not is_instance_valid(_skill1_warn_bar_outline):
 			return
 		_set_theme_poly_color(_skill1_warn_bar, a)
-		_skill1_warn_bar_outline.color = Color(0.45, 0.45, 0.45, a)
+		_skill1_warn_bar_outline.color = _theme_dark_color(a)
 		_skill1_check_bar_hit(full_hit_rect)
 	, 1.0, 0.0, 0.3)
 	await tw_fade.finished
@@ -1547,7 +1559,7 @@ func _force_inactive_wing_closed() -> void:
 			_wing_glow_mat_right.set_shader_parameter("glow_intensity", 0.0)
 		if _point_light_right:
 			_point_light_right.scale = Vector2.ZERO
-			_point_light_right.modulate.a = 0.0
+			_point_light_right.modulate = _theme_color(0.0)
 	elif _anim_side == AnimSide.RIGHT_WING:
 		wing_left_offset = wings_closed_wing_left_offset
 		if wings_left:
@@ -1560,7 +1572,7 @@ func _force_inactive_wing_closed() -> void:
 			_wing_glow_mat_left.set_shader_parameter("glow_intensity", 0.0)
 		if _point_light_left:
 			_point_light_left.scale = Vector2.ZERO
-			_point_light_left.modulate.a = 0.0
+			_point_light_left.modulate = _theme_color(0.0)
 
 
 func _advance_anim_sequence() -> void:
@@ -1602,10 +1614,10 @@ func _advance_anim_sequence() -> void:
 		_wing_glow_mat_right.set_shader_parameter("glow_intensity", 0.0)
 	if _point_light_left:
 		_point_light_left.scale = Vector2.ZERO
-		_point_light_left.modulate.a = 0.0
+		_point_light_left.modulate = _theme_color(0.0)
 	if _point_light_right:
 		_point_light_right.scale = Vector2.ZERO
-		_point_light_right.modulate.a = 0.0
+		_point_light_right.modulate = _theme_color(0.0)
 	_is_wing_spread_playing = true
 
 
@@ -1925,10 +1937,10 @@ func _apply_point_lights() -> void:
 	var alpha = t * point_light_max_brightness
 	if _point_light_left and _is_left_active():
 		_point_light_left.scale = Vector2.ONE * target_scale * t
-		_point_light_left.modulate.a = alpha
+		_point_light_left.modulate = _theme_color(alpha)
 	if _point_light_right and _is_right_active():
 		_point_light_right.scale = Vector2.ONE * target_scale * t
-		_point_light_right.modulate.a = alpha
+		_point_light_right.modulate = _theme_color(alpha)
 
 
 var _cached_point_light_tex: Texture2D
@@ -1985,7 +1997,7 @@ func _setup_body() -> void:
 	add_child(wing_pivot_left_node)
 	
 	# 左翅膀（子节点）
-	var wings_tex = WINGS_OPEN_TEX if wings_open else WINGS_TEX
+	var wings_tex = wings_open_texture if wings_open else wings_texture
 	wings_left = Sprite2D.new()
 	wings_left.texture = wings_tex
 	wings_left.centered = true
@@ -2003,6 +2015,7 @@ func _setup_body() -> void:
 	mat_l.set_shader_parameter("glow_intensity", 0.0)
 	mat_l.set_shader_parameter("glow_size", wing_glow_size)
 	mat_l.set_shader_parameter("glow_spread", wing_glow_spread)
+	mat_l.set_shader_parameter("glow_color", _theme_color(1.0))
 	wings_left.material = mat_l
 	_wing_glow_mat_left = mat_l
 	
@@ -2020,8 +2033,7 @@ func _setup_body() -> void:
 	_point_light_left.scale = Vector2.ZERO
 	_point_light_left.position = Vector2.ZERO
 	_point_light_left.z_index = -100
-	_point_light_left.modulate = Color.WHITE
-	_point_light_left.modulate.a = 0.0
+	_point_light_left.modulate = _theme_color(0.0)
 	_point_light_left.name = "PointLightLeft"
 	wing_pivot_left_node.add_child(_point_light_left)
 	
@@ -2049,6 +2061,7 @@ func _setup_body() -> void:
 	mat_r.set_shader_parameter("glow_intensity", 0.0)
 	mat_r.set_shader_parameter("glow_size", wing_glow_size)
 	mat_r.set_shader_parameter("glow_spread", wing_glow_spread)
+	mat_r.set_shader_parameter("glow_color", _theme_color(1.0))
 	wings_right.material = mat_r
 	_wing_glow_mat_right = mat_r
 	
@@ -2066,14 +2079,13 @@ func _setup_body() -> void:
 	_point_light_right.scale = Vector2.ZERO
 	_point_light_right.position = Vector2.ZERO
 	_point_light_right.z_index = -100
-	_point_light_right.modulate = Color.WHITE
-	_point_light_right.modulate.a = 0.0
+	_point_light_right.modulate = _theme_color(0.0)
 	_point_light_right.name = "PointLightRight"
 	wing_pivot_right_node.add_child(_point_light_right)
 
 	# 水晶 — 主体，z_index 中间
 	crystal_sprite = Sprite2D.new()
-	crystal_sprite.texture = CRYSTAL_TEX
+	crystal_sprite.texture = crystal_texture
 	crystal_sprite.centered = true
 	crystal_sprite.scale = crystal_scale
 	crystal_sprite.position = crystal_pos
@@ -2083,13 +2095,14 @@ func _setup_body() -> void:
 
 	# 王冠 — 水晶上方1/2处，z_index 最高
 	crown_sprite = Sprite2D.new()
-	crown_sprite.texture = CROWN_TEX
+	crown_sprite.texture = crown_texture
 	crown_sprite.centered = true
 	crown_sprite.scale = crown_scale
 	crown_sprite.position = crown_pos
 	crown_sprite.z_index = crown_z_index
 	crown_sprite.name = "Crown"
-	add_child(crown_sprite)
+	if draw_crown:
+		add_child(crown_sprite)
 
 	# 碰撞体
 	var body_area = Area2D.new()
@@ -2125,7 +2138,17 @@ func _pick_random_skill(exclude: int = 0) -> int:
 	return available[randi() % available.size()]
 
 
+func _choose_next_skill() -> int:
+	var enemy_count := get_tree().get_nodes_in_group(&"enemies").size()
+	if enemy_count >= 8:
+		return _pick_random_skill(3)
+	if has_skill_3 and enemy_count <= 3 and _last_skill != 3:
+		return 3
+	return _pick_random_skill()
+
+
 func _exec_skill(s: int) -> void:
+	_last_skill = s
 	match s:
 		1: await _skill_1()
 		2: await _skill_2()
@@ -2186,8 +2209,10 @@ func _die() -> void:
 	dying = true
 	is_executing = false
 	death_timer = 0.0
+	_death_particle_timer = 0.0
 	death_explosion_cd = 0.0
 	death_sfx_cd = 0.0
+	_death_particle_color = _theme_color(1.0)
 	bgm_player.stop()
 	GameManager.bgm_player.play()
 	for tw in _skill_tweens:
@@ -2206,44 +2231,74 @@ func _die() -> void:
 
 func _death_process(delta: float) -> void:
 	death_timer += delta
-	death_explosion_cd -= delta
-	death_sfx_cd -= delta
-
-	if death_explosion_cd <= 0.0:
-		_spawn_death_explosion()
-		death_explosion_cd = randf_range(1.0 / 45.0, 1.0 / 30.0)
-		if death_sfx_cd <= 0.0:
-			_play_sfx(EXPLOSION_SFX, -8)
-			death_sfx_cd = 0.15
-
+	_base_position.y += 50.0 * delta
+	position = _base_position
+	_death_particle_timer -= delta
+	if _death_particle_timer <= 0.0:
+		_spawn_death_particles()
+		_death_particle_timer = 0.06
 	_shake_parts()
 
 	if death_timer >= DEATH_DURATION and not won:
 		won = true
-		_spawn_final_explosion()
+		_spawn_final_death_particles()
 		queue_free()
 		_return_to_menu()
 
 
-func _spawn_death_explosion() -> void:
-	var parts: Array[Sprite2D] = []
-	if crystal_sprite: parts.append(crystal_sprite)
-	if crown_sprite: parts.append(crown_sprite)
-	if wings_left: parts.append(wings_left)
-	if wings_right: parts.append(wings_right)
-	if parts.is_empty(): return
-	var src = parts[randi() % parts.size()]
-	var pos = src.global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
-	_spawn_explosion(pos, 0.6)
-	_create_debris(pos, 2.0)
+func _spawn_death_particles() -> void:
+	for pos in _death_particle_spawn_points():
+		for _i in randi_range(5, 10):
+			_spawn_death_particle(pos, randf_range(0.5, 1.2), randf_range(160.0, 360.0), randf_range(1.5, 4.0))
 
 
-func _spawn_final_explosion() -> void:
-	_play_sfx(EXPLOSION_SFX, 0)
-	for _i in randi_range(20, 30):
-		var pos = global_position + Vector2(randf_range(-100, 100), randf_range(-100, 100))
-		_spawn_explosion(pos, 1.2)
-		_create_debris(pos, 3.0)
+func _spawn_death_particle(pos: Vector2, lifetime: float, speed: float, scale_val: float) -> void:
+	var p := Sprite2D.new()
+	p.texture = _get_death_particle_tex()
+	p.modulate = _death_particle_color
+	p.position = pos
+	p.scale = Vector2(scale_val, scale_val)
+	p.rotation = randf_range(0.0, TAU)
+	p.z_index = 2000
+	p.z_as_relative = false
+	get_tree().current_scene.add_child(p)
+	var dir := Vector2.RIGHT.rotated(randf_range(0.0, TAU))
+	var tw := p.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(p, "modulate", Color(_death_particle_color.r, _death_particle_color.g, _death_particle_color.b, 0.0), lifetime)
+	tw.tween_property(p, "scale", Vector2.ZERO, lifetime)
+	tw.tween_property(p, "global_position", p.global_position + dir * speed * lifetime, lifetime)
+	tw.set_parallel(false)
+	tw.tween_callback(p.queue_free)
+
+
+func _death_particle_spawn_points() -> Array[Vector2]:
+	var points: Array[Vector2] = []
+	if crystal_sprite:
+		for _i in 3:
+			points.append(crystal_sprite.global_position + Vector2(randf_range(-80, 80), randf_range(-80, 80)))
+	if wings_left:
+		for _i in 3:
+			points.append(wings_left.global_position + Vector2(randf_range(-180, 180), randf_range(-120, 120)))
+	if wings_right:
+		for _i in 3:
+			points.append(wings_right.global_position + Vector2(randf_range(-180, 180), randf_range(-120, 120)))
+	return points
+
+
+func _spawn_final_death_particles() -> void:
+	for _i in 200:
+		var pos = global_position + Vector2(randf_range(-160, 160), randf_range(-140, 140))
+		_spawn_death_particle(pos, randf_range(0.6, 1.5), randf_range(80.0, 280.0), randf_range(2.0, 6.0))
+
+
+func _get_death_particle_tex() -> Texture2D:
+	if _death_particle_tex:
+		return _death_particle_tex
+	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	_death_particle_tex = ImageTexture.create_from_image(img)
+	return _death_particle_tex
 
 
 func _return_to_menu() -> void:
@@ -2269,6 +2324,8 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if dying:
 		return
 	if area.is_in_group(&"player"):
+		if area.get(&"atk") != null:
+			apply_damage(area.atk * 3)
 		return
 	if area.get(&"atk") != null:
 		apply_damage(area.atk)
@@ -2504,9 +2561,13 @@ func _skill_4() -> void:
 ## ── 技能5：水晶散射 ──
 
 func _skill_5() -> void:
-	await _skill_5_original()
-	await _skill_5_variant_2(true)
-	await _skill_5_variant_2(false)
+	match randi() % 3:
+		0:
+			await _skill_5_original()
+		1:
+			await _skill_5_variant_2(true)
+		_:
+			await _skill_5_variant_2(false)
 
 
 func _skill_5_original() -> void:
@@ -2605,7 +2666,152 @@ func _skill_5_variant_2(go_left: bool) -> void:
 
 func _skill_6() -> void:
 	if dying: return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	var original_pos := _base_position
+	play_both_close()
+	await _skill6_fade_to(Color(10, 10, 10, 0), skill_1_both_close_fade_duration)
+	while _is_wing_spread_playing:
+		await tree.process_frame
+	var count := randi_range(6, 8)
+	for i in count:
+		await _skill6_spread_flash_once()
+	modulate.a = 0.0
+	_base_position = original_pos
+	position = _base_position
+	_anim_side = AnimSide.BOTH
+	apply_wings_open_state()
+	_sync_all_node_props()
+	_set_wings_open(true)
+	await _skill6_fade_to(Color(1, 1, 1, 1), skill_1_both_spread_fade_duration)
+
+
+func _skill6_teleport_random() -> void:
+	var margin := 120.0
+	_base_position = Vector2(randf_range(margin, screen_size.x - margin), randf_range(margin, screen_size.y - margin))
+	position = _base_position
+	_anim_side = AnimSide.BOTH
+	apply_wings_closed_state()
+	_sync_all_node_props()
+	_set_wings_open(false)
+
+
+func _skill6_spread_flash_once() -> void:
+	var tree := get_tree()
+	var phase3_duration := 0.3
+	var disappear_started := false
+	modulate.a = 0.0
+	_skill6_teleport_random()
+	_skill6_warning_blast(_base_position)
+	_skill6_start_spread_from_phase2(phase3_duration)
+	_skill6_fade_to(Color(1, 1, 1, 1), 0.3)
+	while _is_wing_spread_playing:
+		if not disappear_started and _spread_phase == 3:
+			disappear_started = true
+			_skill6_fade_to(Color(10, 10, 10, 0), phase3_duration)
+		if _spread_phase == 3 and _spread_timer >= phase3_duration:
+			_is_wing_spread_playing = false
+			modulate.a = 0.0
+			break
+		await tree.process_frame
+
+
+func _skill6_start_spread_from_phase2(phase3_duration: float) -> void:
+	_apply_anim_durations({"p2": 0.3, "p3": phase3_duration})
+	_anim_kind = AnimKind.SPREAD
+	_anim_side = AnimSide.BOTH
+	_spread_switched = false
+	_is_closing = false
+	_spread_timer = 0.0
+	_spread_phase = 2
+	_is_wing_spread_playing = true
+	_set_wings_open(false)
+	_snapshot_closed()
+	_save_switch_visual()
+
+
+func _skill6_warning_blast(pos: Vector2) -> void:
+	var parent = get_tree().current_scene
+	var warning := Polygon2D.new()
+	warning.name = "Skill6WarningCircle"
+	warning.position = pos
+	warning.z_index = -90
+	warning.z_as_relative = false
+	warning.polygon = _circle_polygon(400.0, 96)
+	warning.color = _theme_color(0.0)
+	parent.add_child(warning)
+	var tw := create_tween()
+	tw.tween_property(warning, "color", _theme_color(0.3), 0.2)
+	await tw.finished
+	await get_tree().create_timer(0.8).timeout
+	if is_instance_valid(warning):
+		warning.queue_free()
+	await _skill6_attack_circle(pos)
+
+
+func _skill6_attack_circle(pos: Vector2) -> void:
+	var parent = get_tree().current_scene
+	var circle := Polygon2D.new()
+	circle.name = "Skill6AttackCircle"
+	circle.position = pos
+	circle.z_index = 30
+	circle.z_as_relative = false
+	circle.polygon = _circle_polygon(400.0, 96)
+	circle.color = _theme_color(0.8)
+	parent.add_child(circle)
+	_skill6_spawn_circle_particles(pos)
+	var hit := false
+	var elapsed := 0.0
+	var tree := get_tree()
+	while elapsed < 0.3:
+		var last_ticks := Time.get_ticks_usec()
+		await tree.process_frame
+		var delta := float(Time.get_ticks_usec() - last_ticks) / 1000000.0
+		elapsed += delta
+		if not hit:
+			var player = tree.get_first_node_in_group(&"player")
+			if is_instance_valid(player) and player.has_method(&"take_damage_from_boss") and player.global_position.distance_to(pos) <= 400.0:
+				hit = true
+				player.take_damage_from_boss(20)
+	if is_instance_valid(circle):
+		circle.queue_free()
+
+
+func _skill6_spawn_circle_particles(pos: Vector2) -> void:
+	var parent = get_tree().current_scene
+	for i in 36:
+		var p := Polygon2D.new()
+		p.name = "Skill6CircleParticle"
+		var r := sqrt(randf()) * 400.0
+		var a := randf_range(0.0, TAU)
+		p.position = pos + Vector2(cos(a), sin(a)) * r
+		p.z_index = 40
+		p.z_as_relative = false
+		p.polygon = _circle_polygon(randf_range(2.0, 5.0), 8)
+		p.color = _theme_color(1.0)
+		parent.add_child(p)
+		var dir := Vector2(cos(a), sin(a)).normalized()
+		var tw := create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(p, "position", p.position + dir * randf_range(40.0, 110.0), 0.5)
+		tw.tween_property(p, "color", _theme_color(0.0), 0.5)
+		tw.set_parallel(false)
+		tw.tween_callback(p.queue_free)
+
+
+func _circle_polygon(radius: float, segments: int) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for i in segments:
+		var a := TAU * float(i) / float(segments)
+		points.append(Vector2(cos(a), sin(a)) * radius)
+	return points
+
+
+func _skill6_fade_to(target: Color, duration: float) -> void:
+	if is_instance_valid(_fade_tween):
+		_fade_tween.kill()
+	_fade_tween = _make_tween()
+	_fade_tween.tween_property(self, "modulate", target, duration)
+	await _fade_tween.finished
 
 
 ## ── 红点创建 ──
@@ -2640,26 +2846,26 @@ func _set_wings_open(open: bool) -> void:
 	_set_wing_side_open(_anim_side, open)
 	if open:
 		if wings_left and _is_left_active():
-			wings_left.texture = WINGS_OPEN_TEX
+			wings_left.texture = wings_open_texture
 			wings_left.region_enabled = true
-			if WINGS_OPEN_TEX:
-				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, WINGS_OPEN_TEX.get_size().y))
+			if wings_open_texture:
+				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(wings_open_texture.get_size().x / 2.0, wings_open_texture.get_size().y))
 		if wings_right and _is_right_active():
-			wings_right.texture = WINGS_OPEN_TEX
+			wings_right.texture = wings_open_texture
 			wings_right.region_enabled = true
-			if WINGS_OPEN_TEX:
-				wings_right.region_rect = Rect2(Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, 0), Vector2(WINGS_OPEN_TEX.get_size().x / 2.0, WINGS_OPEN_TEX.get_size().y))
+			if wings_open_texture:
+				wings_right.region_rect = Rect2(Vector2(wings_open_texture.get_size().x / 2.0, 0), Vector2(wings_open_texture.get_size().x / 2.0, wings_open_texture.get_size().y))
 	else:
 		if wings_left and _is_left_active():
-			wings_left.texture = WINGS_TEX
+			wings_left.texture = wings_texture
 			wings_left.region_enabled = true
-			if WINGS_TEX:
-				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(WINGS_TEX.get_size().x / 2.0, WINGS_TEX.get_size().y))
+			if wings_texture:
+				wings_left.region_rect = Rect2(Vector2.ZERO, Vector2(wings_texture.get_size().x / 2.0, wings_texture.get_size().y))
 		if wings_right and _is_right_active():
-			wings_right.texture = WINGS_TEX
+			wings_right.texture = wings_texture
 			wings_right.region_enabled = true
-			if WINGS_TEX:
-				wings_right.region_rect = Rect2(Vector2(WINGS_TEX.get_size().x / 2.0, 0), Vector2(WINGS_TEX.get_size().x / 2.0, WINGS_TEX.get_size().y))
+			if wings_texture:
+				wings_right.region_rect = Rect2(Vector2(wings_texture.get_size().x / 2.0, 0), Vector2(wings_texture.get_size().x / 2.0, wings_texture.get_size().y))
 
 
 ## ── 工具方法 ──

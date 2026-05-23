@@ -11,6 +11,8 @@ enum State { WARNING, MOVING, COOLDOWN, LEAVING }
 @export var explosion_scale: float = 0.5
 
 const WARNING_DURATION: float = 2.0    # 移动前 2 秒显示路径
+const PLAYER_COLLISION_DAMAGE_MULT: int = 3
+const PLAYER_COLLISION_KNOCKBACK_MULT: float = 1.0
 
 var state: State
 var max_hp: int                # 初始 HP 上限
@@ -23,6 +25,8 @@ var move_elapsed: float = 0.0
 var move_duration: float = 0.0
 var player: Area2D
 var screen_size: Vector2
+var knockback_velocity: Vector2 = Vector2.ZERO
+var knockback_duration: float = 0.0
 
 # 颤动
 var is_shaking: bool = false
@@ -67,15 +71,18 @@ func _process(delta: float) -> void:
 	if lifetime_remaining <= 0.0 and state != State.LEAVING:
 		_enter_leaving()
 
-	match state:
-		State.WARNING:
-			_update_warning(delta)
-		State.MOVING:
-			_update_movement(delta)
-		State.COOLDOWN:
-			_update_cooldown(delta)
-		State.LEAVING:
-			_update_leaving(delta)
+	if knockback_duration > 0.0:
+		_update_knockback(delta)
+	else:
+		match state:
+			State.WARNING:
+				_update_warning(delta)
+			State.MOVING:
+				_update_movement(delta)
+			State.COOLDOWN:
+				_update_cooldown(delta)
+			State.LEAVING:
+				_update_leaving(delta)
 
 	if is_shaking:
 		_update_shake(delta)
@@ -226,6 +233,19 @@ func _apply_suction(delta: float) -> void:
 	position += pull.normalized() * strength * delta
 
 
+func _update_knockback(delta: float) -> void:
+	position += knockback_velocity * delta
+	knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, knockback_velocity.length() * 4.0 * delta)
+	knockback_duration -= delta
+	if knockback_duration <= 0.0:
+		knockback_duration = 0.0
+		knockback_velocity = Vector2.ZERO
+		source_position = position
+		_pick_path_target()
+		warning_timer = WARNING_DURATION
+		state = State.WARNING
+
+
 func _begin_move() -> void:
 	source_position = position
 	move_elapsed = 0.0
@@ -246,6 +266,22 @@ func take_damage(amount: int) -> void:
 		_play_sfx(HIT_SFX)
 		is_shaking = true
 		shake_elapsed = 0.0
+
+
+func handle_player_collision(area: Area2D) -> void:
+	if not area.is_in_group(&"player"):
+		return
+	area.take_damage_from(self)
+	var player_atk: int = area.get(&"atk") if area.get(&"atk") != null else 0
+	var player_velocity: Vector2 = area.get(&"current_velocity") if area.get(&"current_velocity") != null else Vector2.ZERO
+	take_damage(player_atk * PLAYER_COLLISION_DAMAGE_MULT)
+	if hp <= 0 or is_queued_for_deletion():
+		return
+	var dir = player_velocity.normalized()
+	if dir == Vector2.ZERO:
+		dir = (global_position - area.global_position).normalized()
+	knockback_velocity = dir * player_velocity.length() * PLAYER_COLLISION_KNOCKBACK_MULT
+	knockback_duration = 0.25
 
 
 func _die() -> void:

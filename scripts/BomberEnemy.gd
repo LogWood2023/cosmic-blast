@@ -8,6 +8,7 @@ var bomb_timer: float = 0.0
 
 func _ready() -> void:
 	super()
+	area_entered.connect(_on_area_entered)
 	state = State.COOLDOWN
 	sprite.scale *= 1.5                       # 在 tscn 基础上放大
 
@@ -38,3 +39,8 @@ func _drop_bomb() -> void:
 	bomb.position = global_position
 	bomb.damage = damage
 	get_tree().current_scene.add_child(bomb)
+
+
+func _on_area_entered(area: Area2D) -> void:
+	if area.is_in_group(&"player"):
+		handle_player_collision(area)

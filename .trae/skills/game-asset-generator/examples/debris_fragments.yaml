@@ -1,0 +1,93 @@
+project: "像素风碎片素材"
+output_dir: "./generated_assets/debris_fragments"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, sharp pixel edges, flat shading"
+  color_palette: "muted colors, low saturation, same color palette as original props, bright lime green background"
+  quality: "game sprite, clean pixel edges, broken fragments, debris"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, whole intact items"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 12
+  contrast: 1.1
+
+assets:
+  - type: prop
+    name: "crate_fragment_1"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "broken fragment of space storage crate, small piece, top-down view sprite"
+        count: 1
+      - description: "another broken fragment of space storage crate, different shape, top-down view sprite"
+        count: 1
+      - description: "third broken fragment of space storage crate, another shape, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "crate_fragment_2"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "broken fragment of heavy-duty space storage crate, small piece, top-down view sprite"
+        count: 1
+      - description: "another broken fragment of heavy-duty space storage crate, different shape, top-down view sprite"
+        count: 1
+      - description: "third broken fragment of heavy-duty space storage crate, another shape, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "crate_fragment_3"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "broken fragment of premium sealed space storage crate, small piece, top-down view sprite"
+        count: 1
+      - description: "another broken fragment of premium sealed space storage crate, different shape, top-down view sprite"
+        count: 1
+      - description: "third broken fragment of premium sealed space storage crate, another shape, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "crystal_fragment_1"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "broken shard of blue space crystal, small piece, top-down view sprite"
+        count: 1
+      - description: "another broken shard of blue space crystal, different shape, top-down view sprite"
+        count: 1
+      - description: "third broken shard of blue space crystal, another shape, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "crystal_fragment_2"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "broken shard of cyan space crystal cluster, small piece, top-down view sprite"
+        count: 1
+      - description: "another broken shard of cyan space crystal cluster, different shape, top-down view sprite"
+        count: 1
+      - description: "third broken shard of cyan space crystal cluster, another shape, top-down view sprite"
+        count: 1
+
+  - type: prop
+    name: "crystal_fragment_3"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "broken shard of purple mystic space crystal, small piece, top-down view sprite"
+        count: 1
+      - description: "another broken shard of purple mystic space crystal, different shape, top-down view sprite"
+        count: 1
+      - description: "third broken shard of purple mystic space crystal, another shape, top-down view sprite"
+        count: 1

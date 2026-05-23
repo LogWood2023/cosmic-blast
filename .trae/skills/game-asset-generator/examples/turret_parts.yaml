@@ -1,0 +1,41 @@
+project: "像素风机械炮塔部件"
+output_dir: "./generated_assets/turret_parts"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, top-down view, bright solid green background, sharp pixel edges, flat shading, sci-fi mechanical turret parts"
+  color_palette: "muted colors, dark grays, metal blues, accent lights, bright lime green background"
+  quality: "game sprite, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, complete turret, whole object"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 12
+  contrast: 1.1
+
+assets:
+  - type: prop
+    name: "turret_base"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "mechanical turret base, semicircle shape, pixel art, sci-fi industrial design, metal plates, bolts, small indicator lights, top-down view"
+        count: 1
+      - description: "mechanical turret base, trapezoid shape, pixel art, sci-fi industrial design, reinforced plating, bolts, top-down view"
+        count: 1
+      - description: "mechanical turret base, half-circle shape with flat front, pixel art, sci-fi industrial design, top-down view"
+        count: 1
+
+  - type: prop
+    name: "turret_barrel"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, top-down view 2D sprite, centered filling frame"
+    variants:
+      - description: "mechanical turret barrel, rectangular shape, pixel art, sci-fi design, metal barrel with muzzle brake, top-down view"
+        count: 1
+      - description: "mechanical turret barrel, long rectangular shape, pixel art, sci-fi design, thick metal barrel with heat vents, top-down view"
+        count: 1
+      - description: "mechanical turret barrel, double rectangular barrels, pixel art, sci-fi design, twin barrels with cooling fins, top-down view"
+        count: 1

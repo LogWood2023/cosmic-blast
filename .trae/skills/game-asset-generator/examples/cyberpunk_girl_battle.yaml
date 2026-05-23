@@ -1,0 +1,20 @@
+project: "机能风像素少女"
+output_dir: "./generated_assets"
+
+style:
+  art_style: "pixel art, 16-bit retro game style, cyberpunk techwear, neon accents"
+  quality: "high quality pixel art, clean edges, game sprite, sprite sheet style, character design"
+  negative: "blurry, realistic, 3D render, photorealistic, low resolution, messy hair, short hair, curly hair, deformed hands, ugly face"
+
+assets:
+  - type: character
+    name: "cyberpunk_girl"
+    variants:
+      - description: >
+          a young girl with long straight black hair dynamic movement,
+          wearing cyberpunk combat gear with purple neon accents,
+          action battle pose, hand reaching forward,
+          full body character sprite, white background
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"

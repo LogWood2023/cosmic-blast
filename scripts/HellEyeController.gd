@@ -278,6 +278,8 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if entering or dying or _skill_3_active:
 		return
 	if area.is_in_group(&"player"):
+		if area.get(&"atk") != null:
+			apply_damage(area.atk * 3)
 		return
 	if area.get(&"atk") != null:
 		apply_damage(area.atk)

@@ -150,6 +150,30 @@ offset_bottom = 632.0
 text = "神明使者"
 theme_override_font_sizes/font_size = 16
 
+[node name="Boss18Button" type="Button" parent="."]
+offset_left = 790.0
+offset_top = 120.0
+offset_right = 1130.0
+offset_bottom = 152.0
+text = "仿造天使"
+theme_override_font_sizes/font_size = 16
+
+[node name="Boss19Button" type="Button" parent="."]
+offset_left = 790.0
+offset_top = 180.0
+offset_right = 1130.0
+offset_bottom = 212.0
+text = "圣血断剑"
+theme_override_font_sizes/font_size = 16
+
+[node name="Boss20Button" type="Button" parent="."]
+offset_left = 790.0
+offset_top = 240.0
+offset_right = 1130.0
+offset_bottom = 272.0
+text = "水晶圣母"
+theme_override_font_sizes/font_size = 16
+
 [node name="BackButton" type="Button" parent="."]
 offset_left = 860.0
 offset_top = 668.0

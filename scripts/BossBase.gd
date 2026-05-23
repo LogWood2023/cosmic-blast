@@ -16,11 +16,11 @@ func _ready() -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
-	# 玩家触碰 → 击飞
 	if area.is_in_group(&"player") and controller:
+		if area.get(&"atk") != null:
+			controller.apply_damage(area.atk * 3)
 		area.take_knockback_damage(20, 1000, 0.5)
 		return
-	# 玩家子弹命中（子弹 mask=1 检测不到 layer=2 的 Boss，由 Boss 侧处理）
 	if area.get(&"atk") != null:
 		if controller:
 			controller.apply_damage(area.atk)

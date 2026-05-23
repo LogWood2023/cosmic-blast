@@ -1,0 +1,27 @@
+project: "像素战机驾驶员立绘"
+output_dir: "./generated_assets"
+
+style:
+  style_lock: "pixel art, 16-bit SNES game sprite, sci-fi pilot uniform, clean pixel edges, portrait style, upper body focus"
+  color_palette: "deep navy blue, bright white, metallic silver, dark grey, pale skin tone"
+  quality: "game asset, character portrait, clean pixel edges"
+  negative: "blurry, realistic, 3D render, photorealistic, low resolution, full body, tiny face, distorted face, extra limbs"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 32
+  contrast: 1.1
+
+assets:
+  - type: character
+    name: "fighter_pilot"
+    variants:
+      - description: >
+          young female fighter pilot, long straight black hair,
+          blue and white form-fitting flight suit with tech details,
+          cyberpunk helmet visor pushed up, serious expression,
+          portrait bust shot, shoulders and head, white background
+        count: 1
+    size: "1024x1024"
+    model: "gpt-image-2"
