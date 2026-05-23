@@ -1,0 +1,23 @@
+project: "API可用性测试"
+output_dir: "./generated_assets/test_api"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, bright solid green background"
+  color_palette: "bright colors"
+  quality: "simple"
+  negative: "blurry"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 16
+  contrast: 1.2
+
+assets:
+  - type: prop
+    name: "test_item"
+    size: "512x512"
+    extra_prompt: "solid bright green background"
+    variants:
+      - description: "simple pixel art test item"
+        count: 1

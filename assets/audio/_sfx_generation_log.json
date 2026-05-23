@@ -1,16 +1,52 @@
 {
-  "project": "test_explosion_sfx",
-  "generated_at": "2026-05-22T17:54:54.469662",
-  "total_sfx": 1,
+  "project": "打飞机游戏_Voice",
+  "generated_at": "2026-05-23T16:08:33.128960",
+  "total_sfx": 5,
   "entries": [
     {
-      "filepath": "assets/audio\\ai_explosion_00_4217.wav",
-      "import_file": "assets/audio\\ai_explosion_00_4217.wav.import",
-      "category": "explosion",
-      "name": "ai_explosion",
-      "variant_description": "A large spaceship explosion, sharp crack followed by deep rumbling boom and debris",
+      "filepath": "assets/audio\\voice_mission_start_00_0f65.wav",
+      "import_file": "assets/audio\\voice_mission_start_00_0f65.wav.import",
+      "category": "voice",
+      "name": "voice_mission_start",
+      "variant_description": "A calm female pilot voice says in Chinese: Mission start. Keep formation and prepare to fire.",
       "duration": 3.0,
-      "timestamp": "2026-05-22T17:54:54.469662"
+      "timestamp": "2026-05-23T16:08:31.525602"
+    },
+    {
+      "filepath": "assets/audio\\voice_warning_00_16e0.wav",
+      "import_file": "assets/audio\\voice_warning_00_16e0.wav.import",
+      "category": "voice",
+      "name": "voice_warning",
+      "variant_description": "An urgent female operator voice says in Chinese: Warning, enemy missiles incoming. Evade immediately.",
+      "duration": 3.0,
+      "timestamp": "2026-05-23T16:08:31.980848"
+    },
+    {
+      "filepath": "assets/audio\\voice_powerup_00_29a9.wav",
+      "import_file": "assets/audio\\voice_powerup_00_29a9.wav.import",
+      "category": "voice",
+      "name": "voice_powerup",
+      "variant_description": "A confident female onboard AI voice says in Chinese: Weapon system upgraded. Firepower increased.",
+      "duration": 3.0,
+      "timestamp": "2026-05-23T16:08:32.343767"
+    },
+    {
+      "filepath": "assets/audio\\voice_boss_appears_00_7e9e.wav",
+      "import_file": "assets/audio\\voice_boss_appears_00_7e9e.wav.import",
+      "category": "voice",
+      "name": "voice_boss_appears",
+      "variant_description": "A tense female commander voice says in Chinese: Huge hostile signal detected. Boss unit approaching.",
+      "duration": 4.0,
+      "timestamp": "2026-05-23T16:08:32.751004"
+    },
+    {
+      "filepath": "assets/audio\\voice_victory_00_c77f.wav",
+      "import_file": "assets/audio\\voice_victory_00_c77f.wav.import",
+      "category": "voice",
+      "name": "voice_victory",
+      "variant_description": "A bright female pilot voice says in Chinese: Target destroyed. Great job, pilot.",
+      "duration": 3.0,
+      "timestamp": "2026-05-23T16:08:33.127959"
     }
   ]
 }

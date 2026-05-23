@@ -8,6 +8,14 @@ from dataclasses import asdict
 from config_schema import AssetConfig, PipelineConfig, VariantConfig
 
 
+def sanitize_filename(name: str) -> str:
+    """Remove or replace illegal characters for filenames and directory names"""
+    illegal_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0']
+    for char in illegal_chars:
+        name = name.replace(char, '_')
+    return name
+
+
 TYPE_DIR_MAP = {
     "character": "characters",
     "background": "backgrounds",
@@ -28,14 +36,16 @@ class AssetManager:
 
     def get_asset_dir(self, asset: AssetConfig) -> str:
         type_dir = TYPE_DIR_MAP.get(asset.type, "other")
-        dir_path = os.path.join(self.config.output_dir, type_dir, asset.name)
+        safe_name = sanitize_filename(asset.name)
+        dir_path = os.path.join(self.config.output_dir, type_dir, safe_name)
         os.makedirs(dir_path, exist_ok=True)
         return dir_path
 
     def generate_filename(self, asset: AssetConfig, variant: VariantConfig, index: int) -> str:
+        safe_name = sanitize_filename(asset.name)
         prompt_hash = hashlib.md5(variant.description.encode()).hexdigest()[:4]
         size_str = asset.size.replace("x", "x")
-        return f"{asset.name}_{index:02d}_{size_str}_{prompt_hash}.png"
+        return f"{safe_name}_{index:02d}_{size_str}_{prompt_hash}.png"
 
     def save_asset(
         self,

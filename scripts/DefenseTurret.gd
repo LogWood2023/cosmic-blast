@@ -107,6 +107,10 @@ func get_map_icon_texture() -> Texture2D:
 	return base_sprite.texture
 
 
+func get_map_icon_rotation() -> float:
+	return base_sprite.global_rotation
+
+
 func take_damage(amount: int) -> void:
 	if _broken:
 		return

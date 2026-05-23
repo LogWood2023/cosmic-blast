@@ -2,7 +2,12 @@
 import argparse
 import sys
 import os
+import io
 from datetime import datetime
+
+# 修复Windows控制台编码问题
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -100,6 +105,12 @@ def parse_args():
         default=1.0,
         help="像素清理前的对比度增强 (默认 1.0 不增强)",
     )
+    parser.add_argument(
+        "--base-url",
+        type=str,
+        default="https://www.packyapi.com",
+        help="PackyAPI base URL (默认: https://www.packyapi.com)，可尝试添加分组如 /v1/sora 等",
+    )
     return parser.parse_args()
 
 
@@ -112,7 +123,7 @@ def generate_style_seed(
     seed_cfg = config.style_seed
     prompt = seed_cfg.prompt or config.style.art_style or "game art style reference, concept art"
 
-    print(f"\n🎨 生成 Style Seed 参考图...")
+    print(f"\n[STYLE] 生成 Style Seed 参考图...")
     print(f"   prompt: {prompt[:100]}...")
 
     request = GenerationRequest(
@@ -124,17 +135,17 @@ def generate_style_seed(
 
     result = generator.generate(request, max_retries=max_retries)
     if not (result.success and result.image_data):
-        print(f"   ❌ Style Seed 生成失败: {result.error_message}")
+        print(f"   [ERROR] Style Seed 生成失败: {result.error_message}")
         return None
 
     revised = result.metadata.get("revised_prompt", prompt)
     seed_result = seed_manager.save_seed(result.image_data, revised)
 
-    print(f"   ✅ 已保存: {seed_result.filepath}")
+    print(f"   [OK] 已保存: {seed_result.filepath}")
     print(f"   revised_prompt: {revised[:120]}...")
 
     style_lock = seed_manager.extract_style_lock(revised)
-    print(f"   🔒 style_lock: {style_lock[:120]}...")
+    print(f"   [LOCK] style_lock: {style_lock[:120]}...")
 
     return style_lock
 
@@ -166,6 +177,7 @@ def run_pipeline(
     pixel_grid=256,
     pixel_colors=32,
     pixel_contrast=1.0,
+    base_url="https://www.packyapi.com",
 ):
     config = load_config(config_path)
     use_lock = not no_style_lock
@@ -183,20 +195,20 @@ def run_pipeline(
     total_count = sum(v.count for a in config.assets for v in a.variants)
 
     print(f"\n{'='*60}")
-    print(f"  项目: {config.project}")
-    print(f"  输出目录: {config.output_dir}")
-    print(f"  素材类型: {len(config.assets)} 种")
-    print(f"  总生成数: {total_count} 张")
+    print(f"  Project: {config.project}")
+    print(f"  Output dir: {config.output_dir}")
+    print(f"  Asset types: {len(config.assets)}")
+    print(f"  Total: {total_count}")
     if config.style.style_lock:
-        print(f"  🔒 Style Lock: 已配置（YAML 内直接指定）")
+        print(f"  Style Lock active")
     elif config.style_seed.enabled:
-        print(f"  🌱 Style Seed: 已启用（自动锚定风格）")
+        print(f"  Style Seed active")
     if cutout:
-        print(f"  ✂️  抠图: 已启用 (模型: {cutout_model})")
+        print(f"  Cutout enabled")
     if pixel_clean:
-        print(f"  🧹 像素清理: 已启用 (网格 {pixel_grid}px, {pixel_colors}色)")
+        print(f"  Pixel cleaning enabled")
     if dry_run:
-        print(f"  🔍 预览模式 - 不会实际调用 API")
+        print(f"  Preview mode")
     print(f"{'='*60}\n")
 
     if dry_run:
@@ -209,27 +221,27 @@ def run_pipeline(
             print()
         return
 
-    generator = PackyAPIGenerator(api_key=api_key)
+    generator = PackyAPIGenerator(api_key=api_key, base_url=base_url)
     manager = AssetManager(config)
     processor = PostProcessor()
     seed_manager = StyleSeedManager(config, config.output_dir)
 
     if cutout:
-        print(f"✂️  初始化 rembg (模型: {cutout_model})...", end=" ", flush=True)
+        print(f"[CUTOUT] 初始化 rembg (模型: {cutout_model})...", end=" ", flush=True)
         processor.init_cutout(model=cutout_model)
         print("就绪")
 
     effective_lock, has_lock = build_effective_style_lock(config.style, seed_manager, resume_seed)
 
     if has_lock:
-        print(f"🔒 Style Lock 已激活:")
+        print(f"[LOCK] Style Lock 已激活:")
         print(f"   {effective_lock[:150]}...")
     else:
-        print(f"⚠️  未启用 Style Lock，各素材 prompt 独立拼接")
+        print(f"[WARN] 未启用 Style Lock，各素材 prompt 独立拼接")
 
     if style_seed_only:
         if not config.style_seed.enabled:
-            print("❌ style_seed 未在配置中启用，请设置 style_seed.enabled: true")
+            print("[ERROR] style_seed 未在配置中启用，请设置 style_seed.enabled: true")
             return
         generate_style_seed(seed_manager, generator, config, max_retries)
         return
@@ -238,7 +250,7 @@ def run_pipeline(
         if config.style.style_lock:
             pass
         else:
-            print(f"\n🌱 正在自动生成 Style Seed 作为风格锚点...")
+            print(f"\n[SEED] 正在自动生成 Style Seed 作为风格锚点...")
             seed_lock = generate_style_seed(seed_manager, generator, config, max_retries)
             if seed_lock:
                 effective_lock = seed_lock
@@ -249,16 +261,16 @@ def run_pipeline(
     failed = 0
 
     for asset in config.assets:
-        print(f"\n📦 [{asset.type}] {asset.name} ({asset.size})")
+        print(f"\n[ASSET] [{asset.type}] {asset.name} ({asset.size})")
 
         for variant in asset.variants:
             prompt = build_prompt(asset, config.style, variant.description, use_style_lock=use_lock and bool(effective_lock))
-            print(f"  ├─ 变体: {variant.description}")
-            print(f"  │  prompt: {prompt[:120]}...")
+            print(f"  - 变体: {variant.description}")
+            print(f"  - prompt: {prompt[:120]}...")
 
             for i in range(variant.count):
                 total += 1
-                print(f"  │  生成 {i+1}/{variant.count}...", end=" ", flush=True)
+                print(f"  - 生成 {i+1}/{variant.count}...", end=" ", flush=True)
 
                 request = GenerationRequest(
                     prompt=prompt,
@@ -285,32 +297,26 @@ def run_pipeline(
 
                     filepath = manager.save_asset(asset, variant, i, processed)
                     success += 1
-                    icons = []
-                    if pixel_clean:
-                        icons.append("🧹")
-                    if cutout:
-                        icons.append("✂️")
-                    icon = "".join(icons) if icons else "✅"
-                    print(f"{icon} {os.path.basename(filepath)}")
+                    print(f"[OK] {os.path.basename(filepath)}")
                 elif result.success and result.image_url:
-                    print(f"⚠️  仅返回URL，跳过: {result.image_url[:80]}")
+                    print(f"[WARN] 仅返回URL，跳过: {result.image_url[:80]}")
                     failed += 1
                 else:
                     failed += 1
-                    print(f"❌ {result.error_message}")
+                    print(f"[ERROR] {result.error_message}")
 
     manager.save_log()
 
     print(f"\n{'='*60}")
-    print(f"  完成！")
-    print(f"  总数: {total}  |  成功: {success}  |  失败: {failed}")
-    print(f"  输出: {os.path.abspath(config.output_dir)}")
+    print(f"  Complete!")
+    print(f"  Total: {total}  |  Success: {success}  |  Failed: {failed}")
+    print(f"  Output: {os.path.abspath(config.output_dir)}")
     if effective_lock:
-        print(f"  🔒 风格锁定: 已生效")
+        print(f"  Style Lock: active")
     if pixel_clean:
-        print(f"  🧹 像素清理: 已完成 (网格 {pixel_grid}px, {pixel_colors}色)")
+        print(f"  Pixel cleaning: complete")
     if cutout:
-        print(f"  ✂️  抠图处理: 已完成 (模型: {cutout_model})")
+        print(f"  Cutout: complete")
     print(f"{'='*60}\n")
 
 
@@ -335,6 +341,7 @@ def main():
         pixel_grid=args.pixel_grid,
         pixel_colors=args.pixel_colors,
         pixel_contrast=args.pixel_contrast,
+        base_url=args.base_url,
     )
 
 

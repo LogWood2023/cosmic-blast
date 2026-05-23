@@ -1,0 +1,70 @@
+# AI 语音生成管线配置
+# GPT TTS 后端使用 OPENAI_API_KEY，可选 OPENAI_BASE_URL
+
+project: "打飞机游戏_Voice"
+output_dir: "assets/audio"
+
+style:
+  audio_style: "game voice line, clean vocal recording, sci-fi arcade game"
+  quality: "clear speech, expressive performance, studio quality, minimal background noise"
+
+assets:
+  - name: "voice_mission_start"
+    category: "voice"
+    model: "gpt-4o-mini-tts"
+    loop_mode: 0
+    variants:
+      - text: "任务开始。保持阵型，准备开火。"
+        description: "Calm female pilot voice for mission start"
+        instructions: "用冷静、专业的女性飞行员语气朗读，适合科幻街机飞行射击游戏。"
+        voice: "alloy"
+        count: 1
+        duration: 3.0
+
+  - name: "voice_warning"
+    category: "voice"
+    model: "gpt-4o-mini-tts"
+    loop_mode: 0
+    variants:
+      - text: "警告，敌方导弹来袭。立即规避。"
+        description: "Urgent female operator warning voice"
+        instructions: "用急促、清晰、带有警报感的女性操作员语气朗读，但不要失真。"
+        voice: "alloy"
+        count: 1
+        duration: 3.0
+
+  - name: "voice_powerup"
+    category: "voice"
+    model: "gpt-4o-mini-tts"
+    loop_mode: 0
+    variants:
+      - text: "武器系统升级。火力提升。"
+        description: "Confident onboard AI powerup voice"
+        instructions: "用自信、稳定、稍带机械感的机载 AI 语气朗读。"
+        voice: "alloy"
+        count: 1
+        duration: 3.0
+
+  - name: "voice_boss_appears"
+    category: "voice"
+    model: "gpt-4o-mini-tts"
+    loop_mode: 0
+    variants:
+      - text: "侦测到巨大敌对信号。首领单位正在接近。"
+        description: "Tense commander voice for boss arrival"
+        instructions: "用紧张、压迫感强、清晰的女性指挥官语气朗读。"
+        voice: "alloy"
+        count: 1
+        duration: 4.0
+
+  - name: "voice_victory"
+    category: "voice"
+    model: "gpt-4o-mini-tts"
+    loop_mode: 0
+    variants:
+      - text: "目标已摧毁。干得漂亮，飞行员。"
+        description: "Bright pilot victory voice"
+        instructions: "用明亮、鼓励、略带兴奋的女性飞行员语气朗读。"
+        voice: "alloy"
+        count: 1
+        duration: 3.0

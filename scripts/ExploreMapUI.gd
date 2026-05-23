@@ -7,6 +7,7 @@ const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 
 @export var space_rocks_path: NodePath
 @export var isolation_bands_path: NodePath
+@export var electric_isolation_bands_path: NodePath
 @export var rewards_path: NodePath
 @export var turrets_path: NodePath
 @export var player_path: NodePath
@@ -15,6 +16,7 @@ const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 
 var _space_rocks: Node2D
 var _isolation_bands: Node2D
+var _electric_isolation_bands: Node2D
 var _rewards: Node2D
 var _turrets: Node2D
 var _player: Node2D
@@ -25,6 +27,7 @@ var _drag_start_offset_y: float = 0.0
 var _outline_material: ShaderMaterial
 var _reward_rects: Array[TextureRect] = []
 var _turret_rects: Array[TextureRect] = []
+var _electric_endpoint_rects: Array[TextureRect] = []
 var show_turret_traps: bool = false
 
 
@@ -35,6 +38,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_space_rocks = get_node_or_null(space_rocks_path)
 	_isolation_bands = get_node_or_null(isolation_bands_path)
+	_electric_isolation_bands = get_node_or_null(electric_isolation_bands_path)
 	_rewards = get_node_or_null(rewards_path)
 	_turrets = get_node_or_null(turrets_path)
 	_player = get_node_or_null(player_path)
@@ -59,6 +63,7 @@ func toggle() -> void:
 		queue_redraw()
 		_sync_reward_rects()
 		_sync_turret_rects()
+		_sync_electric_endpoint_rects()
 	else:
 		for rect in _reward_rects:
 			rect.visible = false
@@ -217,7 +222,7 @@ func _sync_turret_rects() -> void:
 		rect.position = content_origin + turret_pos * scale - size * 0.5
 		rect.size = size
 		rect.pivot_offset = size * 0.5
-		rect.rotation = -PI * 0.5
+		rect.rotation = turret.get_map_icon_rotation() if turret.has_method("get_map_icon_rotation") else -PI * 0.5
 
 
 func _sync_electric_endpoint_rects() -> void:
@@ -226,6 +231,8 @@ func _sync_electric_endpoint_rects() -> void:
 			rect.visible = false
 		return
 	if not _electric_isolation_bands:
+		for rect in _electric_endpoint_rects:
+			rect.visible = false
 		return
 	var endpoints: Array[Dictionary] = []
 	for band in _electric_isolation_bands.get_children():
@@ -256,8 +263,9 @@ func _sync_electric_endpoint_rects() -> void:
 			continue
 		var pos: Vector2 = endpoint.get("position", Vector2.ZERO)
 		var rot: float = endpoint.get("rotation", 0.0)
+		var endpoint_size = float(endpoint.get("map_size", float(endpoint.get("size", 96.0)) * 0.25))
 		var tex_size = tex.get_size()
-		var icon_size = maxf(64.0, maxf(tex_size.x, tex_size.y) * scale * 0.15)
+		var icon_size = maxf(endpoint_size, maxf(tex_size.x, tex_size.y) * scale * 0.15)
 		var aspect = tex_size.x / maxf(1.0, tex_size.y)
 		var draw_size = Vector2(icon_size * maxf(1.0, aspect), icon_size * maxf(1.0, 1.0 / aspect))
 		rect.visible = true

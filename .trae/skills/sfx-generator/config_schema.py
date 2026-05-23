@@ -11,6 +11,10 @@ class SFXVariantConfig:
     description: str
     count: int = 1
     duration: float = 5.0
+    text: str = ""
+    voice: str = ""
+    instructions: str = ""
+    speed: float = 1.0
 
 
 @dataclass
@@ -66,6 +70,10 @@ def load_config(config_path: str) -> SFXPipelineConfig:
                 description=v.get("description", ""),
                 count=v.get("count", 1),
                 duration=v.get("duration", 5.0),
+                text=v.get("text", ""),
+                voice=v.get("voice", ""),
+                instructions=v.get("instructions", ""),
+                speed=v.get("speed", 1.0),
             ))
 
         if not variants:

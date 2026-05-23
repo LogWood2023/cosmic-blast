@@ -1,0 +1,22 @@
+project: 示例像素素材批次
+output_dir: ./generated_assets/example_pixel_assets
+style:
+  art_style: pixel art, 16-bit SNES era, crisp square pixels, limited color palette (16-32 colors), retro game sprite aesthetic, clean readable silhouette
+  quality: high
+size: 1024x1024
+n: 1
+style_seed:
+  enabled: false
+pixel_clean:
+  enabled: true
+  target_size: 128
+  num_colors: 24
+  contrast: 1.2
+assets:
+  - name: 示例太空道具
+    type: prop
+    variants:
+      - count: 2
+        description: colorful sci-fi floating crate, large object, centered composition, isolated single game prop, strong outline, no text, no UI
+      - count: 2
+        description: glowing crystal asteroid chunk, bright saturated blue and purple colors, centered isolated game prop, strong outline, no text, no UI

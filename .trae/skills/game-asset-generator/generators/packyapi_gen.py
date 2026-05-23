@@ -22,9 +22,17 @@ class PackyAPIGenerator(BaseGenerator):
 
         self.base_url = base_url
         self.default_model = default_model
+        
+        # 检查 base_url 是否已经包含 /v1
+        if "/v1" in self.base_url:
+            final_base_url = self.base_url
+        else:
+            final_base_url = f"{self.base_url}/v1"
+            
+        # 创建 OpenAI 客户端
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url=f"{self.base_url}/v1",
+            base_url=final_base_url,
             timeout=120.0,
         )
 
@@ -50,12 +58,14 @@ class PackyAPIGenerator(BaseGenerator):
                 image_data = None
                 image_url = None
 
-                if response.data and len(response.data) > 0:
+                # Debug output disabled for cleaner logs
+
+                if hasattr(response, "data") and len(response.data) > 0:
                     item = response.data[0]
-                    if item.url:
+                    if hasattr(item, "url") and item.url:
                         image_url = item.url
                         image_data = self._download_image(image_url)
-                    elif item.b64_json:
+                    elif hasattr(item, "b64_json") and item.b64_json:
                         image_data = base64.b64decode(item.b64_json)
 
                 if image_data:
@@ -77,6 +87,8 @@ class PackyAPIGenerator(BaseGenerator):
                         continue
 
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 last_error = str(e)
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt

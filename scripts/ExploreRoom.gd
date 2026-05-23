@@ -19,6 +19,8 @@ const SMALL_SPACE_ROCK_MIN_DISTANCE: float = 100.0
 const ISOLATION_BAND_MIN_COUNT: int = 5
 const ISOLATION_BAND_MAX_COUNT: int = 20
 const ISOLATION_BAND_MAX_DISTANCE: float = 3000.0
+const ELECTRIC_ISOLATION_BAND_MIN_COUNT: int = 2
+const ELECTRIC_ISOLATION_BAND_MAX_COUNT: int = 5
 const ISOLATION_BAND_WIDTH: float = 100.0
 const CHEST_MIN_COUNT: int = 1
 const CHEST_MAX_COUNT: int = 5
@@ -32,6 +34,13 @@ const TURRET_MIN_DISTANCE: float = 1000.0
 const REWARD_MIN_DISTANCE: float = 2000.0
 const REWARD_MAX_ATTEMPTS: int = 10
 const REWARD_BAND_CLEARANCE: float = 180.0
+const TRAP_REWARD_CLEARANCE: float = 500.0
+const CLUTTER_MIN_COUNT: int = 20
+const CLUTTER_MAX_COUNT: int = 100
+const CLUTTER_MIN_DISTANCE: float = 200.0
+const CLUTTER_MAX_ATTEMPTS: int = 16000
+const CLUTTER_BIG_ROCK_CLEARANCE: float = 120.0
+const CLUTTER_TEXTURE_DIR: String = "res://generated_assets/space_floating_objects/props"
 const ORE_VEIN_SURFACE_INSET: float = 48.0
 const CHEST_EDGE_EXCLUSION_RATIO: float = 0.125
 const PLAYER_SPAWN_MARGIN: float = 120.0
@@ -40,8 +49,10 @@ const LOAD_STAGE_TEXTURES: float = 0.05
 const LOAD_STAGE_LARGE_ROCKS: float = 0.35
 const LOAD_STAGE_SMALL_ROCKS: float = 0.85
 const LOAD_STAGE_ISOLATION_BANDS: float = 0.91
+const LOAD_STAGE_ELECTRIC_ISOLATION_BANDS: float = 0.93
 const LOAD_STAGE_TURRETS: float = 0.95
-const LOAD_STAGE_REWARDS: float = 0.98
+const LOAD_STAGE_REWARDS: float = 0.975
+const LOAD_STAGE_CLUTTER: float = 0.99
 const LOAD_STAGE_DONE: float = 1.0
 const LARGE_ROCKS_PER_FRAME: int = 60
 const SMALL_ROCK_PARENTS_PER_FRAME: int = 1
@@ -51,6 +62,7 @@ const ISOLATION_BAND_SCENE := preload("res://scenes/IsolationBand.tscn")
 const ELECTRIC_ISOLATION_BAND_SCENE := preload("res://scenes/ElectricIsolationBand.tscn")
 const DEFENSE_TURRET_SCENE := preload("res://scenes/DefenseTurret.tscn")
 const EXPLORE_REWARD_SCENE := preload("res://scenes/ExploreReward.tscn")
+const SPACE_CLUTTER_SCENE := preload("res://scenes/SpaceClutter.tscn")
 const CHEST_TEXTURE_PATHS: Array[String] = [
 	"res://assets/images/rewards/chest_01.png",
 	"res://assets/images/rewards/chest_02.png",
@@ -85,9 +97,11 @@ const ELECTRIC_ISOLATION_ENDPOINT_PATHS: Array[String] = [
 @onready var camera: Camera2D = $Camera2D
 @onready var background_tiles: Node2D = $BackgroundTiles
 @onready var isolation_bands: Node2D = $IsolationBands
+@onready var electric_isolation_bands: Node2D = $ElectricIsolationBands
 @onready var space_rocks: Node2D = $SpaceRocks
 @onready var turrets: Node2D = $Turrets
 @onready var rewards: Node2D = $Rewards
+@onready var clutter: Node2D = $Clutter
 @onready var map_ui: Control = $UILayer/ExploreMapUI
 @onready var loading_screen: Control = $UILayer/LoadingScreen
 @onready var loading_bar: ProgressBar = $UILayer/LoadingScreen/Panel/ProgressBar
@@ -98,6 +112,8 @@ var _space_rock_textures: Array[Texture2D] = []
 var _isolation_band_tile_sets: Array[Array] = []
 var _chest_textures: Array[Texture2D] = []
 var _ore_vein_textures: Array[Texture2D] = []
+var _clutter_textures: Array[Texture2D] = []
+var _electric_endpoint_textures: Array[Texture2D] = []
 var _large_rocks: Array[Node2D] = []
 var _large_rock_positions: Array[Vector2] = []
 var _large_attempts: int = 0
@@ -234,7 +250,7 @@ func _on_command_text_submitted(text: String) -> void:
 func _submit_command(text: String) -> void:
 	var command = text.strip_edges()
 	if command.is_empty():
-		_close_command_console()
+		_close_command_console(true)
 		return
 	var response = _execute_command(command)
 	_close_command_console()
@@ -275,13 +291,18 @@ func _append_command_dialog(command: String, response: String) -> void:
 	_command_dialog_tween.tween_callback(func(): _command_dialog_panel.visible = false)
 
 
-func _close_command_console() -> void:
+func _close_command_console(hide_dialog: bool = false) -> void:
 	GameManager.command_console_open = false
 	if is_instance_valid(_command_input_panel):
 		_command_input_panel.visible = false
 	if is_instance_valid(_command_input_edit):
 		_command_input_edit.release_focus()
 		_command_input_edit.text = ""
+	if hide_dialog and is_instance_valid(_command_dialog_panel):
+		if _command_dialog_tween and _command_dialog_tween.is_running():
+			_command_dialog_tween.kill()
+		_command_dialog_panel.visible = false
+		_command_dialog_panel.modulate.a = 0.0
 
 
 func _update_background_position() -> void:
@@ -306,6 +327,7 @@ func _setup_room() -> void:
 	_spawn_isolation_bands(large_rocks)
 	_spawn_defense_turrets(large_rocks)
 	_spawn_rewards(large_rocks)
+	_spawn_clutter(large_rocks)
 	_place_player_randomly()
 
 
@@ -353,7 +375,10 @@ func _load_room_async() -> void:
 	_set_loading_progress(LOAD_STAGE_TURRETS, "正在生成奖励...")
 	await get_tree().process_frame
 	_spawn_rewards(_large_rocks)
-	_set_loading_progress(LOAD_STAGE_REWARDS, "正在决定玩家出生点...")
+	_set_loading_progress(LOAD_STAGE_REWARDS, "正在生成漂浮杂物...")
+	await get_tree().process_frame
+	_spawn_clutter(_large_rocks)
+	_set_loading_progress(LOAD_STAGE_CLUTTER, "正在决定玩家出生点...")
 	await get_tree().process_frame
 	_place_player_randomly()
 	camera.position = player.position
@@ -395,11 +420,44 @@ func _load_space_rock_textures() -> void:
 		var tex = load(path)
 		if tex is Texture2D:
 			_ore_vein_textures.append(tex)
-	_electric_endpoint_textures.clear()
-	for path in ELECTRIC_ISOLATION_ENDPOINT_PATHS:
+	_electric_endpoint_textures = _load_texture_list(ELECTRIC_ISOLATION_ENDPOINT_PATHS)
+	_clutter_textures = _load_textures_from_dir(CLUTTER_TEXTURE_DIR)
+	print("[电击隔离带] 端点贴图数量: %d" % _electric_endpoint_textures.size())
+	print("[杂物] 贴图数量: %d" % _clutter_textures.size())
+
+
+func _load_textures_from_dir(dir_path: String) -> Array[Texture2D]:
+	var textures: Array[Texture2D] = []
+	_load_textures_from_dir_recursive(dir_path, textures)
+	return textures
+
+
+func _load_textures_from_dir_recursive(dir_path: String, textures: Array[Texture2D]) -> void:
+	var dir = DirAccess.open(dir_path)
+	if not dir:
+		return
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+	while file_name != "":
+		if file_name != "." and file_name != "..":
+			var path = dir_path.path_join(file_name)
+			if dir.current_is_dir():
+				_load_textures_from_dir_recursive(path, textures)
+			elif file_name.get_extension().to_lower() in ["png", "jpg", "jpeg", "webp"]:
+				var tex = load(path)
+				if tex is Texture2D:
+					textures.append(tex)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+
+func _load_texture_list(paths: Array[String]) -> Array[Texture2D]:
+	var textures: Array[Texture2D] = []
+	for path in paths:
 		var tex = load(path)
 		if tex is Texture2D:
-			_electric_endpoint_textures.append(tex)
+			textures.append(tex)
+	return textures
 
 
 func _spawn_large_space_rocks() -> Array[Node2D]:
@@ -477,6 +535,7 @@ func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
 	if large_rocks.size() < 2:
 		return
 	var target_count = randi_range(ELECTRIC_ISOLATION_BAND_MIN_COUNT, ELECTRIC_ISOLATION_BAND_MAX_COUNT)
+	print("[电击隔离带] 目标生成数量: %d" % target_count)
 	var connected: Array[String] = []
 	for _i in range(target_count):
 		var a_index = randi_range(0, large_rocks.size() - 1)
@@ -491,6 +550,7 @@ func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
 				if not connected.has(key):
 					candidates.append(b_index)
 		if candidates.is_empty():
+			print("[电击隔离带] 第 %d 次尝试未找到可连接的第二块太空石" % (_i + 1))
 			continue
 		var b_index = candidates.pick_random()
 		var b = large_rocks[b_index]
@@ -503,13 +563,19 @@ func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
 			continue
 		var start = a.get_surface_anchor(a_to_b.angle(), 0.0) if a.has_method("get_surface_anchor") else a_center + a_to_b * a.radius
 		var end = b.get_surface_anchor(b_to_a.angle(), 0.0) if b.has_method("get_surface_anchor") else b_center + b_to_a * b.radius
-		var band = ELECTRIC_ISOLATION_BAND_SCENE.instantiate()
 		var start_texture = _electric_endpoint_textures.pick_random() if not _electric_endpoint_textures.is_empty() else null
 		var end_texture = _electric_endpoint_textures.pick_random() if not _electric_endpoint_textures.is_empty() else null
+		if _is_electric_band_overlapping_isolation_band(start, end):
+			print("[电击隔离带] 跳过与隔离带重合的连接 %d -> %d, start=%s end=%s" % [a_index, b_index, start, end])
+			continue
+		print("[电击隔离带] 连接 %d -> %d, start=%s end=%s, start_tex=%s end_tex=%s" % [a_index, b_index, start, end, start_texture.resource_path if start_texture else "null", end_texture.resource_path if end_texture else "null"])
+		var band = ELECTRIC_ISOLATION_BAND_SCENE.instantiate()
 		band.setup(start, end, a_to_b.angle(), b_to_a.angle(), start_texture, end_texture)
 		band.follow_targets(a, start - a.global_position, b, end - b.global_position)
 		electric_isolation_bands.add_child(band)
 		connected.append(key)
+		print("[电击隔离带] 当前节点数量: %d" % electric_isolation_bands.get_child_count())
+	print("[电击隔离带] 实际生成数量: %d" % connected.size())
 
 
 func _spawn_defense_turrets(large_rocks: Array[Node2D]) -> void:
@@ -536,6 +602,8 @@ func _spawn_defense_turrets(large_rocks: Array[Node2D]) -> void:
 			if too_close:
 				continue
 			if _is_position_near_isolation_band(pos, REWARD_BAND_CLEARANCE):
+				continue
+			if _is_position_near_electric_endpoint(pos, TRAP_REWARD_CLEARANCE):
 				continue
 			var turret = DEFENSE_TURRET_SCENE.instantiate()
 			turret.global_position = pos
@@ -610,15 +678,109 @@ func _is_reward_position_valid(pos: Vector2, placed: Array[Vector2]) -> bool:
 			return false
 	if _is_position_near_isolation_band(pos, REWARD_BAND_CLEARANCE):
 		return false
+	if _is_position_near_turret(pos, TRAP_REWARD_CLEARANCE):
+		return false
+	if _is_position_near_electric_endpoint(pos, TRAP_REWARD_CLEARANCE):
+		return false
 	return true
+
+
+func _spawn_clutter(large_rocks: Array[Node2D]) -> void:
+	if _clutter_textures.is_empty():
+		return
+	var target_count = randi_range(CLUTTER_MIN_COUNT, CLUTTER_MAX_COUNT)
+	var placed: Array[Vector2] = []
+	var attempts = 0
+	while placed.size() < target_count and attempts < CLUTTER_MAX_ATTEMPTS:
+		attempts += 1
+		var pos = Vector2(randf_range(0.0, ROOM_SIZE.x), randf_range(0.0, ROOM_SIZE.y))
+		if not _is_clutter_position_valid(pos, placed, large_rocks):
+			continue
+		var node = SPACE_CLUTTER_SCENE.instantiate()
+		node.global_position = pos
+		node.rotation = randf_range(0.0, TAU)
+		node.setup(_clutter_textures.pick_random())
+		clutter.add_child(node)
+		placed.append(pos)
+	print("[杂物] 目标生成数量: %d, 实际生成数量: %d" % [target_count, placed.size()])
+
+
+func _is_clutter_position_valid(pos: Vector2, placed: Array[Vector2], large_rocks: Array[Node2D]) -> bool:
+	if pos.x < 0.0 or pos.y < 0.0 or pos.x > ROOM_SIZE.x or pos.y > ROOM_SIZE.y:
+		return false
+	for other in placed:
+		if pos.distance_to(other) < CLUTTER_MIN_DISTANCE:
+			return false
+	if _is_position_near_reward(pos, CLUTTER_MIN_DISTANCE):
+		return false
+	if _is_position_near_turret(pos, CLUTTER_MIN_DISTANCE):
+		return false
+	if _is_position_near_small_space_rock(pos, CLUTTER_MIN_DISTANCE, large_rocks):
+		return false
+	if _is_position_near_electric_endpoint(pos, CLUTTER_MIN_DISTANCE):
+		return false
+	if _is_position_near_isolation_band(pos, CLUTTER_BIG_ROCK_CLEARANCE):
+		return false
+	if _is_position_inside_large_rock(pos, large_rocks):
+		return false
+	return true
+
+
+func _is_position_near_reward(pos: Vector2, clearance: float) -> bool:
+	for reward in rewards.get_children():
+		if is_instance_valid(reward) and pos.distance_to(reward.global_position) < clearance:
+			return true
+	return false
+
+
+func _is_position_near_small_space_rock(pos: Vector2, clearance: float, large_rocks: Array[Node2D]) -> bool:
+	for rock in space_rocks.get_children():
+		if not is_instance_valid(rock) or large_rocks.has(rock):
+			continue
+		if pos.distance_to(rock.global_position) < clearance:
+			return true
+	return false
+
+
+func _is_position_inside_large_rock(pos: Vector2, large_rocks: Array[Node2D]) -> bool:
+	for rock in large_rocks:
+		if not is_instance_valid(rock):
+			continue
+		if rock.has_method("get_push_out_position"):
+			var pushed = rock.get_push_out_position(pos, CLUTTER_BIG_ROCK_CLEARANCE)
+			if pushed.distance_to(pos) > 0.1:
+				return true
+		else:
+			var radius: float = rock.get("radius") if rock.get("radius") != null else SPACE_ROCK_BASE_RADIUS
+			if pos.distance_to(rock.global_position) < radius + CLUTTER_BIG_ROCK_CLEARANCE:
+				return true
+	return false
+
+
+func _is_position_near_turret(pos: Vector2, clearance: float) -> bool:
+	for turret in turrets.get_children():
+		if is_instance_valid(turret) and pos.distance_to(turret.global_position) < clearance:
+			return true
+	return false
+
+
+func _is_position_near_electric_endpoint(pos: Vector2, clearance: float) -> bool:
+	for band in electric_isolation_bands.get_children():
+		if not is_instance_valid(band) or not band.has_method("get_map_endpoints"):
+			continue
+		for endpoint in band.get_map_endpoints():
+			var endpoint_pos: Vector2 = endpoint.get("position", Vector2.ZERO)
+			if pos.distance_to(endpoint_pos) < clearance:
+				return true
+	return false
 
 
 func _is_position_near_isolation_band(pos: Vector2, clearance: float) -> bool:
 	for band in isolation_bands.get_children():
 		if not is_instance_valid(band):
 			continue
-		var start: Vector2 = band.get("start_point") if band.get("start_point") != null else Vector2.ZERO
-		var end: Vector2 = band.get("end_point") if band.get("end_point") != null else Vector2.ZERO
+		var start: Vector2 = band.get_map_start() if band.has_method("get_map_start") else band.get("start_point") if band.get("start_point") != null else Vector2.ZERO
+		var end: Vector2 = band.get_map_end() if band.has_method("get_map_end") else band.get("end_point") if band.get("end_point") != null else Vector2.ZERO
 		if start == end:
 			continue
 		var band_width: float = band.get_collision_width() if band.has_method("get_collision_width") else ISOLATION_BAND_WIDTH
@@ -626,6 +788,27 @@ func _is_position_near_isolation_band(pos: Vector2, clearance: float) -> bool:
 		if pos.distance_to(closest) < band_width * 0.5 + clearance:
 			return true
 	return false
+
+
+func _is_electric_band_overlapping_isolation_band(start: Vector2, end: Vector2) -> bool:
+	for band in isolation_bands.get_children():
+		if not is_instance_valid(band) or not band.has_method("get_map_start") or not band.has_method("get_map_end"):
+			continue
+		var band_start = band.get_map_start()
+		var band_end = band.get_map_end()
+		if Geometry2D.segment_intersects_segment(start, end, band_start, band_end) != null:
+			return true
+		if _segment_distance(start, end, band_start, band_end) < ISOLATION_BAND_WIDTH * 0.5:
+			return true
+	return false
+
+
+func _segment_distance(a1: Vector2, a2: Vector2, b1: Vector2, b2: Vector2) -> float:
+	var p1 = Geometry2D.get_closest_point_to_segment(a1, b1, b2)
+	var p2 = Geometry2D.get_closest_point_to_segment(a2, b1, b2)
+	var p3 = Geometry2D.get_closest_point_to_segment(b1, a1, a2)
+	var p4 = Geometry2D.get_closest_point_to_segment(b2, a1, a2)
+	return minf(minf(a1.distance_to(p1), a2.distance_to(p2)), minf(b1.distance_to(p3), b2.distance_to(p4)))
 
 
 func _spawn_isolation_bands(large_rocks: Array[Node2D]) -> void:
@@ -874,6 +1057,11 @@ func _is_player_spawn_position_valid(pos: Vector2) -> bool:
 		var band_width: float = band.get_collision_width() if band.has_method("get_collision_width") else ISOLATION_BAND_WIDTH
 		if pos.distance_to(closest) < band_width * 0.5 + PLAYER_SPAWN_CLEARANCE:
 			return false
+	for debris in clutter.get_children():
+		if is_instance_valid(debris) and debris.has_method("get_push_out_position"):
+			var pushed = debris.get_push_out_position(pos, PLAYER_SPAWN_CLEARANCE)
+			if pushed.distance_to(pos) > 0.1:
+				return false
 	return true
 
 

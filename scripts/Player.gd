@@ -229,6 +229,11 @@ func _move_with_space_rock_block(delta_pos: Vector2) -> void:
 			continue
 		if reward.has_method(&"get_push_out_position"):
 			next_pos = reward.get_push_out_position(next_pos, collision_radius)
+	for debris in get_tree().get_nodes_in_group(&"space_clutter"):
+		if not is_instance_valid(debris) or not debris.visible:
+			continue
+		if debris.has_method(&"get_push_out_position"):
+			next_pos = debris.get_push_out_position(next_pos, collision_radius)
 	for band in get_tree().get_nodes_in_group(&"isolation_bands"):
 		if not is_instance_valid(band) or not band.visible:
 			continue

@@ -20,12 +20,13 @@ from config_schema import (
 from sfx_manager import SFXAssetManager
 from model_registry import CATEGORY_MODEL_CHAINS, MODEL_NOTES, describe_model_chain, get_model_chain
 from generators.huggingface_gen import HuggingFaceSFXGenerator, SFXGenerationRequest
+from generators.openai_tts_gen import OpenAITTSGenerator
 from generators.procedural_gen import ProceduralSFXGenerator
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="AI 音效批量生成管线 - 基于 Hugging Face 文本转音频模型"
+        description="AI 音效/语音批量生成管线 - 支持 Hugging Face、OpenAI TTS 与本地程序化合成"
     )
     parser.add_argument(
         "-c", "--config",
@@ -57,9 +58,21 @@ def parse_args():
     )
     parser.add_argument(
         "--backend",
-        choices=["auto", "hf", "procedural"],
+        choices=["auto", "hf", "openai-tts", "procedural"],
         default="auto",
-        help="生成后端：auto 优先 Hugging Face，失败后本地合成；hf 仅线上模型；procedural 仅本地合成",
+        help="生成后端：auto 优先 OpenAI TTS 处理 voice，其余优先 Hugging Face；hf 仅 Hugging Face；openai-tts 仅 GPT TTS；procedural 仅本地合成",
+    )
+    parser.add_argument(
+        "--openai-api-key",
+        type=str,
+        default=None,
+        help="OpenAI API Key (优先级高于环境变量 OPENAI_API_KEY)",
+    )
+    parser.add_argument(
+        "--openai-base-url",
+        type=str,
+        default=None,
+        help="OpenAI 兼容 API Base URL (可选，默认读取 OPENAI_BASE_URL)",
     )
     parser.add_argument(
         "--list-models",
@@ -87,6 +100,8 @@ def run_pipeline(
     hf_token: str | None = None,
     override_model: str | None = None,
     backend: str = "auto",
+    openai_api_key: str | None = None,
+    openai_base_url: str | None = None,
 ):
     config = load_config(config_path)
 
@@ -115,12 +130,26 @@ def run_pipeline(
             for variant in asset.variants:
                 prompt = build_sfx_prompt(asset, config.style, variant.description)
                 print(f"  - [{variant.count}x] {variant.description}")
+                if asset.category == "voice" and variant.text:
+                    print(f"    tts_text: {variant.text}")
+                    print(f"    tts_voice: {variant.voice or 'alloy'}")
                 print(f"    prompt: {prompt[:140]}...")
             print()
         return
 
     hf_generator = None
+    openai_tts_generator = None
     procedural_generator = ProceduralSFXGenerator()
+    if backend in {"auto", "openai-tts"}:
+        try:
+            openai_tts_generator = OpenAITTSGenerator(
+                api_key=openai_api_key,
+                base_url=openai_base_url,
+            )
+        except Exception as e:
+            if backend == "openai-tts":
+                raise
+            print(f"OpenAI TTS 后端不可用，voice 将回退到其他后端: {e}")
     if backend in {"auto", "hf"}:
         try:
             hf_generator = HuggingFaceSFXGenerator(
@@ -156,10 +185,18 @@ def run_pipeline(
                     prompt=prompt,
                     duration=variant.duration,
                     model=model_chain[0],
-                    extra_params={"category": asset.category},
+                    extra_params={
+                        "category": asset.category,
+                        "text": variant.text,
+                        "voice": variant.voice,
+                        "instructions": variant.instructions or prompt,
+                        "speed": variant.speed,
+                    },
                 )
 
-                if backend == "procedural" or hf_generator is None:
+                if backend == "openai-tts" or (backend == "auto" and asset.category == "voice" and openai_tts_generator is not None):
+                    result = openai_tts_generator.generate(request, max_retries=max_retries)
+                elif backend == "procedural" or hf_generator is None:
                     result = procedural_generator.generate(request, max_retries=max_retries)
                 else:
                     result = hf_generator.generate_with_fallback(request, model_chain, max_retries=max_retries)
@@ -211,6 +248,8 @@ def main():
         hf_token=args.hf_token,
         override_model=args.model,
         backend=args.backend,
+        openai_api_key=args.openai_api_key,
+        openai_base_url=args.openai_base_url,
     )
 
 

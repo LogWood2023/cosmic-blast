@@ -1,0 +1,83 @@
+
+project: 像素风太空漂浮物素材
+output_dir: ./generated_assets/space_floating_objects
+style:
+  art_style: pixel art, 16-bit SNES era, crisp square pixels, limited color palette (16-32 colors), retro game sprite aesthetic
+  quality: high
+size: 512x512
+n: 1
+style_seed:
+  enabled: false
+pixel_clean:
+  enabled: true
+  target_size: 128
+  num_colors: 24
+  contrast: 1.2
+chroma_key:
+  enabled: true
+  color: bright green
+
+assets:
+  - name: 废弃太空站模块
+    type: prop
+    variants:
+      - count: 2
+        description: Abandoned space station module floating in space, damaged hull plating, exposed wiring and pipes, broken solar panels, satellite dishes askew, rust and wear, pixel art 16-bit
+      - count: 2
+        description: Abandoned space station module with hole in side, interior exposed, floating debris around it, emergency lights still flickering, pixel art 16-bit
+
+  - name: 太空采矿车残骸
+    type: prop
+    variants:
+      - count: 2
+        description: Wrecked space mining vehicle, torn off mechanical arm, damaged drill bit, broken cockpit windows, bent metal framing, floating in space, pixel art 16-bit
+      - count: 2
+        description: Half-destroyed space mining truck, cargo hold spilling rocks, treads torn off, hydraulic leaks, pixel art 16-bit
+
+  - name: 废弃卫星
+    type: prop
+    variants:
+      - count: 2
+        description: Decommissioned old satellite, large solar panels partially broken, antenna bent, communication dishes damaged, weathered hull, pixel art 16-bit
+      - count: 2
+        description: Military satellite wreckage, missile launchers exposed, radar array twisted, hull scarred from battle, pixel art 16-bit
+
+  - name: 太空集装箱
+    type: prop
+    variants:
+      - count: 2
+        description: Dented space cargo container, some panels missing, warning labels faded, floating slightly open, revealing mysterious glowing contents inside, pixel art 16-bit
+      - count: 2
+        description: Stacked space shipping containers, one crushed, others with scratch marks and rust, barcode labels still visible, pixel art 16-bit
+
+  - name: 太空探索机器人残骸
+    type: prop
+    variants:
+      - count: 2
+        description: Broken exploration robot, one arm missing, camera lens cracked, treads damaged, antenna bent, still powered on with glowing eye, pixel art 16-bit
+      - count: 2
+        description: Destroyed maintenance droid, body split in two, wires sparking, tools floating around it, pixel art 16-bit
+
+  - name: 小行星碎块群
+    type: prop
+    variants:
+      - count: 2
+        description: Cluster of irregular asteroid fragments, various sizes, jagged edges, some with metallic ore veins showing, spinning slowly, pixel art 16-bit
+      - count: 2
+        description: Crystalline asteroid chunks, bright purple and blue, glowing internal lights, sharp geometric shapes, pixel art 16-bit
+
+  - name: 废弃推进器和引擎
+    type: prop
+    variants:
+      - count: 2
+        description: Disconnected rocket engine module, nozzle slightly bent, fuel lines hanging loose, still has faint residual glow from combustion chamber, pixel art 16-bit
+      - count: 2
+        description: Ancient alien propulsion device, unusual geometry, glowing runes or symbols, strange energy field around it, mysterious artifact, pixel art 16-bit
+
+  - name: 太空垃圾杂物
+    type: prop
+    variants:
+      - count: 2
+        description: Jumble of space debris - old tools, broken circuit boards, tangled cables, discarded food containers, miscellaneous scrap floating together, pixel art 16-bit
+      - count: 2
+        description: Discarded space suit parts, helmet with cracked visor, gloves, boots, life support backpack, floating in formation, pixel art 16-bit

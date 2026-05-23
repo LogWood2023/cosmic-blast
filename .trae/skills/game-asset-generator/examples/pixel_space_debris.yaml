@@ -17,7 +17,6 @@ assets:
   - type: prop
     name: "space_debris_1"
     size: "1024x1024"
-    model: "gpt-image-2"
     extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, pixel art large space debris, vibrant colors, floating"
     variants:
       - description: "pixel art abandoned space station module with purple and blue accents, large, floating"
