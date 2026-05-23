@@ -49,6 +49,7 @@ func _process(_delta: float) -> void:
 		queue_redraw()
 		_sync_reward_rects()
 		_sync_turret_rects()
+		_sync_electric_endpoint_rects()
 
 
 func toggle() -> void:
@@ -63,6 +64,8 @@ func toggle() -> void:
 			rect.visible = false
 		for rect in _turret_rects:
 			rect.visible = false
+		for rect in _electric_endpoint_rects:
+			rect.visible = false
 
 
 func set_turret_trap_mode(enabled: bool) -> void:
@@ -70,6 +73,7 @@ func set_turret_trap_mode(enabled: bool) -> void:
 	if visible:
 		queue_redraw()
 		_sync_turret_rects()
+		_sync_electric_endpoint_rects()
 
 
 func toggle_turret_trap_mode() -> bool:
@@ -214,6 +218,54 @@ func _sync_turret_rects() -> void:
 		rect.size = size
 		rect.pivot_offset = size * 0.5
 		rect.rotation = -PI * 0.5
+
+
+func _sync_electric_endpoint_rects() -> void:
+	if not show_turret_traps:
+		for rect in _electric_endpoint_rects:
+			rect.visible = false
+		return
+	if not _electric_isolation_bands:
+		return
+	var endpoints: Array[Dictionary] = []
+	for band in _electric_isolation_bands.get_children():
+		if is_instance_valid(band) and band.has_method("get_map_endpoints"):
+			for endpoint in band.get_map_endpoints():
+				endpoints.append(endpoint)
+
+	while _electric_endpoint_rects.size() > endpoints.size():
+		var rect = _electric_endpoint_rects.pop_back()
+		rect.queue_free()
+
+	while _electric_endpoint_rects.size() < endpoints.size():
+		var rect = TextureRect.new()
+		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		rect.material = _outline_material
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(rect)
+		_electric_endpoint_rects.append(rect)
+
+	var scale = MAP_SIZE.x / ROOM_SIZE.x
+	var content_origin = _map_rect().position + Vector2(0, _content_offset_y)
+	for i in range(endpoints.size()):
+		var endpoint = endpoints[i]
+		var rect = _electric_endpoint_rects[i]
+		var tex: Texture2D = endpoint.get("texture")
+		if not tex:
+			rect.visible = false
+			continue
+		var pos: Vector2 = endpoint.get("position", Vector2.ZERO)
+		var rot: float = endpoint.get("rotation", 0.0)
+		var tex_size = tex.get_size()
+		var icon_size = maxf(64.0, maxf(tex_size.x, tex_size.y) * scale * 0.15)
+		var aspect = tex_size.x / maxf(1.0, tex_size.y)
+		var draw_size = Vector2(icon_size * maxf(1.0, aspect), icon_size * maxf(1.0, 1.0 / aspect))
+		rect.visible = true
+		rect.texture = tex
+		rect.position = content_origin + pos * scale - draw_size * 0.5
+		rect.size = draw_size
+		rect.pivot_offset = draw_size * 0.5
+		rect.rotation = rot
 
 
 func _rects_append_turret(rect: TextureRect) -> void:

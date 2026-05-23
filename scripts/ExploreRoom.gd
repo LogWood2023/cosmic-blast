@@ -48,6 +48,7 @@ const SMALL_ROCK_PARENTS_PER_FRAME: int = 1
 
 const SPACE_ROCK_SCENE := preload("res://scenes/SpaceRock.tscn")
 const ISOLATION_BAND_SCENE := preload("res://scenes/IsolationBand.tscn")
+const ELECTRIC_ISOLATION_BAND_SCENE := preload("res://scenes/ElectricIsolationBand.tscn")
 const DEFENSE_TURRET_SCENE := preload("res://scenes/DefenseTurret.tscn")
 const EXPLORE_REWARD_SCENE := preload("res://scenes/ExploreReward.tscn")
 const CHEST_TEXTURE_PATHS: Array[String] = [
@@ -73,6 +74,11 @@ const SPACE_ROCK_TEXTURE_PATHS: Array[String] = [
 	"res://assets/images/asteroid/space_rock_3_cutout.png",
 	"res://assets/images/asteroid/space_rock_4_cutout.png",
 	"res://assets/images/asteroid/space_rock_5_cutout.png",
+]
+const ELECTRIC_ISOLATION_ENDPOINT_PATHS: Array[String] = [
+	"res://assets/images/electric_isolation/lightning_rod_01.png",
+	"res://assets/images/electric_isolation/lightning_rod_02.png",
+	"res://assets/images/electric_isolation/lightning_rod_03.png",
 ]
 
 @onready var player: Area2D = $player
@@ -239,10 +245,10 @@ func _execute_command(command: String) -> String:
 	if not command.begins_with("/"):
 		return "指令必须以 / 开头。输入 /help 查看可用指令。"
 	if command == "/help":
-		return "/显示陷阱：切换小地图中的炮台陷阱显示"
-	if command == "/显示陷阱":
+		return "/展示陷阱：切换小地图中的炮台与电击隔离带端点显示"
+	if command == "/展示陷阱":
 		var enabled = map_ui.toggle_turret_trap_mode()
-		return "已开启炮台陷阱显示。" if enabled else "已关闭炮台陷阱显示。"
+		return "已开启陷阱显示。" if enabled else "已关闭陷阱显示。"
 	return "未知指令：%s\n输入 /help 查看可用指令。" % command
 
 
@@ -338,7 +344,10 @@ func _load_room_async() -> void:
 	_set_loading_progress(LOAD_STAGE_SMALL_ROCKS, "正在生成隔离带...")
 	await get_tree().process_frame
 	_spawn_isolation_bands(_large_rocks)
-	_set_loading_progress(LOAD_STAGE_ISOLATION_BANDS, "正在生成自动防卫炮台...")
+	_set_loading_progress(LOAD_STAGE_ISOLATION_BANDS, "正在生成电击隔离带...")
+	await get_tree().process_frame
+	_spawn_electric_isolation_bands(_large_rocks)
+	_set_loading_progress(LOAD_STAGE_ELECTRIC_ISOLATION_BANDS, "正在生成自动防卫炮台...")
 	await get_tree().process_frame
 	_spawn_defense_turrets(_large_rocks)
 	_set_loading_progress(LOAD_STAGE_TURRETS, "正在生成奖励...")
@@ -386,6 +395,11 @@ func _load_space_rock_textures() -> void:
 		var tex = load(path)
 		if tex is Texture2D:
 			_ore_vein_textures.append(tex)
+	_electric_endpoint_textures.clear()
+	for path in ELECTRIC_ISOLATION_ENDPOINT_PATHS:
+		var tex = load(path)
+		if tex is Texture2D:
+			_electric_endpoint_textures.append(tex)
 
 
 func _spawn_large_space_rocks() -> Array[Node2D]:
@@ -457,6 +471,45 @@ func _spawn_small_space_rocks_for_parent(large_rock: Node2D) -> void:
 			rock.texture = _space_rock_textures.pick_random()
 		space_rocks.add_child(rock)
 		placed.append(pos)
+
+
+func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
+	if large_rocks.size() < 2:
+		return
+	var target_count = randi_range(ELECTRIC_ISOLATION_BAND_MIN_COUNT, ELECTRIC_ISOLATION_BAND_MAX_COUNT)
+	var connected: Array[String] = []
+	for _i in range(target_count):
+		var a_index = randi_range(0, large_rocks.size() - 1)
+		var candidates: Array[int] = []
+		var a = large_rocks[a_index]
+		for b_index in range(large_rocks.size()):
+			if b_index == a_index:
+				continue
+			var b = large_rocks[b_index]
+			if a.get_base_position().distance_to(b.get_base_position()) <= ISOLATION_BAND_MAX_DISTANCE:
+				var key = _band_key(a_index, b_index)
+				if not connected.has(key):
+					candidates.append(b_index)
+		if candidates.is_empty():
+			continue
+		var b_index = candidates.pick_random()
+		var b = large_rocks[b_index]
+		var key = _band_key(a_index, b_index)
+		var a_center = a.get_base_position()
+		var b_center = b.get_base_position()
+		var a_to_b = (b_center - a_center).normalized()
+		var b_to_a = -a_to_b
+		if a_to_b == Vector2.ZERO:
+			continue
+		var start = a.get_surface_anchor(a_to_b.angle(), 0.0) if a.has_method("get_surface_anchor") else a_center + a_to_b * a.radius
+		var end = b.get_surface_anchor(b_to_a.angle(), 0.0) if b.has_method("get_surface_anchor") else b_center + b_to_a * b.radius
+		var band = ELECTRIC_ISOLATION_BAND_SCENE.instantiate()
+		var start_texture = _electric_endpoint_textures.pick_random() if not _electric_endpoint_textures.is_empty() else null
+		var end_texture = _electric_endpoint_textures.pick_random() if not _electric_endpoint_textures.is_empty() else null
+		band.setup(start, end, a_to_b.angle(), b_to_a.angle(), start_texture, end_texture)
+		band.follow_targets(a, start - a.global_position, b, end - b.global_position)
+		electric_isolation_bands.add_child(band)
+		connected.append(key)
 
 
 func _spawn_defense_turrets(large_rocks: Array[Node2D]) -> void:

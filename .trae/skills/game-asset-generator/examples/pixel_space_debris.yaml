@@ -1,0 +1,62 @@
+project: "像素风太空漂浮物（20个）"
+output_dir: "./generated_assets/pixel_space_debris"
+
+style:
+  style_lock: "pixel art, 16-bit SNES era, game item sprite, bright solid green background, sharp pixel edges, flat shading, large space debris floating in space, vibrant high-saturation colors"
+  color_palette: "vibrant saturated colors, bright blues, purples, oranges, pinks, greens, yellows, bright lime green background"
+  quality: "game sprite, clean pixel edges, interesting design"
+  negative: "blurry, realistic, 3D render, photorealistic, perspective, gradient, soft edges, anti-aliased, watermark, text, character, human, scattered particles, green on subject, muted colors, dull colors"
+
+pixel_clean:
+  enabled: true
+  target_size: 256
+  num_colors: 24
+  contrast: 1.25
+
+assets:
+  - type: prop
+    name: "space_debris_1"
+    size: "1024x1024"
+    model: "gpt-image-2"
+    extra_prompt: "solid bright green background, pure green chroma key backdrop, no green on subject, pixel art large space debris, vibrant colors, floating"
+    variants:
+      - description: "pixel art abandoned space station module with purple and blue accents, large, floating"
+        count: 1
+      - description: "pixel art damaged satellite with pink and yellow solar panels, large, floating"
+        count: 1
+      - description: "pixel art giant space rock with glowing orange crystals, large, floating"
+        count: 1
+      - description: "pixel art alien probe debris with bright green accents, large, floating"
+        count: 1
+      - description: "pixel art huge space plant with purple leaves, large, floating"
+        count: 1
+      - description: "pixel art discarded rocket engine with red and blue details, large, floating"
+        count: 1
+      - description: "pixel art complex space junk cluster with mixed colors, large, floating"
+        count: 1
+      - description: "pixel art mysterious space portal with cyan glow, large, floating"
+        count: 1
+      - description: "pixel art space factory wreck with orange and gray, large, floating"
+        count: 1
+      - description: "pixel art giant spaceship hull fragment with blue armor, large, floating"
+        count: 1
+      - description: "pixel art space memorial monument with pink and purple, large, floating"
+        count: 1
+      - description: "pixel art broken space telescope with green lens, large, floating"
+        count: 1
+      - description: "pixel art alien communication tower with bright yellow, large, floating"
+        count: 1
+      - description: "pixel art space mining drill with red and gray, large, floating"
+        count: 1
+      - description: "pixel art space lab wreckage with cyan equipment, large, floating"
+        count: 1
+      - description: "pixel art huge space balloon with rainbow colors, large, floating"
+        count: 1
+      - description: "pixel art large space thruster with orange flame details, large, floating"
+        count: 1
+      - description: "pixel art abandoned space container with purple and green, large, floating"
+        count: 1
+      - description: "pixel art space power station wreck with blue energy, large, floating"
+        count: 1
+      - description: "pixel art alien orbiter with bright pink accents, large, floating"
+        count: 1
