@@ -1,0 +1,167 @@
+{
+  "project": "像素敌机精灵06到25",
+  "generated_at": "2026-05-25T15:49:28.258295",
+  "total_assets": 20,
+  "entries": [
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//06_天堂巡逻机//06_天堂巡逻机_00_1024x1024_0e48.png",
+      "type": "prop",
+      "name": "06_天堂巡逻机",
+      "variant_description": "small Heaven patrol fighter enemy sprite, white-gold armor, symmetrical small wings, blue thruster glow at rear, single light cannon at front, simple mass-produced holy technology feeling, basic shooting enemy aircraft, approximate in-game body proportion 40x46, white-gold armor with blue propulsion accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:24:31.337678"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//07_弧光散射机//07_弧光散射机_00_1024x1024_af07.png",
+      "type": "prop",
+      "name": "07_弧光散射机",
+      "variant_description": "small arc scatter enemy spacecraft sprite, wide flat body, crescent or curved wings, multiple cyan-blue energy cannon ports arranged along front edge, white-gold armor, elegant shape, clearly fan-shaped bullet emitter, approximate in-game body proportion 52x36, white-gold armor with cyan-blue arc cannon accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:25:40.553645"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//08_圣轨连射机//08_圣轨连射机_00_1024x1024_c6fd.png",
+      "type": "prop",
+      "name": "08_圣轨连射机",
+      "variant_description": "slender rapid-fire enemy spacecraft sprite, white-gold long body, light-blue railgun structures on both sides, small stabilizer fins at rear, precise triple burst rail cannon holy carrier aircraft style, approximate in-game body proportion 34x58, pale gold-white armor with light-blue railgun glow accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:26:43.376393"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//09_天堂校准者//09_天堂校准者_00_1024x1024_1653.png",
+      "type": "prop",
+      "name": "09_天堂校准者",
+      "variant_description": "medium elite calibration fighter enemy sprite, white-gold diamond body, bright blue calibration lens or targeting core in center, one light cannon on each side, not large gunship, medium precision shooting elite, lock-on calibration precise high-speed bullets, approximate in-game body proportion 54x46, white-gold armor with bright blue targeting lens accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:29:51.380222"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//10_圣域压制者//10_圣域压制者_00_1024x1024_ee61.png",
+      "type": "prop",
+      "name": "10_圣域压制者",
+      "variant_description": "medium sanctuary suppression drone enemy sprite, compact combined disk and diamond structure, white-gold armor, small blue energy emitter in four directions, sanctuary core in center, cross-direction suppressive shooting but not large turret, approximate in-game body proportion 56x50, white-gold armor with blue sanctuary energy accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:31:13.239861"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//11_微型引力核//11_微型引力核_00_1024x1024_d9f9.png",
+      "type": "prop",
+      "name": "11_微型引力核",
+      "variant_description": "small gravity core enemy sprite, circular or near-circular body, deep purple shell, pink-purple light from center, small fragments or energy arcs orbiting around, weak attraction, space distortion, star core style, approximate in-game body proportion 44x44, purple core body with pink-purple gravity glow accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:32:26.194334"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//12_折光射手//12_折光射手_00_1024x1024_ab98.png",
+      "type": "prop",
+      "name": "12_折光射手",
+      "variant_description": "small prism shooter enemy sprite, triangular prism or pointed cone body, deep blue-purple armor, translucent pink-purple crystal lens at front, angled reflector plates on both sides, refracting bullets, second-stage turning shots, warped space technology, approximate in-game body proportion 42x46, blue-purple prism armor with pale purple refraction glow accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:33:30.113089"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//13_轨道扰流器//13_轨道扰流器_00_1024x1024_1719.png",
+      "type": "prop",
+      "name": "13_轨道扰流器",
+      "variant_description": "small ring-shaped trajectory disruptor enemy sprite, hollow circular ring structure, dark purple segmented metal shell, purple orbital light lines and small rotating nodes on ring, disrupts bullet paths, ring bullets, orbital interference, approximate in-game body proportion 48x48, deep purple ring structure with purple orbital glow accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:34:36.987298"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//14_坍缩信标//14_坍缩信标_00_1024x1024_a1f1.png",
+      "type": "prop",
+      "name": "14_坍缩信标",
+      "variant_description": "medium collapse beacon enemy sprite, dark purple-black circular core, layered circular armor outer ring, bright purple collapsing singularity in center, short inward-converging energy spikes around it, not giant black hole, medium enemy size, short gravity pull collapse ring burst, approximate in-game body proportion 56x56, dark purple-black core with bright purple collapse energy accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:36:00.268376"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//15_偏转矩阵//15_偏转矩阵_00_1024x1024_f8ab.png",
+      "type": "prop",
+      "name": "15_偏转矩阵",
+      "variant_description": "medium deflection matrix enemy sprite, purple core in center, four small cyan-blue prism plates surrounding in matrix formation, only central body is solid, outer prisms are energy visual components not complex large collision structure, bullet trajectory deflection, rotating matrix, prism refraction, approximate in-game body proportion 54x54, purple core with cyan-blue deflection prism accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:37:11.454819"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//16_倒影眼虫//16_倒影眼虫_00_1024x1024_4798.png",
+      "type": "prop",
+      "name": "16_倒影眼虫",
+      "variant_description": "small eye-bug enemy sprite, dark red-black body, one vivid red eyeball in center, pupil appears inverted or vertically flipped, bug wings or small fins on both sides, reversed controls, gaze interference, evil eye flying insect, approximate in-game body proportion 38x42, dark red-black body with vivid red pupil accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:38:23.422963"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//17_盲点飞蛾//17_盲点飞蛾_00_1024x1024_55b0.png",
+      "type": "prop",
+      "name": "17_盲点飞蛾",
+      "variant_description": "small black moth enemy sprite, wide flat wings, almost black body, dark red eye patterns on left and right wings, small mechanical body in center, blocks vision, black fog, blind spot interference, approximate in-game body proportion 52x34, near-black body with dark red eye pattern accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:39:28.022769"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//18_错位凝视者//18_错位凝视者_00_1024x1024_98fa.png",
+      "type": "prop",
+      "name": "18_错位凝视者",
+      "variant_description": "small displaced gazer enemy sprite, circular dark red-purple body, red eyeball in center, one slightly offset ghost afterimage eye nearby, left and right structure slightly asymmetrical, visual displacement, bullet trajectory offset, gaze interference, approximate in-game body proportion 42x42, dark red-purple body with orange-red displaced afterimage accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:40:43.764711"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//19_颠倒司祭//19_颠倒司祭_00_1024x1024_de10.png",
+      "type": "prop",
+      "name": "19_颠倒司祭",
+      "variant_description": "medium inverted priest enemy sprite, like a small mechanical altar, dark red-black armor, vivid red vertical pupil in center, ritual horns or antennas on top or sides, not giant monster, medium enemy size, reversed controls, evil eye ritual, mechanical priest, approximate in-game body proportion 54x58, dark red mechanical altar body with vivid red vertical pupil accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:41:56.997951"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//20_视界偏转者//20_视界偏转者_00_1024x1024_4e5b.png",
+      "type": "prop",
+      "name": "20_视界偏转者",
+      "variant_description": "medium horizon deflector enemy sprite, compact ring-shaped mechanical eye structure, black-red armor, mirror-like lens in center, multiple small scarlet eyes around it, entire elements slightly tilted to show twisted viewing direction, not large ring monster, approximate in-game body proportion 56x54, black-red ring armor with scarlet multi-eye accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:43:04.510057"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//21_圣羽掠袭者//21_圣羽掠袭者_00_1024x1024_a781.png",
+      "type": "prop",
+      "name": "21_圣羽掠袭者",
+      "variant_description": "small high-speed wing enemy sprite, wide flat white-gold body, tiny core in center, feather-shaped wings on both sides, pale blue holy light trails, high-speed sweep, launches light feather bullets, divine messenger style, approximate in-game body proportion 50x32, white-gold feather wing body with pale blue holy light accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:44:18.746464"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//22_闪现信标//22_闪现信标_00_1024x1024_f6c1.png",
+      "type": "prop",
+      "name": "22_闪现信标",
+      "variant_description": "small blink beacon enemy sprite, slender pale blue-white crystal body, small golden wings on both sides, broken teleportation halo fragments around it, bright glowing center crystal, instant teleportation, precise light bullets, holy crystal, approximate in-game body proportion 38x48, pale blue crystal body with gold holy light accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:45:50.625045"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//23_折翼刺客//23_折翼刺客_00_1024x1024_523c.png",
+      "type": "prop",
+      "name": "23_折翼刺客",
+      "variant_description": "small broken-wing assassin enemy spacecraft sprite, silver-white slender body, one complete golden wing on one side, other side broken wing, sharp front like a stabbing blade, agile dangerous, dodge then thrust, fast melee, approximate in-game body proportion 42x50, silver-white body with golden broken wing light accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:46:54.593435"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//24_炽天追猎者//24_炽天追猎者_00_1024x1024_5a52.png",
+      "type": "prop",
+      "name": "24_炽天追猎者",
+      "variant_description": "medium seraph hunter elite enemy sprite, white-gold armored body, compact angel wings on both sides, orange-gold burning crystal core in center, sharp symmetrical outline, small teleport light fragments around, high-speed blink hunting thrust, not boss, approximate in-game body proportion 56x52, white-gold elite armor with orange-gold blazing light accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:48:05.217225"
+    },
+    {
+      "filepath": "./assets/images/enemy/designed_25//props//25_神谕幻影//25_神谕幻影_00_1024x1024_6a7c.png",
+      "type": "prop",
+      "name": "25_神谕幻影",
+      "variant_description": "medium oracle phantom elite enemy sprite, translucent pale blue-white crystal body, golden halo fragments and small angel-wing decorations around it, phantom afterimage edges, glowing oracle core in center, elegant ethereal holy, afterimage delayed shooting teleportation, approximate in-game body proportion 54x56, pale blue-white crystal body with golden oracle light accents",
+      "size": "1024x1024",
+      "timestamp": "2026-05-25T15:49:28.258295"
+    }
+  ]
+}

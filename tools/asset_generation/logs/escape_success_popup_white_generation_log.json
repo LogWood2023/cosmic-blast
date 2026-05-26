@@ -1,0 +1,15 @@
+{
+  "project": "逃离成功弹窗白底版",
+  "generated_at": "2026-05-23T18:41:52.852332",
+  "total_assets": 1,
+  "entries": [
+    {
+      "filepath": "./assets/images/ui/escape_success_popup_white//ui//逃离成功弹窗//逃离成功弹窗_00_1024x576_a689.png",
+      "type": "ui",
+      "name": "逃离成功弹窗",
+      "variant_description": "green sci-fi game popup window, pixel art UI panel, top-left Chinese text \"逃离成功\", bright green theme, neon sci-fi frame, large empty center area reserved for later settlement content, clean border, white background, game interface, no extra icons, no character, no button, no text except title, centered composition, 16:9 aspect ratio",
+      "size": "1024x576",
+      "timestamp": "2026-05-23T18:41:52.852332"
+    }
+  ]
+}

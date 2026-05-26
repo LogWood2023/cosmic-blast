@@ -1,0 +1,180 @@
+[gd_scene format=3 uid="uid://wq7f6j8oem1o"]
+
+[ext_resource type="Script" path="res://scripts/gameplay/explore/ExploreRoom.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/entities/projectiles/bullet.tscn" id="3"]
+[ext_resource type="Texture2D" path="res://assets/images/explore/pixel_starfield_tile.png" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
+[ext_resource type="Script" path="res://scripts/ui/ExploreMapUI.gd" id="6"]
+[ext_resource type="Texture2D" path="res://assets/images/rewards/chest_map_icon.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/images/rewards/ore_map_icon.png" id="8"]
+[ext_resource type="Script" path="res://scripts/ui/CompassMiniMap.gd" id="9"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_room"]
+size = Vector2(10800, 10800)
+
+[node name="ExploreRoom" type="Node2D" unique_id=1723303603]
+script = ExtResource("1")
+
+[node name="BackgroundTiles" type="Node2D" parent="." unique_id=94648317]
+z_index = -100
+
+[node name="Tile00" type="Sprite2D" parent="BackgroundTiles" unique_id=174384124]
+position = Vector2(540, 540)
+texture = ExtResource("4")
+
+[node name="Tile10" type="Sprite2D" parent="BackgroundTiles" unique_id=2021536934]
+position = Vector2(1620, 540)
+texture = ExtResource("4")
+
+[node name="Tile20" type="Sprite2D" parent="BackgroundTiles" unique_id=65492585]
+position = Vector2(2700, 540)
+texture = ExtResource("4")
+
+[node name="Tile01" type="Sprite2D" parent="BackgroundTiles" unique_id=1462008404]
+position = Vector2(540, 1620)
+texture = ExtResource("4")
+
+[node name="Tile11" type="Sprite2D" parent="BackgroundTiles" unique_id=1759886854]
+position = Vector2(1620, 1620)
+texture = ExtResource("4")
+
+[node name="Tile21" type="Sprite2D" parent="BackgroundTiles" unique_id=622085462]
+position = Vector2(2700, 1620)
+texture = ExtResource("4")
+
+[node name="Tile02" type="Sprite2D" parent="BackgroundTiles" unique_id=1432626673]
+position = Vector2(540, 2700)
+texture = ExtResource("4")
+
+[node name="Tile12" type="Sprite2D" parent="BackgroundTiles" unique_id=1886815191]
+position = Vector2(1620, 2700)
+texture = ExtResource("4")
+
+[node name="Tile22" type="Sprite2D" parent="BackgroundTiles" unique_id=1074031212]
+position = Vector2(2700, 2700)
+texture = ExtResource("4")
+
+[node name="IsolationBands" type="Node2D" parent="." unique_id=1481121903]
+z_index = -1
+
+[node name="ElectricIsolationBands" type="Node2D" parent="." unique_id=1048794074]
+z_index = -2
+
+[node name="SpaceRocks" type="Node2D" parent="." unique_id=1820187775]
+
+[node name="Turrets" type="Node2D" parent="." unique_id=386648690]
+z_index = -2
+
+[node name="Rewards" type="Node2D" parent="." unique_id=2044552688]
+z_index = -2
+
+[node name="Clutter" type="Node2D" parent="." unique_id=1756502086]
+z_index = -2
+
+[node name="EvacuationPoints" type="Node2D" parent="." unique_id=207028643]
+z_index = -50
+
+[node name="RoomBounds" type="StaticBody2D" parent="." unique_id=888919070]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoomBounds" unique_id=1611645164]
+position = Vector2(5400, 5400)
+shape = SubResource("RectangleShape2D_room")
+debug_color = Color(0.2, 0.5, 1, 0.1)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=455389526]
+position = Vector2(5400, 5400)
+
+[node name="player" parent="." unique_id=774588417 instance=ExtResource("2")]
+position = Vector2(5400, 5400)
+rotation_speed = 16.0
+bullet_scene = ExtResource("3")
+movement_bounds = Rect2(0, 0, 10800, 10800)
+blocked_by_space_rocks = true
+
+[node name="HUD" parent="." unique_id=1591848616 instance=ExtResource("5")]
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1667759815]
+layer = 20
+
+[node name="ExploreMapUI" type="Control" parent="UILayer" unique_id=640154683]
+z_index = 1000
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 1
+script = ExtResource("6")
+space_rocks_path = NodePath("../../SpaceRocks")
+isolation_bands_path = NodePath("../../IsolationBands")
+electric_isolation_bands_path = NodePath("../../ElectricIsolationBands")
+rewards_path = NodePath("../../Rewards")
+turrets_path = NodePath("../../Turrets")
+evacuation_points_path = NodePath("../../EvacuationPoints")
+player_path = NodePath("../../player")
+chest_map_icon = ExtResource("7")
+ore_vein_map_icon = ExtResource("8")
+
+[node name="CompassMiniMap" type="Control" parent="UILayer" unique_id=340130281]
+z_index = 900
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -300.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("9")
+compass_frame_scale = 0.32
+space_rocks_path = NodePath("../../SpaceRocks")
+isolation_bands_path = NodePath("../../IsolationBands")
+electric_isolation_bands_path = NodePath("../../ElectricIsolationBands")
+rewards_path = NodePath("../../Rewards")
+turrets_path = NodePath("../../Turrets")
+evacuation_points_path = NodePath("../../EvacuationPoints")
+player_path = NodePath("../../player")
+chest_map_icon = ExtResource("7")
+ore_vein_map_icon = ExtResource("8")
+
+[node name="LoadingScreen" type="Control" parent="UILayer" unique_id=803507791]
+z_index = 2000
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="BlackOverlay" type="ColorRect" parent="UILayer/LoadingScreen" unique_id=36598500]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0, 0, 0, 1)
+
+[node name="Panel" type="Panel" parent="UILayer/LoadingScreen" unique_id=516691400]
+layout_mode = 0
+offset_left = 660.0
+offset_top = 455.0
+offset_right = 1260.0
+offset_bottom = 625.0
+
+[node name="Label" type="Label" parent="UILayer/LoadingScreen/Panel" unique_id=268401270]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = 570.0
+offset_bottom = 70.0
+text = "正在加载..."
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="UILayer/LoadingScreen/Panel" unique_id=1422825214]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 95.0
+offset_right = 560.0
+offset_bottom = 125.0

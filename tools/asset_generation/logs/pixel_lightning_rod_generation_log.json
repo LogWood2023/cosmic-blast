@@ -1,0 +1,31 @@
+{
+  "project": "像素风避雷针",
+  "generated_at": "2026-05-23T10:27:14.001590",
+  "total_assets": 3,
+  "entries": [
+    {
+      "filepath": "./assets/images/explore/electric_isolation/generated/front//props//lightning_rod_1//lightning_rod_1_00_1024x1024_0d05.png",
+      "type": "prop",
+      "name": "lightning_rod_1",
+      "variant_description": "pixel art lightning rod, simple straight rod with pointed tip, metallic, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-23T10:25:39.549889"
+    },
+    {
+      "filepath": "./assets/images/explore/electric_isolation/generated/front//props//lightning_rod_1//lightning_rod_1_00_1024x1024_6abd.png",
+      "type": "prop",
+      "name": "lightning_rod_1",
+      "variant_description": "pixel art lightning rod, with small base and attached wires, metallic, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-23T10:26:17.762437"
+    },
+    {
+      "filepath": "./assets/images/explore/electric_isolation/generated/front//props//lightning_rod_1//lightning_rod_1_00_1024x1024_563e.png",
+      "type": "prop",
+      "name": "lightning_rod_1",
+      "variant_description": "pixel art lightning rod, industrial design with multiple points, metallic, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-23T10:27:14.001590"
+    }
+  ]
+}

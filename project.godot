@@ -11,13 +11,13 @@ config_version=5
 [application]
 
 config/name="高能⭐宇宙⭐大爆炸"
-run/main_scene="res://scenes/MainMenu.tscn"
+run/main_scene="res://scenes/app/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*uid://m21hdvucdfom"
+GameManager="*res://scripts/core/GameManager.gd"
 
 [display]
 

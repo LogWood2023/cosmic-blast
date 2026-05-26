@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/entities/bosses/DivineMessenger.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/divine_messenger/imitation_angel_crystal_ai.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/divine_messenger/imitation_angel_wings_ai.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/images/divine_messenger/imitation_angel_wings_open_ai.png" id="4"]
+
+[node name="ImitationAngel" type="Node2D"]
+script = ExtResource("1")
+max_hp = 1000
+boss_name = "仿造天使"
+主题色 = Color(0.55, 0.55, 0.55, 1)
+skill_cooldown = 3.0
+has_skill_4 = false
+has_skill_5 = false
+has_skill_6 = false
+crystal_texture = ExtResource("2")
+wings_texture = ExtResource("3")
+wings_open_texture = ExtResource("4")
+draw_crown = false
+crystal_scale = Vector2(0.3, 0.3)
+crown_scale = Vector2(0.1, 0.1)
+crown_pos = Vector2(0, -150)
+overall_scale = 0.9
+wing_glow_max_brightness = 1.0
+wing_glow_spread = 1
+wings_closed_wings_z_index = 52
+wings_closed_wings_shake_angle = 3.0
+wings_closed_wing_pivot_left_pos = Vector2(-40, -60)
+wings_closed_wing_pivot_right_pos = Vector2(40, -60)
+wings_closed_wing_left_offset = Vector2(-100, 200)
+wings_closed_wing_right_offset = Vector2(100, 200)
+wings_open_wings_scale = Vector2(1, 1)
+wings_open_wing_pivot_left_pos = Vector2(-40, -60)
+wings_open_wing_pivot_right_pos = Vector2(40, -60)
+wings_open_wing_left_offset = Vector2(-220, -160)
+wings_open_wing_right_offset = Vector2(220, -160)

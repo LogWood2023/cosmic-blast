@@ -1,0 +1,55 @@
+{
+  "project": "像素风道具",
+  "generated_at": "2026-05-22T14:20:52.211039",
+  "total_assets": 6,
+  "entries": [
+    {
+      "filepath": "./assets/images/explore/rewards/generated//props//space_crate//space_crate_00_1024x1024_c17b.png",
+      "type": "prop",
+      "name": "space_crate",
+      "variant_description": "space sci-fi storage crate, metal box with reinforced corners, panel lines, small indicator lights, slightly worn metallic finish, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:12:49.133227"
+    },
+    {
+      "filepath": "./assets/images/explore/rewards/generated//props//space_crate//space_crate_00_1024x1024_6387.png",
+      "type": "prop",
+      "name": "space_crate",
+      "variant_description": "space sci-fi storage crate, heavy duty version, extra bolts and handles, slightly dented exterior, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:14:03.540539"
+    },
+    {
+      "filepath": "./assets/images/explore/rewards/generated//props//space_crate//space_crate_00_1024x1024_eb41.png",
+      "type": "prop",
+      "name": "space_crate",
+      "variant_description": "space sci-fi storage crate, premium sealed version, glowing cyan status ring around lid, pristine condition, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:17:18.457557"
+    },
+    {
+      "filepath": "./assets/images/explore/rewards/generated//props//space_crystal//space_crystal_00_1024x1024_8d7b.png",
+      "type": "prop",
+      "name": "space_crystal",
+      "variant_description": "space sci-fi crystal, glowing blue crystal shard, sharp angular facets, faint internal glow, mineral texture, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:18:23.753385"
+    },
+    {
+      "filepath": "./assets/images/explore/rewards/generated//props//space_crystal//space_crystal_00_1024x1024_951b.png",
+      "type": "prop",
+      "name": "space_crystal",
+      "variant_description": "space sci-fi crystal, neon cyan crystal cluster, multiple small shards growing together, bright glowing edges, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:20:13.726937"
+    },
+    {
+      "filepath": "./assets/images/explore/rewards/generated//props//space_crystal//space_crystal_00_1024x1024_c389.png",
+      "type": "prop",
+      "name": "space_crystal",
+      "variant_description": "space sci-fi crystal, purple mystic crystal, smooth curved facets, deep internal light refraction, floating energy particles around, top-down view sprite",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T14:20:52.211039"
+    }
+  ]
+}

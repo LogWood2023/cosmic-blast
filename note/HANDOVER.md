@@ -315,7 +315,7 @@ BossBattle (Node2D)
 - `apply_powerup_heal()` — 恢复 20 HP（上限 100）
 - `apply_powerup_shield()` — 激活 5 秒无敌
 
-**HP 归零：** `get_tree().change_scene_to_file("res://scenes/gameover.tscn")`
+**HP 归零：** `get_tree().change_scene_to_file("res://scenes/app/gameover.tscn")`
 
 ---
 

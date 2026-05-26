@@ -192,12 +192,12 @@ BossBattle_xxx (Node2D)
 ```gd
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/bullet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/entities/projectiles/bullet.tscn" id="2"]
 [ext_resource type="Script" path="res://scripts/ScrollingBackground.gd" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/[BossName].tscn" id="6"]
-[ext_resource type="PackedScene" path="res://scenes/BossHUD.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/BossHUD.tscn" id="7"]
 
 [node name="BossBattle" type="Node2D"]
 
@@ -285,8 +285,8 @@ const HIT_SFX = preload("res://assets/audio/boss_hit.wav")
 const EXPLOSION_SFX = preload("res://assets/audio/explosion.wav")
 const EXPLOSION_TEX = preload("res://assets/images/fx/explosion.png")
 const DEBRIS_TEX = preload("res://assets/images/fx/debris.png")
-const ExplosionScript = preload("res://scripts/Explosion.gd")
-const DebrisScript = preload("res://scripts/Debris.gd")
+const ExplosionScript = preload("res://scripts/fx/Explosion.gd")
+const DebrisScript = preload("res://scripts/fx/Debris.gd")
 
 
 func _ready() -> void:
@@ -396,7 +396,7 @@ func _spawn_final_explosion() -> void:
 func _return_to_menu() -> void:
     await get_tree().create_timer(2.5).timeout
     if get_tree():
-        get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
+        get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
 ```
 
 ---
@@ -609,7 +609,7 @@ func _init() -> void:
 
 ```gdscript
 const BOSS_SCENES = {
-    "Boss1Button": "res://scenes/BossBattle.tscn",
+    "Boss1Button": "res://scenes/gameplay/boss/BossBattle.tscn",
     "Boss2Button": "res://scenes/BossBattle_Variant1.tscn",
     # ...
     "BossNButton": "res://scenes/BossBattle_New.tscn",
@@ -672,7 +672,7 @@ assets/images/helleye/
 
 ```gdscript
 func _make_clip_shader_mat(mask_tex: Texture2D) -> ShaderMaterial:
-    var shader := preload("res://assets/images/helleye/eye_clip.gdshader")
+    var shader := preload("res://assets/shaders/helleye/eye_clip.gdshader")
     var mat := ShaderMaterial.new()
     mat.shader = shader
     mat.set_shader_parameter(&"mask_tex", mask_tex)

@@ -67,7 +67,7 @@ textures/canvas_textures/default_texture_filter=0
 
 ```ini
 [autoload]
-GameManager="*res://scripts/GameManager.gd"
+GameManager="*res://scripts/core/GameManager.gd"
 ```
 
 ### 1.3 输入映射
@@ -134,11 +134,11 @@ extends Node2D
 
 func _on_start_pressed() -> void:
     GameManager.reset_state()
-    get_tree().change_scene_to_file("res://scenes/main.tscn")
+    get_tree().change_scene_to_file("res://scenes/gameplay/normal/main.tscn")
 
 func _on_boss_select_pressed() -> void:
     GameManager.reset_state()
-    get_tree().change_scene_to_file("res://scenes/BossSelect.tscn")
+    get_tree().change_scene_to_file("res://scenes/app/BossSelect.tscn")
 
 func _on_quit_pressed() -> void:
     get_tree().quit()
@@ -156,7 +156,7 @@ func _ready() -> void:
 
 func _on_restart_pressed() -> void:
     GameManager.reset_state()
-    get_tree().change_scene_to_file("res://scenes/main.tscn")
+    get_tree().change_scene_to_file("res://scenes/gameplay/normal/main.tscn")
 ```
 
 ### 3.3 BossSelect 字典绑定模式
@@ -166,19 +166,19 @@ func _on_restart_pressed() -> void:
 extends Node2D
 
 const BOSS_SCENES: Dictionary = {
-    "星间巨构": "res://scenes/BossBattle.tscn",
-    "星海前锋": "res://scenes/BossBattle_Frontier.tscn",
-    "星尘重兵": "res://scenes/BossBattle_Heavy.tscn",
-    "星云巨构": "res://scenes/BossBattle_Nebula.tscn",
-    "天堂号":   "res://scenes/BossBattle_Paradise.tscn",
-    "桃源乡":   "res://scenes/BossBattle_PeachBlossom.tscn",
-    "乌托邦":   "res://scenes/BossBattle_Utopia.tscn",
-    "伊甸园":   "res://scenes/BossBattle_Eden.tscn",
-    "扭曲星核": "res://scenes/BossBattle_WarpedCore.tscn",
-    "异变源石": "res://scenes/BossBattle_Source.tscn",
-    "诡异菌孢": "res://scenes/BossBattle_Spore.tscn",
-    "反物质核": "res://scenes/BossBattle_Anti.tscn",
-    "地狱之眼": "res://scenes/BossBattle_HellEye.tscn",
+    "星间巨构": "res://scenes/gameplay/boss/BossBattle.tscn",
+    "星海前锋": "res://scenes/gameplay/boss/BossBattle_Frontier.tscn",
+    "星尘重兵": "res://scenes/gameplay/boss/BossBattle_Heavy.tscn",
+    "星云巨构": "res://scenes/gameplay/boss/BossBattle_Nebula.tscn",
+    "天堂号":   "res://scenes/gameplay/boss/BossBattle_Paradise.tscn",
+    "桃源乡":   "res://scenes/gameplay/boss/BossBattle_PeachBlossom.tscn",
+    "乌托邦":   "res://scenes/gameplay/boss/BossBattle_Utopia.tscn",
+    "伊甸园":   "res://scenes/gameplay/boss/BossBattle_Eden.tscn",
+    "扭曲星核": "res://scenes/gameplay/boss/BossBattle_WarpedCore.tscn",
+    "异变源石": "res://scenes/gameplay/boss/BossBattle_Source.tscn",
+    "诡异菌孢": "res://scenes/gameplay/boss/BossBattle_Spore.tscn",
+    "反物质核": "res://scenes/gameplay/boss/BossBattle_Anti.tscn",
+    "地狱之眼": "res://scenes/gameplay/boss/BossBattle_HellEye.tscn",
 }
 ```
 
@@ -586,7 +586,7 @@ func _cooldown_behavior(_delta: float) -> void: pass
 func _cooldown_behavior(_delta: float) -> void:
     if _timer < 0.3: return
     _timer = 0.0
-    var b := preload("res://scenes/EnemyBullet.tscn").instantiate()
+    var b := preload("res://scenes/entities/projectiles/EnemyBullet.tscn").instantiate()
     b.global_position = global_position
     var dir := (player_pos - global_position).normalized()
     b.direction = dir
@@ -599,7 +599,7 @@ func _cooldown_behavior(_delta: float) -> void:
 func _cooldown_behavior(_delta: float) -> void:
     if _timer < 0.5: return; _timer = 0.0
     for i in range(5):
-        var b := preload("res://scenes/EnemyBullet.tscn").instantiate()
+        var b := preload("res://scenes/entities/projectiles/EnemyBullet.tscn").instantiate()
         b.global_position = global_position
         var angle := -PI/6 + i * PI/12
         b.direction = Vector2.DOWN.rotated(angle)
@@ -614,7 +614,7 @@ func _cooldown_behavior(_delta: float) -> void:
     if _burst_count >= 3: return
     _burst_timer += _delta
     if _burst_timer < 0.15: return; _burst_timer = 0.0
-    var b := preload("res://scenes/EnemyBullet.tscn").instantiate()
+    var b := preload("res://scenes/entities/projectiles/EnemyBullet.tscn").instantiate()
     b.global_position = global_position
     b.direction = (player_pos - global_position).normalized()
     b.speed = 250
@@ -635,7 +635,7 @@ func _moving_behavior(delta: float) -> void:
 ```gdscript
 func _cooldown_behavior(_delta: float) -> void:
     if _timer < 1.0: return; _timer = 0.0
-    var b := preload("res://scenes/EnemyBullet.tscn").instantiate()
+    var b := preload("res://scenes/entities/projectiles/EnemyBullet.tscn").instantiate()
     b.global_position = global_position
     b.direction = (player_pos - global_position).normalized()
     b.speed = 100  # 慢速追踪
@@ -648,7 +648,7 @@ func _cooldown_behavior(_delta: float) -> void:
 ```gdscript
 func _cooldown_behavior(_delta: float) -> void:
     if _timer < 2.0: return; _timer = 0.0
-    var bomb := preload("res://scenes/Bomb.tscn").instantiate()
+    var bomb := preload("res://scenes/entities/projectiles/Bomb.tscn").instantiate()
     bomb.global_position = global_position
     bomb.fuse_time = 3.0
     get_parent().add_child(bomb)
@@ -659,7 +659,7 @@ func _cooldown_behavior(_delta: float) -> void:
 ```gdscript
 func _cooldown_behavior(_delta: float) -> void:
     if _timer < 1.5: return; _timer = 0.0
-    var b := preload("res://scenes/EnemyBullet.tscn").instantiate()
+    var b := preload("res://scenes/entities/projectiles/EnemyBullet.tscn").instantiate()
     b.global_position = global_position
     b.direction = Vector2.DOWN + Vector2.RIGHT * randf_range(-0.5, 0.5)
     b.speed = 350
@@ -691,7 +691,7 @@ func _moving_behavior(delta: float) -> void:
 func _detonate() -> void:
     # 16 方向爆弹
     for i in range(16):
-        var b := preload("res://scenes/EnemyBullet.tscn").instantiate()
+        var b := preload("res://scenes/entities/projectiles/EnemyBullet.tscn").instantiate()
         b.global_position = global_position
         b.direction = Vector2.UP.rotated(i * TAU / 16)
         b.speed = 200

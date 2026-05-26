@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/explore/EvacuationPoint.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/explore/evacuation/icons/evac_point/evac_point_00_1024x1024_8cab.png" id="2"]
+
+[node name="EvacuationPoint" type="Area2D"]
+script = ExtResource("1")
+icon_texture = ExtResource("2")
+
+[node name="BaseSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+modulate = Color(1, 1, 1, 0.5)
+
+[node name="FillSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+region_enabled = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]

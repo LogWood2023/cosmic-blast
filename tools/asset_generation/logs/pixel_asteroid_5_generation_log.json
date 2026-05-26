@@ -1,0 +1,15 @@
+{
+  "project": "像素风5号陨石重绘（圆形）",
+  "generated_at": "2026-05-22T19:12:51.101054",
+  "total_assets": 1,
+  "entries": [
+    {
+      "filepath": "./assets/images/explore/asteroid/generated/pixel_asteroid_5//props//pixel_asteroid_5_circular//pixel_asteroid_5_circular_00_1024x1024_777c.png",
+      "type": "prop",
+      "name": "pixel_asteroid_5_circular",
+      "variant_description": "pixel art asteroid, perfectly round circular shape, stone texture with craters, sci-fi space rock, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T19:12:51.101054"
+    }
+  ]
+}

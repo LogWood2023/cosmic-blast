@@ -131,7 +131,7 @@ Godot 4 弹幕射击 Boss Rush 游戏。玩家操控战机与四大 Boss 家族�
 探索地图会在奖励生成后、玩家出生前随机生成 20-100 个漂浮杂物。杂物资源来自：
 
 ```text
-generated_assets/space_floating_objects/props/
+assets/images/explore/clutter/generated/props/
 ```
 
 杂物具有以下行为：

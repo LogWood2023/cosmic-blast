@@ -1,0 +1,47 @@
+{
+  "project": "像素风陨石重绘（4096x4096）",
+  "generated_at": "2026-05-22T18:38:13.050352",
+  "total_assets": 5,
+  "entries": [
+    {
+      "filepath": "./assets/images/explore/asteroid/generated/pixel_asteroids//props//pixel_asteroid_1//pixel_asteroid_1_00_1024x1024_870b.png",
+      "type": "prop",
+      "name": "pixel_asteroid_1",
+      "variant_description": "pixel art asteroid, irregular jagged shape, stone texture, sci-fi space rock, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T18:31:47.294939"
+    },
+    {
+      "filepath": "./assets/images/explore/asteroid/generated/pixel_asteroids//props//pixel_asteroid_2//pixel_asteroid_2_00_1024x1024_810e.png",
+      "type": "prop",
+      "name": "pixel_asteroid_2",
+      "variant_description": "pixel art asteroid, lumpy rounded shape, rocky texture, sci-fi space rock, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T18:32:59.202657"
+    },
+    {
+      "filepath": "./assets/images/explore/asteroid/generated/pixel_asteroids//props//pixel_asteroid_3//pixel_asteroid_3_00_1024x1024_ad63.png",
+      "type": "prop",
+      "name": "pixel_asteroid_3",
+      "variant_description": "pixel art asteroid, sharp angular shape, stone texture with cracks, sci-fi space rock, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T18:35:38.679874"
+    },
+    {
+      "filepath": "./assets/images/explore/asteroid/generated/pixel_asteroids//props//pixel_asteroid_4//pixel_asteroid_4_00_1024x1024_f3fd.png",
+      "type": "prop",
+      "name": "pixel_asteroid_4",
+      "variant_description": "pixel art asteroid, irregular shape with craters, sci-fi space rock, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T18:36:49.010136"
+    },
+    {
+      "filepath": "./assets/images/explore/asteroid/generated/pixel_asteroids//props//pixel_asteroid_5//pixel_asteroid_5_00_1024x1024_d257.png",
+      "type": "prop",
+      "name": "pixel_asteroid_5",
+      "variant_description": "pixel art asteroid, elongated shape, rough stone texture, sci-fi space rock, top-down view",
+      "size": "1024x1024",
+      "timestamp": "2026-05-22T18:38:13.050352"
+    }
+  ]
+}

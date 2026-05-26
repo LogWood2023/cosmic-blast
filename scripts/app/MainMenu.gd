@@ -1,0 +1,35 @@
+extends CanvasLayer
+
+
+func _ready() -> void:
+	$StartButton.pressed.connect(_on_start_pressed)
+	$ExploreButton.pressed.connect(_on_explore_pressed)
+	$EnemyTestButton.pressed.connect(_on_enemy_test_pressed)
+	$BossButton.pressed.connect(_on_boss_pressed)
+	$QuitButton.pressed.connect(_on_quit_pressed)
+
+
+func _on_start_pressed() -> void:
+	GameManager.reset_run_state()
+	get_tree().change_scene_to_file("res://scenes/gameplay/normal/main.tscn")
+
+
+func _on_explore_pressed() -> void:
+	GameManager.reset_run_state()
+	get_tree().change_scene_to_file("res://scenes/gameplay/explore/ExploreRoom.tscn")
+
+
+func _on_enemy_test_pressed() -> void:
+	GameManager.reset_run_state()
+	get_tree().change_scene_to_file("res://scenes/tests/enemies/EnemyTestSelect.tscn")
+
+
+func _on_boss_pressed() -> void:
+	GameManager.score = 0
+	GameManager.player_hp = GameManager.PLAYER_MAX_HP
+	GameManager.elapsed = 0.0
+	get_tree().change_scene_to_file("res://scenes/app/BossSelect.tscn")
+
+
+func _on_quit_pressed() -> void:
+	get_tree().quit()

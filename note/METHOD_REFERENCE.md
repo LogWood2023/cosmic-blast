@@ -347,7 +347,7 @@ body_sprite ±25px
 三个亚种均继承 `WarpedCoreController`，仅覆写 `_ready()`：
 
 ```gdscript
-extends "res://scripts/WarpedCoreController.gd"
+extends "res://scripts/entities/bosses/WarpedCoreController.gd"
 
 func _ready() -> void:
     boss_name = "XXX"       # ★必须在 super 之前

@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cysjl1e5u7ne6"]
+
+[ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/entities/projectiles/bullet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/enemyspawner.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyRammer.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyShooter.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyBomber.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyScatter.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemySuicide.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyHealer.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyChain.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyMissile.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyThrower.tscn" id="14"]
+[ext_resource type="Script" path="res://scripts/gameplay/normal/main.gd" id="15"]
+
+[node name="main" type="Node2D" unique_id=1133486175]
+script = ExtResource("15")
+
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1532942642]
+position = Vector2(960, 540)
+
+[node name="player" parent="." unique_id=699628355 instance=ExtResource("1")]
+position = Vector2(960, 540)
+rotation_speed = 16.0
+bullet_scene = ExtResource("2")
+
+[node name="enemyspawner" parent="." unique_id=638850194 instance=ExtResource("4")]
+enemy_scenes = Array[PackedScene]([ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14")])
+
+[node name="HUD" parent="." unique_id=134468566 instance=ExtResource("5")]
