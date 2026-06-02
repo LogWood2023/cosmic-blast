@@ -46,6 +46,7 @@ var _health_bar: Node2D
 var _is_shaking: bool = false
 var _shake_elapsed: float = 0.0
 var _map_position: Vector2 = Vector2.ZERO
+var _explore_render_active: bool = true
 
 @onready var base_sprite: Sprite2D = $Base
 @onready var barrel_sprite: Sprite2D = $BarrelPivot/Barrel
@@ -69,6 +70,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _broken:
 		return
+	if not _explore_render_active:
+		if is_instance_valid(_follow_target):
+			global_position = _follow_target.global_position + _follow_offset
+			_map_position = global_position
+		return
 	if not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group(&"player")
 	if is_instance_valid(_follow_target):
@@ -81,6 +87,19 @@ func _process(delta: float) -> void:
 		_try_shoot()
 	if _is_shaking:
 		_update_shake(delta)
+
+
+func set_explore_render_active(active: bool) -> void:
+	if _explore_render_active == active:
+		return
+	_explore_render_active = active
+	visible = active
+	monitoring = active
+	monitorable = active
+	if is_instance_valid(collision_shape):
+		collision_shape.disabled = not active
+	if _health_bar:
+		_health_bar.visible = active
 
 
 func setup_anchor(target: Node2D, offset: Vector2, outward_angle: float) -> void:
@@ -111,10 +130,12 @@ func get_map_icon_rotation() -> float:
 	return base_sprite.global_rotation
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, _source: Node = null) -> void:
 	if _broken:
 		return
+	var old_hp := _hp
 	_hp -= amount
+	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	if _health_bar:
 		_health_bar.take_hit(_hp)
 	if _hp <= 0:

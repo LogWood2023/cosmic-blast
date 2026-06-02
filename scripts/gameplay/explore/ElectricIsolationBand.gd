@@ -52,6 +52,8 @@ var _tip_circle_texture: Texture2D
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _line_seeds: Array[float] = []
 var _last_player_pos: Dictionary = {}
+var _explore_render_active: bool = true
+var _stored_generating: bool = false
 
 @onready var start_sprite: Sprite2D = $StartEndpoint
 @onready var end_sprite: Sprite2D = $EndEndpoint
@@ -78,6 +80,10 @@ func _process(delta: float) -> void:
 		_start_point = _start_target.global_position + _start_offset
 	if is_instance_valid(_end_target):
 		_end_point = _end_target.global_position + _end_offset
+	if not _explore_render_active:
+		_stored_generating = _active_lightning_count > 0
+		_apply_positions()
+		return
 	_apply_positions()
 	_apply_light_energy()
 	_apply_tip_circles()
@@ -87,7 +93,31 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if not _explore_render_active:
+		return
 	_draw_lightning()
+
+
+func set_explore_render_active(active: bool) -> void:
+	if _explore_render_active == active:
+		return
+	_explore_render_active = active
+	start_sprite.visible = active
+	end_sprite.visible = active
+	if not active:
+		_stored_generating = _active_lightning_count > 0
+		start_light.visible = false
+		end_light.visible = false
+		start_tip_circle.visible = false
+		end_tip_circle.visible = false
+		queue_redraw()
+		return
+	if _stored_generating:
+		_active_lightning_count = LIGHTNING_LINE_COUNT
+	_update_active_visuals()
+	_apply_light_energy()
+	_apply_tip_circles()
+	queue_redraw()
 
 
 func setup(start_point: Vector2, end_point: Vector2, start_angle: float, end_angle: float, start_texture: Texture2D, end_texture: Texture2D) -> void:
@@ -172,6 +202,12 @@ func _update_static_sparks(delta: float) -> void:
 
 
 func _update_active_visuals() -> void:
+	if not _explore_render_active:
+		start_light.visible = false
+		end_light.visible = false
+		start_tip_circle.visible = false
+		end_tip_circle.visible = false
+		return
 	var moving = _state == ElectricState.MOVING
 	start_light.visible = moving
 	end_light.visible = moving

@@ -68,6 +68,14 @@ func setup(texture: Texture2D) -> void:
 		_apply_texture()
 
 
+func get_base_position() -> Vector2:
+	return _base_position
+
+
+func get_collision_query_radius() -> float:
+	return visual_size * 0.55 + _sway_amplitude + shake_strength
+
+
 func get_push_out_position(world_pos: Vector2, margin: float) -> Vector2:
 	if _outline.size() < 3:
 		return world_pos
@@ -84,7 +92,9 @@ func get_push_out_position(world_pos: Vector2, margin: float) -> Vector2:
 			closest_dist = d
 			closest = p
 	if inside:
-		var dir = local_pos.normalized()
+		var dir = (closest - local_pos).normalized()
+		if dir == Vector2.ZERO:
+			dir = closest.normalized()
 		if dir == Vector2.ZERO:
 			dir = Vector2.RIGHT
 		return to_global(closest + dir * margin)
@@ -114,7 +124,7 @@ func _apply_texture() -> void:
 	var tex_size = clutter_texture.get_size()
 	var max_side = maxf(tex_size.x, tex_size.y)
 	sprite.scale = Vector2.ONE * (visual_size / maxf(1.0, max_side))
-	_outline = _build_texture_outline(clutter_texture, sprite.scale)
+	_outline = _build_simple_collision_outline(visual_size * 0.78)
 	collision_polygon.polygon = _outline
 
 
@@ -204,6 +214,16 @@ func _get_explosion_texture() -> Texture2D:
 				image.set_pixel(x, y, Color(0.62, 0.86, 1.0, alpha * 0.7))
 	_explosion_texture = ImageTexture.create_from_image(image)
 	return _explosion_texture
+
+
+func _build_simple_collision_outline(size: float) -> PackedVector2Array:
+	var half = size * 0.5
+	return PackedVector2Array([
+		Vector2(-half, -half),
+		Vector2(half, -half),
+		Vector2(half, half),
+		Vector2(-half, half),
+	])
 
 
 func _build_texture_outline(tex: Texture2D, texture_scale: Vector2) -> PackedVector2Array:

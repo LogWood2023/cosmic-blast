@@ -42,4 +42,11 @@ func _on_area_entered(area: Area2D) -> void:
 			parent.apply_cannon_damage(cannon_index, area.atk)
 		else:
 			parent.apply_damage(area.atk)
+		_destroy_projectile(area)
+
+
+func _destroy_projectile(area: Area2D) -> void:
+	if area.has_method(&"destroy"):
+		area.destroy()
+	else:
 		area.queue_free()

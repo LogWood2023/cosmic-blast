@@ -33,11 +33,16 @@ var _reward_rects: Array[TextureRect] = []
 var _turret_rects: Array[TextureRect] = []
 var _electric_endpoint_rects: Array[TextureRect] = []
 var _evacuation_rects: Array[TextureRect] = []
+var _static_enemy_rects: Array[TextureRect] = []
 var _explored_cells: Dictionary = {}
 var _fog_tracking_started: bool = false
 var _fog_cols: int = int(ceil(ROOM_SIZE.x / FOG_CELL_WORLD_SIZE))
 var _fog_rows: int = int(ceil(ROOM_SIZE.y / FOG_CELL_WORLD_SIZE))
+var _fog_cleared: bool = false
+var _patrol_paths: Array[PackedVector2Array] = []
+var _static_enemy_icons: Array[Dictionary] = []
 var show_turret_traps: bool = false
+var show_patrol_spawns: bool = false
 
 
 func _ready() -> void:
@@ -66,6 +71,7 @@ func _process(_delta: float) -> void:
 		_sync_turret_rects()
 		_sync_electric_endpoint_rects()
 		_sync_evacuation_rects()
+		_sync_static_enemy_rects()
 
 
 func toggle() -> void:
@@ -77,6 +83,7 @@ func toggle() -> void:
 		_sync_turret_rects()
 		_sync_electric_endpoint_rects()
 		_sync_evacuation_rects()
+		_sync_static_enemy_rects()
 	else:
 		for rect in _reward_rects:
 			rect.visible = false
@@ -85,6 +92,8 @@ func toggle() -> void:
 		for rect in _electric_endpoint_rects:
 			rect.visible = false
 		for rect in _evacuation_rects:
+			rect.visible = false
+		for rect in _static_enemy_rects:
 			rect.visible = false
 
 
@@ -99,6 +108,59 @@ func set_turret_trap_mode(enabled: bool) -> void:
 func toggle_turret_trap_mode() -> bool:
 	set_turret_trap_mode(not show_turret_traps)
 	return show_turret_traps
+
+
+func set_patrol_paths(paths: Array[PackedVector2Array]) -> void:
+	_patrol_paths.clear()
+	for path in paths:
+		_patrol_paths.append(path.duplicate())
+	if visible:
+		queue_redraw()
+
+
+func get_patrol_paths() -> Array[PackedVector2Array]:
+	return _patrol_paths
+
+
+func set_patrol_spawn_mode(enabled: bool) -> void:
+	show_patrol_spawns = enabled
+	if visible:
+		queue_redraw()
+
+
+func toggle_patrol_spawn_mode() -> bool:
+	set_patrol_spawn_mode(not show_patrol_spawns)
+	return show_patrol_spawns
+
+
+func is_patrol_spawn_mode_enabled() -> bool:
+	return show_patrol_spawns
+
+
+func clear_fog() -> void:
+	_fog_cleared = true
+	_explored_cells.clear()
+	_fog_tracking_started = true
+	if visible:
+		queue_redraw()
+		_sync_reward_rects()
+		_sync_turret_rects()
+		_sync_electric_endpoint_rects()
+		_sync_evacuation_rects()
+		_sync_static_enemy_rects()
+
+
+func set_static_enemy_icons(icons: Array[Dictionary]) -> void:
+	_static_enemy_icons.clear()
+	for icon in icons:
+		_static_enemy_icons.append(icon.duplicate())
+	if visible:
+		queue_redraw()
+		_sync_static_enemy_rects()
+
+
+func get_static_enemy_icons() -> Array[Dictionary]:
+	return _static_enemy_icons
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -143,6 +205,8 @@ func _draw_map_content() -> void:
 			if is_instance_valid(rock):
 				_draw_space_rock_sprite(rock, scale)
 	_draw_fog_overlay(scale, content_height)
+	if show_patrol_spawns:
+		_draw_patrol_paths(scale)
 	if _player:
 		var player_p = _player.global_position * scale
 		draw_circle(player_p, 8.0, Color(0.2, 0.9, 1.0, 1.0))
@@ -338,11 +402,46 @@ func _sync_evacuation_rects() -> void:
 		rect.rotation = 0.0
 
 
+func _sync_static_enemy_rects() -> void:
+	while _static_enemy_rects.size() > _static_enemy_icons.size():
+		var rect = _static_enemy_rects.pop_back()
+		rect.queue_free()
+	while _static_enemy_rects.size() < _static_enemy_icons.size():
+		var rect = TextureRect.new()
+		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		rect.material = _outline_material
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(rect)
+		_static_enemy_rects.append(rect)
+	var scale = MAP_SIZE.x / ROOM_SIZE.x
+	var content_origin = _map_rect().position + Vector2(0, _content_offset_y)
+	for i in range(_static_enemy_icons.size()):
+		var icon = _static_enemy_icons[i]
+		var rect = _static_enemy_rects[i]
+		var tex: Texture2D = icon.get("texture")
+		var pos: Vector2 = icon.get("position", Vector2.ZERO)
+		if not tex or not _is_world_pos_explored(pos):
+			rect.visible = false
+			continue
+		var tex_size = tex.get_size()
+		var icon_size = maxf(64.0, maxf(tex_size.x, tex_size.y) * scale * 0.16)
+		var aspect = tex_size.x / maxf(1.0, tex_size.y)
+		var draw_size = Vector2(icon_size * maxf(1.0, aspect), icon_size * maxf(1.0, 1.0 / aspect))
+		rect.visible = true
+		rect.texture = tex
+		rect.position = content_origin + pos * scale - draw_size * 0.5
+		rect.size = draw_size
+		rect.pivot_offset = draw_size * 0.5
+		rect.rotation = 0.0
+
+
 func _rects_append_turret(rect: TextureRect) -> void:
 	_turret_rects.append(rect)
 
 
 func _mark_player_area_explored() -> void:
+	if _fog_cleared:
+		return
 	if not _player or not _player.visible:
 		return
 	if not _fog_tracking_started:
@@ -365,6 +464,8 @@ func _mark_player_area_explored() -> void:
 
 
 func _draw_fog_overlay(scale: float, content_height: float) -> void:
+	if _fog_cleared:
+		return
 	var cell_size = FOG_CELL_WORLD_SIZE * scale
 	for y in range(_fog_rows):
 		for x in range(_fog_cols):
@@ -382,6 +483,8 @@ func _fog_key(x: int, y: int) -> int:
 
 
 func _is_world_pos_explored(pos: Vector2) -> bool:
+	if _fog_cleared:
+		return true
 	var x = clampi(int(floor(pos.x / FOG_CELL_WORLD_SIZE)), 0, _fog_cols - 1)
 	var y = clampi(int(floor(pos.y / FOG_CELL_WORLD_SIZE)), 0, _fog_rows - 1)
 	return _explored_cells.has(_fog_key(x, y))
@@ -389,6 +492,18 @@ func _is_world_pos_explored(pos: Vector2) -> bool:
 
 func is_world_position_explored(pos: Vector2) -> bool:
 	return _is_world_pos_explored(pos)
+
+
+func _draw_patrol_paths(scale: float) -> void:
+	for path in _patrol_paths:
+		if path.size() < 2:
+			continue
+		var points = PackedVector2Array()
+		for world_point in path:
+			points.append(world_point * scale)
+		draw_polyline(points, Color(1.0, 0.06, 0.02, 0.92), 4.0, true)
+		draw_circle(points[0], 6.0, Color(0.25, 1.0, 0.3, 0.95))
+		draw_circle(points[points.size() - 1], 6.0, Color(1.0, 0.25, 0.15, 0.95))
 
 
 func _draw_space_rock_sprite(rock: Node2D, scale: float) -> void:

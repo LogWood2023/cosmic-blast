@@ -2303,6 +2303,8 @@ func _get_death_particle_tex() -> Texture2D:
 func _return_to_menu() -> void:
 	await get_tree().create_timer(2.5).timeout
 	if get_tree():
+		if RunManager.handle_boss_victory():
+			return
 		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
@@ -2329,7 +2331,14 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if area.get(&"atk") != null:
 		apply_damage(area.atk)
 		if is_instance_valid(area):
-			area.queue_free()
+			_destroy_projectile(area)
+
+
+func _destroy_projectile(area: Area2D) -> void:
+	if area.has_method(&"destroy"):
+		area.destroy()
+	else:
+		area.queue_free()
 
 
 func apply_damage(amount: int) -> void:
@@ -2337,7 +2346,9 @@ func apply_damage(amount: int) -> void:
 		return
 	if is_executing:
 		amount = maxi(1, amount / 2)
+	var old_hp := boss_hp
 	boss_hp -= amount
+	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()

@@ -20,6 +20,7 @@ const COMPASS_FRAME_TEXTURE_PATH: String = "res://assets/images/ui/compass/ui/å¤
 @export var player_path: NodePath
 @export var chest_map_icon: Texture2D
 @export var ore_vein_map_icon: Texture2D
+@export var debug_logging: bool = false
 
 var _space_rocks: Node2D
 var _isolation_bands: Node2D
@@ -76,10 +77,11 @@ func _process(delta: float) -> void:
 	if not _is_viewport_drawer:
 		_apply_exported_size()
 	_update_viewport_size()
-	_debug_timer += delta
-	if _debug_timer >= 1.0:
-		_debug_timer = 0.0
-		_print_debug_state()
+	if debug_logging:
+		_debug_timer += delta
+		if _debug_timer >= 1.0:
+			_debug_timer = 0.0
+			_print_debug_state()
 	queue_redraw()
 
 
@@ -258,6 +260,8 @@ func _draw_clipped_world(center: Vector2) -> void:
 		for rock in _space_rocks.get_children():
 			if is_instance_valid(rock):
 				_draw_rock(rock, center, player_pos)
+	_draw_patrol_paths(center, player_pos)
+	_draw_static_enemy_icons(center, player_pos)
 	_draw_rewards(center, player_pos)
 	_draw_turrets(center, player_pos)
 	_draw_electric_endpoints(center, player_pos)
@@ -379,6 +383,43 @@ func _is_world_pos_explored(pos: Vector2) -> bool:
 	if is_instance_valid(_map_ui) and _map_ui.has_method("is_world_position_explored"):
 		return _map_ui.is_world_position_explored(pos)
 	return true
+
+
+func _draw_patrol_paths(center: Vector2, player_pos: Vector2) -> void:
+	if not is_instance_valid(_map_ui):
+		return
+	if not _map_ui.has_method("is_patrol_spawn_mode_enabled") or not _map_ui.is_patrol_spawn_mode_enabled():
+		return
+	if not _map_ui.has_method("get_patrol_paths"):
+		return
+	for path in _map_ui.get_patrol_paths():
+		if path.size() < 2:
+			continue
+		var points = PackedVector2Array()
+		for world_point in path:
+			points.append(_world_to_compass(world_point, center, player_pos))
+		var visible_segment = false
+		for i in range(points.size() - 1):
+			if _segment_may_touch_compass(points[i], points[i + 1]):
+				visible_segment = true
+				break
+		if not visible_segment:
+			continue
+		draw_polyline(points, Color(1.0, 0.06, 0.02, 0.92), 3.0, true)
+		draw_circle(points[0], 4.0, Color(0.25, 1.0, 0.3, 0.95))
+		draw_circle(points[points.size() - 1], 4.0, Color(1.0, 0.25, 0.15, 0.95))
+
+
+func _draw_static_enemy_icons(center: Vector2, player_pos: Vector2) -> void:
+	if not is_instance_valid(_map_ui) or not _map_ui.has_method("get_static_enemy_icons"):
+		return
+	for icon in _map_ui.get_static_enemy_icons():
+		var tex: Texture2D = icon.get("texture")
+		var pos: Vector2 = icon.get("position", Vector2.ZERO)
+		if not tex or not _is_world_pos_explored(pos):
+			continue
+		if _draw_icon(tex, pos, center, player_pos, Vector2(34.0, 34.0), 0.0, true):
+			_debug_drawn_rewards += 1
 
 
 func _draw_icon(tex: Texture2D, world_pos: Vector2, center: Vector2, player_pos: Vector2, draw_size: Vector2, rotation: float, outlined: bool) -> bool:

@@ -4,7 +4,20 @@ from typing import Optional
 
 
 VALID_TYPES = {"character", "background", "ui", "prop", "icon"}
-VALID_SIZES = {"256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"}
+VALID_SIZES = {"256x256", "512x512", "1024x1024", "1792x1024", "1024x1792", "1024x576", "576x1024"}
+API_SUPPORTED_SIZES = {"256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"}
+
+
+def resolve_generate_size(size: str, explicit_generate_size: str | None = None) -> str:
+    if explicit_generate_size:
+        return explicit_generate_size
+    if size in API_SUPPORTED_SIZES:
+        return size
+    if size == "1024x576":
+        return "1792x1024"
+    if size == "576x1024":
+        return "1024x1792"
+    return size
 
 
 @dataclass
@@ -19,6 +32,7 @@ class AssetConfig:
     name: str
     variants: list[VariantConfig] = field(default_factory=list)
     size: str = "1024x1024"
+    generate_size: str = "1024x1024"
     model: str = "gpt-image-2"
     extra_prompt: str = ""
 
@@ -53,6 +67,7 @@ class PixelCleanConfig:
 class PipelineConfig:
     project: str = "game_assets"
     output_dir: str = "./generated_assets"
+    size: str = "1024x1024"
     style: StyleConfig = field(default_factory=StyleConfig)
     style_seed: StyleSeedConfig = field(default_factory=StyleSeedConfig)
     pixel_clean: PixelCleanConfig = field(default_factory=PixelCleanConfig)
@@ -100,10 +115,16 @@ def load_config(config_path: str) -> PipelineConfig:
                 f"无效的素材类型 '{asset_type}'，有效类型: {VALID_TYPES}"
             )
 
-        size = item.get("size", "1024x1024")
+        size = item.get("size", raw.get("size", "1024x1024"))
         if size not in VALID_SIZES:
             raise ValueError(
                 f"无效的尺寸 '{size}'，有效尺寸: {VALID_SIZES}"
+            )
+
+        generate_size = resolve_generate_size(size, item.get("generate_size"))
+        if generate_size not in API_SUPPORTED_SIZES:
+            raise ValueError(
+                f"无效的 API 生成尺寸 '{generate_size}'，有效尺寸: {API_SUPPORTED_SIZES}"
             )
 
         variants = []
@@ -121,6 +142,7 @@ def load_config(config_path: str) -> PipelineConfig:
             name=item.get("name", "unnamed"),
             variants=variants,
             size=size,
+            generate_size=generate_size,
             model=item.get("model", "gpt-image-2"),
             extra_prompt=item.get("extra_prompt", ""),
         ))
@@ -128,6 +150,7 @@ def load_config(config_path: str) -> PipelineConfig:
     config = PipelineConfig(
         project=raw.get("project", "game_assets"),
         output_dir=raw.get("output_dir", "./generated_assets"),
+        size=raw.get("size", "1024x1024"),
         style=style,
         style_seed=style_seed,
         pixel_clean=pixel_clean,

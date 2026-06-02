@@ -1670,7 +1670,7 @@ func _on_body_area_entered(area: Area2D) -> void:
 	elif area.get(&"atk") != null:
 		apply_damage(area.atk)
 		if is_instance_valid(area):
-			area.queue_free()
+			_destroy_projectile(area)
 	# 敌机被吸入碰撞 → 直接爆炸死亡（仅技能4吸力期间）
 	elif _suction_active and area.is_in_group(&"enemies") and area.has_method(&"take_damage"):
 		area.take_damage(9999)
@@ -1689,10 +1689,17 @@ func _on_orbiter_area_entered(area: Area2D) -> void:
 	elif area.get(&"atk") != null:
 		apply_damage(area.atk)
 		if is_instance_valid(area):
-			area.queue_free()
+			_destroy_projectile(area)
 	# 敌机碰撞轨道小球 → 爆炸死亡（仅技能4吸力期间）
 	elif _suction_active and area.is_in_group(&"enemies") and area.has_method(&"take_damage"):
 		area.take_damage(9999)
+
+
+func _destroy_projectile(area: Area2D) -> void:
+	if area.has_method(&"destroy"):
+		area.destroy()
+	else:
+		area.queue_free()
 
 
 func apply_damage(amount: int) -> void:
@@ -1700,7 +1707,9 @@ func apply_damage(amount: int) -> void:
 		return
 	if is_executing:
 		amount = maxi(1, amount / 2)
+	var old_hp := boss_hp
 	boss_hp -= amount
+	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()
@@ -1858,6 +1867,8 @@ func _spawn_debris(pos: Vector2, count: int, tex = null) -> void:
 func _return_to_menu() -> void:
 	await get_tree().create_timer(2.5).timeout
 	if get_tree():
+		if RunManager.handle_boss_victory():
+			return
 		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 

@@ -111,6 +111,15 @@ func get_base_position() -> Vector2:
 	return _spawn_position
 
 
+func get_collision_query_radius() -> float:
+	if _collision_polygon_points.size() < 3:
+		return 80.0
+	var max_radius := 0.0
+	for point in _collision_polygon_points:
+		max_radius = maxf(max_radius, point.length())
+	return max_radius + shake_strength
+
+
 func get_reward_sprite_texture() -> Texture2D:
 	return reward_texture if reward_texture else null
 
@@ -248,6 +257,8 @@ func _play_hit_feedback() -> void:
 
 func _break() -> void:
 	_broken = true
+	if RunManager.is_formal_run_active():
+		RunManager.record_reward_broken(int(reward_type))
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	_play_sfx(METAL_BREAK_SOUND if reward_type == RewardType.CHEST else GLASS_BREAK_SOUND)

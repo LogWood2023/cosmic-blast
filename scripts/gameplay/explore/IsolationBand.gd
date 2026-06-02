@@ -170,7 +170,7 @@ func _apply_visual() -> void:
 		sprite.region_enabled = true
 		sprite.region_rect = Rect2(Vector2.ZERO, Vector2(region_width, band_texture.get_height()))
 		sprite.scale = Vector2.ONE
-		collision_polygon.polygon = _build_texture_outline(band_texture, Rect2(Vector2.ZERO, Vector2(region_width, band_texture.get_height())))
+		collision_polygon.polygon = _build_rect_polygon(Vector2(length, get_collision_width()))
 	else:
 		sprite.visible = false
 		line.visible = true
@@ -215,10 +215,6 @@ func _build_tile_sprites(length: float) -> void:
 		tile.region_rect = Rect2(Vector2.ZERO, Vector2(visible_width, tile_height))
 		tile.position = Vector2(-length * 0.5 + i * tile_width, -tile_height * 0.5)
 		add_child(tile)
-		var tile_poly = CollisionPolygon2D.new()
-		tile_poly.polygon = _build_texture_outline(texture, Rect2(Vector2.ZERO, Vector2(visible_width, tile_height)))
-		tile_poly.position = tile.position + Vector2(visible_width, tile_height) * 0.5
-		body.add_child(tile_poly)
 
 
 func _build_texture_outline(tex: Texture2D, region: Rect2) -> PackedVector2Array:

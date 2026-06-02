@@ -1187,7 +1187,9 @@ func _create_entrance_overlay() -> void:
 func apply_damage(amount: int) -> void:
 	if entering or dying:
 		return
+	var old_hp := boss_hp
 	boss_hp -= amount
+	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()
@@ -1277,6 +1279,8 @@ func _death_process(delta: float) -> void:
 func _return_to_menu() -> void:
 	await get_tree().create_timer(2.5).timeout
 	if get_tree():
+		if RunManager.handle_boss_victory():
+			return
 		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 

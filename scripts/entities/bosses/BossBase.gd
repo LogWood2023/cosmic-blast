@@ -24,7 +24,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.get(&"atk") != null:
 		if controller:
 			controller.apply_damage(area.atk)
-		area.queue_free()
+		_destroy_projectile(area)
 
 
 func take_boss_damage(amount: int) -> void:
@@ -34,3 +34,10 @@ func take_boss_damage(amount: int) -> void:
 
 func block_player() -> bool:
 	return true
+
+
+func _destroy_projectile(area: Area2D) -> void:
+	if area.has_method(&"destroy"):
+		area.destroy()
+	else:
+		area.queue_free()

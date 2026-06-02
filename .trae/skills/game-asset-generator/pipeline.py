@@ -213,7 +213,8 @@ def run_pipeline(
 
     if dry_run:
         for asset in config.assets:
-            print(f"[{asset.type}] {asset.name} ({asset.size})")
+            api_size_note = f", API生成 {asset.generate_size}" if asset.generate_size != asset.size else ""
+            print(f"[{asset.type}] {asset.name} ({asset.size}{api_size_note})")
             for variant in asset.variants:
                 prompt = build_prompt(asset, config.style, variant.description, use_style_lock=use_lock)
                 print(f"  ├─ [{variant.count}x] {variant.description}")
@@ -261,7 +262,8 @@ def run_pipeline(
     failed = 0
 
     for asset in config.assets:
-        print(f"\n[ASSET] [{asset.type}] {asset.name} ({asset.size})")
+        api_size_note = f", API生成 {asset.generate_size}" if asset.generate_size != asset.size else ""
+        print(f"\n[ASSET] [{asset.type}] {asset.name} ({asset.size}{api_size_note})")
 
         for variant in asset.variants:
             prompt = build_prompt(asset, config.style, variant.description, use_style_lock=use_lock and bool(effective_lock))
@@ -274,7 +276,7 @@ def run_pipeline(
 
                 request = GenerationRequest(
                     prompt=prompt,
-                    size=asset.size,
+                    size=asset.generate_size,
                     model=asset.model,
                     n=1,
                 )
@@ -294,6 +296,10 @@ def run_pipeline(
 
                     if cutout:
                         processed = processor.remove_background(processed)
+
+                    if asset.generate_size != asset.size:
+                        target_w, target_h = map(int, asset.size.split("x"))
+                        processed = processor.crop_resize_to_exact(processed, (target_w, target_h))
 
                     filepath = manager.save_asset(asset, variant, i, processed)
                     success += 1

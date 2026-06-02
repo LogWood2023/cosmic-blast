@@ -7,6 +7,8 @@ extends StaticBody2D
 @export var outline_samples: int = 96
 @export var alpha_threshold: float = 0.1
 
+static var _outline_cache: Dictionary = {}
+
 var _base_scale: Vector2 = Vector2.ONE
 var _base_position: Vector2 = Vector2.ZERO
 var _sway_t: float = 0.0
@@ -46,6 +48,10 @@ func get_base_position() -> Vector2:
 	return _base_position
 
 
+func get_collision_query_radius() -> float:
+	return radius + maxf(absf(_sway_amp.x), absf(_sway_amp.y))
+
+
 func get_sway_offset() -> Vector2:
 	return Vector2(sin(_sway_t) * _sway_amp.x, cos(_sway_t * 0.83) * _sway_amp.y)
 
@@ -81,6 +87,10 @@ func get_surface_anchor(angle: float, inset: float = 0.0) -> Vector2:
 
 
 func _build_outline_polygon() -> void:
+	var cache_key := _outline_cache_key()
+	if _outline_cache.has(cache_key):
+		_apply_cached_outline(_outline_cache[cache_key] as PackedVector2Array)
+		return
 	var image = sprite.texture.get_image()
 	if not image:
 		return
@@ -101,7 +111,21 @@ func _build_outline_polygon() -> void:
 			if image.get_pixel(px, py).a > alpha_threshold:
 				hit = pixel_pos
 				break
-		points.append((hit - center) * _base_scale)
+		points.append(hit - center)
+	var raw_outline := PackedVector2Array(points)
+	_outline_cache[cache_key] = raw_outline
+	_apply_cached_outline(raw_outline)
+
+
+func _outline_cache_key() -> String:
+	var path := sprite.texture.resource_path if sprite and sprite.texture else ""
+	return "%s|%d|%.3f" % [path, outline_samples, alpha_threshold]
+
+
+func _apply_cached_outline(raw_outline: PackedVector2Array) -> void:
+	var points: Array[Vector2] = []
+	for point in raw_outline:
+		points.append(point * _base_scale)
 	_outline = PackedVector2Array(points)
 	_apply_rotated_collision_polygon()
 
@@ -139,7 +163,9 @@ func get_push_out_position(world_pos: Vector2, margin: float) -> Vector2:
 			closest_dist = d
 			closest = p
 	if inside:
-		var dir = local_pos.normalized()
+		var dir = (closest - local_pos).normalized()
+		if dir == Vector2.ZERO:
+			dir = closest.normalized()
 		if dir == Vector2.ZERO:
 			dir = Vector2.RIGHT
 		return to_global((closest + dir * margin).rotated(visual_rotation))

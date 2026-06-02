@@ -1,9 +1,9 @@
 extends CanvasLayer
-## HUD —— 左上分数 + 左下 HP 血条
 
-@onready var score_label: Label = $ScoreLabel
-@onready var score_panel: TextureRect = $ScorePanel
-@onready var life_bar: Node2D = $LifeBar
+@onready var player_status_hud: Control = $PlayerStatusHUD
+@onready var score_label: Label = $PlayerStatusHUD/ScoreLabel
+@onready var score_panel: TextureRect = $PlayerStatusHUD/ScorePanel
+@onready var life_bar: Node2D = $PlayerStatusHUD/LifeBar
 
 
 func _process(_delta: float) -> void:

@@ -257,8 +257,10 @@ func _on_arrive() -> void:
 
 # ═════════════ 战斗 ═════════════
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, _source: Node = null) -> void:
+	var old_hp := hp
 	hp -= amount
+	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	health_bar.take_hit(hp)
 	if hp <= 0:
 		_die()
@@ -274,7 +276,7 @@ func handle_player_collision(area: Area2D) -> void:
 	area.take_damage_from(self)
 	var player_atk: int = area.get(&"atk") if area.get(&"atk") != null else 0
 	var player_velocity: Vector2 = area.get(&"current_velocity") if area.get(&"current_velocity") != null else Vector2.ZERO
-	take_damage(player_atk * PLAYER_COLLISION_DAMAGE_MULT)
+	take_damage(player_atk * PLAYER_COLLISION_DAMAGE_MULT, area)
 	if hp <= 0 or is_queued_for_deletion():
 		return
 	var dir = player_velocity.normalized()

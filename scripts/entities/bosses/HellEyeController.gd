@@ -284,13 +284,22 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if area.get(&"atk") != null:
 		apply_damage(area.atk)
 		if is_instance_valid(area):
-			area.queue_free()
+			_destroy_projectile(area)
+
+
+func _destroy_projectile(area: Area2D) -> void:
+	if area.has_method(&"destroy"):
+		area.destroy()
+	else:
+		area.queue_free()
 
 
 func apply_damage(amount: int) -> void:
 	if _skill_3_active:
 		return
+	var old_hp := boss_hp
 	boss_hp -= amount
+	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()
@@ -1324,7 +1333,16 @@ func _death_process(delta: float) -> void:
 	if death_timer >= DEATH_DURATION and not won:
 		won = true
 		_spawn_final_particles()
-		queue_free()
+		_return_to_menu()
+
+
+func _return_to_menu() -> void:
+	set_process(false)
+	await get_tree().create_timer(2.5).timeout
+	if RunManager.handle_boss_victory():
+		return
+	if get_tree():
+		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _shake_hell_eye_parts() -> void:

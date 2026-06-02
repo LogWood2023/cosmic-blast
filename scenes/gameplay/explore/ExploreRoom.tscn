@@ -1,14 +1,13 @@
 [gd_scene format=3 uid="uid://wq7f6j8oem1o"]
 
-[ext_resource type="Script" path="res://scripts/gameplay/explore/ExploreRoom.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/entities/player/player.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/entities/projectiles/bullet.tscn" id="3"]
-[ext_resource type="Texture2D" path="res://assets/images/explore/pixel_starfield_tile.png" id="4"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
-[ext_resource type="Script" path="res://scripts/ui/ExploreMapUI.gd" id="6"]
-[ext_resource type="Texture2D" path="res://assets/images/rewards/chest_map_icon.png" id="7"]
-[ext_resource type="Texture2D" path="res://assets/images/rewards/ore_map_icon.png" id="8"]
-[ext_resource type="Script" path="res://scripts/ui/CompassMiniMap.gd" id="9"]
+[ext_resource type="Script" uid="uid://cr1uxj3ea6pfx" path="res://scripts/gameplay/explore/ExploreRoom.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://dvaelrsa8s8xw" path="res://scenes/entities/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://b47u7rxfg3ndc" path="res://scenes/entities/projectiles/bullet.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://cwm82v83l2typ" path="res://assets/images/explore/pixel_starfield_tile.png" id="4"]
+[ext_resource type="PackedScene" uid="uid://dfwhpdgkyke8q" path="res://scenes/ui/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/explore/ExploreMapUI.tscn" id="6_map"]
+[ext_resource type="PackedScene" path="res://scenes/ui/explore/CompassMiniMap.tscn" id="9_compass"]
+[ext_resource type="PackedScene" path="res://scenes/ui/explore_loading/ExploreLoadingScreen.tscn" id="10_loading"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_room"]
 size = Vector2(10800, 10800)
@@ -97,84 +96,8 @@ blocked_by_space_rocks = true
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1667759815]
 layer = 20
 
-[node name="ExploreMapUI" type="Control" parent="UILayer" unique_id=640154683]
-z_index = 1000
-layout_mode = 3
-anchors_preset = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
-mouse_filter = 1
-script = ExtResource("6")
-space_rocks_path = NodePath("../../SpaceRocks")
-isolation_bands_path = NodePath("../../IsolationBands")
-electric_isolation_bands_path = NodePath("../../ElectricIsolationBands")
-rewards_path = NodePath("../../Rewards")
-turrets_path = NodePath("../../Turrets")
-evacuation_points_path = NodePath("../../EvacuationPoints")
-player_path = NodePath("../../player")
-chest_map_icon = ExtResource("7")
-ore_vein_map_icon = ExtResource("8")
+[node name="ExploreMapUI" parent="UILayer" unique_id=640154683 instance=ExtResource("6_map")]
 
-[node name="CompassMiniMap" type="Control" parent="UILayer" unique_id=340130281]
-z_index = 900
-layout_mode = 3
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -300.0
-offset_right = -40.0
-offset_bottom = -40.0
-grow_horizontal = 0
-grow_vertical = 0
-mouse_filter = 2
-script = ExtResource("9")
-compass_frame_scale = 0.32
-space_rocks_path = NodePath("../../SpaceRocks")
-isolation_bands_path = NodePath("../../IsolationBands")
-electric_isolation_bands_path = NodePath("../../ElectricIsolationBands")
-rewards_path = NodePath("../../Rewards")
-turrets_path = NodePath("../../Turrets")
-evacuation_points_path = NodePath("../../EvacuationPoints")
-player_path = NodePath("../../player")
-chest_map_icon = ExtResource("7")
-ore_vein_map_icon = ExtResource("8")
+[node name="CompassMiniMap" parent="UILayer" unique_id=340130281 instance=ExtResource("9_compass")]
 
-[node name="LoadingScreen" type="Control" parent="UILayer" unique_id=803507791]
-z_index = 2000
-layout_mode = 3
-anchors_preset = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
-mouse_filter = 2
-
-[node name="BlackOverlay" type="ColorRect" parent="UILayer/LoadingScreen" unique_id=36598500]
-layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
-color = Color(0, 0, 0, 1)
-
-[node name="Panel" type="Panel" parent="UILayer/LoadingScreen" unique_id=516691400]
-layout_mode = 0
-offset_left = 660.0
-offset_top = 455.0
-offset_right = 1260.0
-offset_bottom = 625.0
-
-[node name="Label" type="Label" parent="UILayer/LoadingScreen/Panel" unique_id=268401270]
-layout_mode = 0
-offset_left = 30.0
-offset_top = 30.0
-offset_right = 570.0
-offset_bottom = 70.0
-text = "正在加载..."
-horizontal_alignment = 1
-
-[node name="ProgressBar" type="ProgressBar" parent="UILayer/LoadingScreen/Panel" unique_id=1422825214]
-layout_mode = 0
-offset_left = 40.0
-offset_top = 95.0
-offset_right = 560.0
-offset_bottom = 125.0
+[node name="LoadingScreen" parent="UILayer" instance=ExtResource("10_loading")]

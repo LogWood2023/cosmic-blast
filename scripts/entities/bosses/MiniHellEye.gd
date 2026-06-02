@@ -234,6 +234,8 @@ func _apply_drain() -> void:
 	GameManager.player_hp -= DRAIN_DMG
 	if GameManager.player_hp <= 0:
 		GameManager.player_hp = 0
+		if RunManager.is_formal_run_active():
+			RunManager.finish_run(false)
 		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
 		return
 	var ppos = player.global_position
@@ -298,12 +300,21 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"player"):
 		return
 	if area.get(&"atk") != null:
+		var old_hp := _hp
 		_hp -= area.atk
+		GameManager.add_frenzy(maxi(0, mini(old_hp, area.atk)))
 		_health_bar.take_hit(_hp)
 		if is_instance_valid(area):
-			area.queue_free()
+			_destroy_projectile(area)
 		if _hp <= 0:
 			_die()
+
+
+func _destroy_projectile(area: Area2D) -> void:
+	if area.has_method(&"destroy"):
+		area.destroy()
+	else:
+		area.queue_free()
 
 
 func _die() -> void:

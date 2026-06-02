@@ -96,6 +96,33 @@ class PostProcessor:
         return buf.getvalue()
 
     @staticmethod
+    def crop_resize_to_exact(
+        image_data: bytes,
+        target_size: tuple[int, int],
+    ) -> bytes:
+        from PIL import Image
+
+        img = Image.open(BytesIO(image_data))
+        target_w, target_h = target_size
+        src_w, src_h = img.size
+        target_ratio = target_w / target_h
+        src_ratio = src_w / src_h
+
+        if src_ratio > target_ratio:
+            new_w = int(src_h * target_ratio)
+            left = max(0, (src_w - new_w) // 2)
+            img = img.crop((left, 0, left + new_w, src_h))
+        elif src_ratio < target_ratio:
+            new_h = int(src_w / target_ratio)
+            top = max(0, (src_h - new_h) // 2)
+            img = img.crop((0, top, src_w, top + new_h))
+
+        img = img.resize(target_size, Image.NEAREST)
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
+    @staticmethod
     def strip_metadata(image_data: bytes) -> bytes:
         try:
             from PIL import Image
