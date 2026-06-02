@@ -1,0 +1,112 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/app/WorldMap.gd" id="1_worldmap"]
+
+[node name="WorldMap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_worldmap")
+
+[node name="TopBar" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 28.0
+offset_right = 1420.0
+offset_bottom = 118.0
+
+[node name="TitleLabel" type="Label" parent="TopBar"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 10.0
+offset_right = 520.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 32
+text = "方舟核心航图"
+
+[node name="StatsLabel" type="Label" parent="TopBar"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 52.0
+offset_right = 1328.0
+offset_bottom = 82.0
+theme_override_font_sizes/font_size = 22
+text = "危机 0  算力 0/5  星髓矿 0"
+
+[node name="DetailsPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1428.0
+offset_top = 28.0
+offset_right = 1880.0
+offset_bottom = 980.0
+
+[node name="DetailsTitle" type="Label" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 424.0
+offset_bottom = 62.0
+theme_override_font_sizes/font_size = 28
+text = "方舟核心"
+
+[node name="DetailsBody" type="RichTextLabel" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 78.0
+offset_right = 424.0
+offset_bottom = 330.0
+bbcode_enabled = true
+fit_content = true
+scroll_active = true
+theme_override_font_sizes/normal_font_size = 19
+theme_override_font_sizes/bold_font_size = 19
+text = ""
+
+[node name="EnterButton" type="Button" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 836.0
+offset_right = 424.0
+offset_bottom = 884.0
+theme_override_font_sizes/font_size = 22
+text = "进入节点"
+
+[node name="ShopButton" type="Button" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 720.0
+offset_right = 214.0
+offset_bottom = 766.0
+theme_override_font_sizes/font_size = 20
+text = "商店"
+
+[node name="HangarButton" type="Button" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 234.0
+offset_top = 720.0
+offset_right = 424.0
+offset_bottom = 766.0
+theme_override_font_sizes/font_size = 20
+text = "机库"
+
+[node name="MessageLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 986.0
+offset_right = 1340.0
+offset_bottom = 1032.0
+theme_override_font_sizes/font_size = 22
+text = ""
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1710.0
+offset_top = 1000.0
+offset_right = 1880.0
+offset_bottom = 1044.0
+theme_override_font_sizes/font_size = 20
+text = "返回主菜单"

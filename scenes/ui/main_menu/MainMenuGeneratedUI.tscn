@@ -1,0 +1,242 @@
+[gd_scene format=3 uid="uid://cmknpgyjhohrc"]
+
+[ext_resource type="Texture2D" uid="uid://fi31ahwaybry" path="res://assets/images/background/generated/deep_space_bg_01_1080x1080.png" id="1_bg"]
+[ext_resource type="Texture2D" uid="uid://dpda57ht80oiq" path="res://assets/images/ui/main_menu/title_plate.png" id="2_title"]
+[ext_resource type="Texture2D" uid="uid://b1iemkc6vsgax" path="res://assets/images/ui/main_menu/menu_button.png" id="3_button"]
+
+[node name="MainMenuGeneratedUI" type="Control" unique_id=873074032]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="Background" type="TextureRect" parent="." unique_id=566775635]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("1_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=1026288903]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0, 0.015, 0.045, 0.38)
+
+[node name="TitlePlate" type="TextureRect" parent="." unique_id=797603698]
+layout_mode = 0
+offset_left = -1720.0
+offset_top = 156.0
+offset_right = -210.0
+offset_bottom = 455.0
+mouse_filter = 2
+texture = ExtResource("2_title")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="." unique_id=928247958]
+layout_mode = 0
+offset_left = -1227.0
+offset_top = 251.0
+offset_right = -687.0
+offset_bottom = 331.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 58
+text = "星际战机"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MenuButtons" type="Control" parent="." unique_id=1401433098]
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="StartFrame" type="TextureRect" parent="MenuButtons" unique_id=130184492]
+layout_mode = 0
+offset_left = 1567.0
+offset_top = 671.0
+offset_right = 1899.84
+offset_bottom = 798.0001
+mouse_filter = 2
+texture = ExtResource("3_button")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StartButton" type="Button" parent="MenuButtons/StartFrame" unique_id=1745429222]
+layout_mode = 0
+offset_top = 34.395
+offset_right = 333.14
+offset_bottom = 94.945
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 38
+flat = true
+
+[node name="StartTitle" type="Label" parent="MenuButtons/StartFrame" unique_id=1293275747]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 36.0
+offset_right = 331.86
+offset_bottom = 89.0
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 38
+text = "开始游戏"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="ExploreFrame" type="TextureRect" parent="MenuButtons" unique_id=1167902943]
+layout_mode = 0
+offset_left = 1537.0
+offset_top = 743.0
+offset_right = 1869.84
+offset_bottom = 870.0001
+mouse_filter = 2
+texture = ExtResource("3_button")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ExploreButton" type="Button" parent="MenuButtons/ExploreFrame" unique_id=163304808]
+layout_mode = 0
+offset_top = 34.395
+offset_right = 333.14
+offset_bottom = 94.945
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 38
+flat = true
+
+[node name="ExploreTitle" type="Label" parent="MenuButtons/ExploreFrame" unique_id=573309316]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 34.0
+offset_right = 331.86
+offset_bottom = 87.0
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 38
+text = "探索房间"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="BossFrame" type="TextureRect" parent="MenuButtons" unique_id=528908074]
+layout_mode = 0
+offset_left = 1477.0
+offset_top = 817.0
+offset_right = 1809.84
+offset_bottom = 944.0001
+mouse_filter = 2
+texture = ExtResource("3_button")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BossButton" type="Button" parent="MenuButtons/BossFrame" unique_id=1845497628]
+layout_mode = 0
+offset_top = 34.395
+offset_right = 333.14
+offset_bottom = 94.945
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 38
+flat = true
+
+[node name="BossTitle" type="Label" parent="MenuButtons/BossFrame" unique_id=154831038]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 32.0
+offset_right = 331.86
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 38
+text = "Boss挑战"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="SettingsFrame" type="TextureRect" parent="MenuButtons" unique_id=1206497609]
+layout_mode = 0
+offset_left = 1375.0
+offset_top = 891.0
+offset_right = 1707.84
+offset_bottom = 1018.0003
+mouse_filter = 2
+texture = ExtResource("3_button")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SettingsButton" type="Button" parent="MenuButtons/SettingsFrame" unique_id=906483847]
+layout_mode = 0
+offset_top = 34.395
+offset_right = 333.14
+offset_bottom = 94.945
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 38
+flat = true
+
+[node name="SettingsMenuTitle" type="Label" parent="MenuButtons/SettingsFrame" unique_id=1238866165]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 32.0
+offset_right = 331.86
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 38
+text = "设置"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="QuitFrame" type="TextureRect" parent="MenuButtons" unique_id=1543904117]
+layout_mode = 0
+offset_left = 1263.185
+offset_top = 963.9
+offset_right = 1596.025
+offset_bottom = 1090.9001
+mouse_filter = 2
+texture = ExtResource("3_button")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuitButton" type="Button" parent="MenuButtons/QuitFrame" unique_id=1770121124]
+layout_mode = 0
+offset_top = 34.395
+offset_right = 333.14
+offset_bottom = 94.945
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 38
+flat = true
+
+[node name="QuitTitle" type="Label" parent="MenuButtons/QuitFrame" unique_id=1463563257]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 32.0
+offset_right = 331.86
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(0.94, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 38
+text = "退出游戏"
+horizontal_alignment = 1
+vertical_alignment = 2

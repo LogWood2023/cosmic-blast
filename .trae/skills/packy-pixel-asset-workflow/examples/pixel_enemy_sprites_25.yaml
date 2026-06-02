@@ -1,0 +1,140 @@
+project: 像素敌机精灵25个
+output_dir: ./generated_assets/pixel_enemy_sprites_25
+style:
+  art_style: pixel art, 16-bit SNES era, crisp square pixels, limited color palette (16-32 colors), 2D vertical scrolling bullet hell shooter enemy sprite, top-down view, facing downward, centered composition, transparent background, clean sharp silhouette, no shadow, no text, no UI, no background, sci-fi aircraft drone design, not character portrait, not giant boss
+  quality: high
+size: 1024x1024
+n: 1
+style_seed:
+  enabled: false
+pixel_clean:
+  enabled: true
+  target_size: 128
+  num_colors: 24
+  contrast: 1.15
+assets:
+  - name: 01_巨构碎臂
+    type: prop
+    variants:
+      - count: 1
+        description: small melee enemy spacecraft sprite, shaped like a broken mechanical limb fragment detached from an interstellar megastructure arm, slender dark gray armored body, front end like an impact blade, broken armor plates, red-orange energy cracks, high-speed dash melee ram feeling, damaged megastructure debris feeling, approximate in-game body proportion 42x54, dark gray metal with red-orange energy accents
+  - name: 02_装甲盾蜂
+    type: prop
+    variants:
+      - count: 1
+        description: small shield drone enemy sprite, wide flat diamond body, heavy frontal shield plate, small side thrusters, dark gray armor, orange-yellow energy glow on shield edges, armored bee feeling, defensive damage absorption counterattack unit, approximate in-game body proportion 48x38, dark gray armor with orange-yellow shield energy accents
+  - name: 03_引力钩爪
+    type: prop
+    variants:
+      - count: 1
+        description: small mechanical hook-claw enemy sprite, narrow body, two curved mechanical claws at the front, red gravity tether launcher in the center, gray-purple armor, exposed cables and joint structures, pulling player, close-range control, short hook-claw attack, approximate in-game body proportion 38x48, gray-purple mechanical body with red hook energy accents
+  - name: 04_巨构护卫
+    type: prop
+    variants:
+      - count: 1
+        description: medium elite guard enemy spacecraft sprite, diamond heavy armored hull, layered frontal shield plates, orange-red reactor core in center, dark gray-blue armor, mobile medium shield charging unit not wall or battleship, shield charge damage absorption feeling, approximate in-game body proportion 58x52, dark gray-blue armor with orange-red shield core accents
+  - name: 05_核心吞噬者
+    type: prop
+    variants:
+      - count: 1
+        description: medium circular core enemy sprite, dark gray heavy armor shell, segmented armored outer ring, scarlet absorption core in center, small shield generators around it, not giant black hole, medium enemy size, absorbs bullets stores energy counterattacks with energy spear, approximate in-game body proportion 56x56, dark gray heavy armor with scarlet core accents
+  - name: 06_天堂巡逻机
+    type: prop
+    variants:
+      - count: 1
+        description: small Heaven patrol fighter enemy sprite, white-gold armor, symmetrical small wings, blue thruster glow at rear, single light cannon at front, simple mass-produced holy technology feeling, basic shooting enemy aircraft, approximate in-game body proportion 40x46, white-gold armor with blue propulsion accents
+  - name: 07_弧光散射机
+    type: prop
+    variants:
+      - count: 1
+        description: small arc scatter enemy spacecraft sprite, wide flat body, crescent or curved wings, multiple cyan-blue energy cannon ports arranged along front edge, white-gold armor, elegant shape, clearly fan-shaped bullet emitter, approximate in-game body proportion 52x36, white-gold armor with cyan-blue arc cannon accents
+  - name: 08_圣轨连射机
+    type: prop
+    variants:
+      - count: 1
+        description: slender rapid-fire enemy spacecraft sprite, white-gold long body, light-blue railgun structures on both sides, small stabilizer fins at rear, precise triple burst rail cannon holy carrier aircraft style, approximate in-game body proportion 34x58, pale gold-white armor with light-blue railgun glow accents
+  - name: 09_天堂校准者
+    type: prop
+    variants:
+      - count: 1
+        description: medium elite calibration fighter enemy sprite, white-gold diamond body, bright blue calibration lens or targeting core in center, one light cannon on each side, not large gunship, medium precision shooting elite, lock-on calibration precise high-speed bullets, approximate in-game body proportion 54x46, white-gold armor with bright blue targeting lens accents
+  - name: 10_圣域压制者
+    type: prop
+    variants:
+      - count: 1
+        description: medium sanctuary suppression drone enemy sprite, compact combined disk and diamond structure, white-gold armor, small blue energy emitter in four directions, sanctuary core in center, cross-direction suppressive shooting but not large turret, approximate in-game body proportion 56x50, white-gold armor with blue sanctuary energy accents
+  - name: 11_微型引力核
+    type: prop
+    variants:
+      - count: 1
+        description: small gravity core enemy sprite, circular or near-circular body, deep purple shell, pink-purple light from center, small fragments or energy arcs orbiting around, weak attraction, space distortion, star core style, approximate in-game body proportion 44x44, purple core body with pink-purple gravity glow accents
+  - name: 12_折光射手
+    type: prop
+    variants:
+      - count: 1
+        description: small prism shooter enemy sprite, triangular prism or pointed cone body, deep blue-purple armor, translucent pink-purple crystal lens at front, angled reflector plates on both sides, refracting bullets, second-stage turning shots, warped space technology, approximate in-game body proportion 42x46, blue-purple prism armor with pale purple refraction glow accents
+  - name: 13_轨道扰流器
+    type: prop
+    variants:
+      - count: 1
+        description: small ring-shaped trajectory disruptor enemy sprite, hollow circular ring structure, dark purple segmented metal shell, purple orbital light lines and small rotating nodes on ring, disrupts bullet paths, ring bullets, orbital interference, approximate in-game body proportion 48x48, deep purple ring structure with purple orbital glow accents
+  - name: 14_坍缩信标
+    type: prop
+    variants:
+      - count: 1
+        description: medium collapse beacon enemy sprite, dark purple-black circular core, layered circular armor outer ring, bright purple collapsing singularity in center, short inward-converging energy spikes around it, not giant black hole, medium enemy size, short gravity pull collapse ring burst, approximate in-game body proportion 56x56, dark purple-black core with bright purple collapse energy accents
+  - name: 15_偏转矩阵
+    type: prop
+    variants:
+      - count: 1
+        description: medium deflection matrix enemy sprite, purple core in center, four small cyan-blue prism plates surrounding in matrix formation, only central body is solid, outer prisms are energy visual components not complex large collision structure, bullet trajectory deflection, rotating matrix, prism refraction, approximate in-game body proportion 54x54, purple core with cyan-blue deflection prism accents
+  - name: 16_倒影眼虫
+    type: prop
+    variants:
+      - count: 1
+        description: small eye-bug enemy sprite, dark red-black body, one vivid red eyeball in center, pupil appears inverted or vertically flipped, bug wings or small fins on both sides, reversed controls, gaze interference, evil eye flying insect, approximate in-game body proportion 38x42, dark red-black body with vivid red pupil accents
+  - name: 17_盲点飞蛾
+    type: prop
+    variants:
+      - count: 1
+        description: small black moth enemy sprite, wide flat wings, almost black body, dark red eye patterns on left and right wings, small mechanical body in center, blocks vision, black fog, blind spot interference, approximate in-game body proportion 52x34, near-black body with dark red eye pattern accents
+  - name: 18_错位凝视者
+    type: prop
+    variants:
+      - count: 1
+        description: small displaced gazer enemy sprite, circular dark red-purple body, red eyeball in center, one slightly offset ghost afterimage eye nearby, left and right structure slightly asymmetrical, visual displacement, bullet trajectory offset, gaze interference, approximate in-game body proportion 42x42, dark red-purple body with orange-red displaced afterimage accents
+  - name: 19_颠倒司祭
+    type: prop
+    variants:
+      - count: 1
+        description: medium inverted priest enemy sprite, like a small mechanical altar, dark red-black armor, vivid red vertical pupil in center, ritual horns or antennas on top or sides, not giant monster, medium enemy size, reversed controls, evil eye ritual, mechanical priest, approximate in-game body proportion 54x58, dark red mechanical altar body with vivid red vertical pupil accents
+  - name: 20_视界偏转者
+    type: prop
+    variants:
+      - count: 1
+        description: medium horizon deflector enemy sprite, compact ring-shaped mechanical eye structure, black-red armor, mirror-like lens in center, multiple small scarlet eyes around it, entire elements slightly tilted to show twisted viewing direction, not large ring monster, approximate in-game body proportion 56x54, black-red ring armor with scarlet multi-eye accents
+  - name: 21_圣羽掠袭者
+    type: prop
+    variants:
+      - count: 1
+        description: small high-speed wing enemy sprite, wide flat white-gold body, tiny core in center, feather-shaped wings on both sides, pale blue holy light trails, high-speed sweep, launches light feather bullets, divine messenger style, approximate in-game body proportion 50x32, white-gold feather wing body with pale blue holy light accents
+  - name: 22_闪现信标
+    type: prop
+    variants:
+      - count: 1
+        description: small blink beacon enemy sprite, slender pale blue-white crystal body, small golden wings on both sides, broken teleportation halo fragments around it, bright glowing center crystal, instant teleportation, precise light bullets, holy crystal, approximate in-game body proportion 38x48, pale blue crystal body with gold holy light accents
+  - name: 23_折翼刺客
+    type: prop
+    variants:
+      - count: 1
+        description: small broken-wing assassin enemy spacecraft sprite, silver-white slender body, one complete golden wing on one side, other side broken wing, sharp front like a stabbing blade, agile dangerous, dodge then thrust, fast melee, approximate in-game body proportion 42x50, silver-white body with golden broken wing light accents
+  - name: 24_炽天追猎者
+    type: prop
+    variants:
+      - count: 1
+        description: medium seraph hunter elite enemy sprite, white-gold armored body, compact angel wings on both sides, orange-gold burning crystal core in center, sharp symmetrical outline, small teleport light fragments around, high-speed blink hunting thrust, not boss, approximate in-game body proportion 56x52, white-gold elite armor with orange-gold blazing light accents
+  - name: 25_神谕幻影
+    type: prop
+    variants:
+      - count: 1
+        description: medium oracle phantom elite enemy sprite, translucent pale blue-white crystal body, golden halo fragments and small angel-wing decorations around it, phantom afterimage edges, glowing oracle core in center, elegant ethereal holy, afterimage delayed shooting teleportation, approximate in-game body proportion 54x56, pale blue-white crystal body with golden oracle light accents

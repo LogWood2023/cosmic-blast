@@ -1,0 +1,241 @@
+[gd_scene format=3 uid="uid://b8lpk2bqfxq0s"]
+
+[ext_resource type="Texture2D" path="res://assets/images/ui/loading_screen/reference_preview.png" id="1_preview"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/loading_screen/logo_plate.png" id="2_logo"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/loading_screen/spinner_emblem.png" id="3_spinner"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/loading_screen/loading_bar.png" id="4_bar"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/loading_screen/tip_panel.png" id="5_tip"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_logo"]
+atlas = ExtResource("2_logo")
+region = Rect2(491, 389, 1594, 311)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spinner"]
+atlas = ExtResource("3_spinner")
+region = Rect2(1049, 304, 459, 482)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bar"]
+atlas = ExtResource("4_bar")
+region = Rect2(407, 610, 1745, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tip"]
+atlas = ExtResource("5_tip")
+region = Rect2(544, 1027, 1466, 218)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(0.2, 0.012, 0.026, 0.78)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.86, 0.08, 0.16, 0.55)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(1, 0.74, 0.06, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.95, 0.38, 0.84)
+
+[sub_resource type="Animation" id="Animation_spinner_spin"]
+resource_name = "spin"
+length = 1.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SpinnerPivot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 6.28318530717959]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_spinner"]
+_data = {
+"spin": SubResource("Animation_spinner_spin")
+}
+
+[node name="LoadingScreen" type="Control" unique_id=803507791]
+z_index = 2000
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BlackOverlay" type="ColorRect" parent="." unique_id=36598500]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.003, 0.012, 0.035, 1)
+
+[node name="BlueWash" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.12, 0.38, 0.42)
+
+[node name="ReferencePreview" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_preview")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Artboard" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LogoPlate" type="TextureRect" parent="Artboard"]
+layout_mode = 0
+offset_left = 444.0
+offset_top = 203.0
+offset_right = 1476.0
+offset_bottom = 404.5
+mouse_filter = 2
+texture = SubResource("AtlasTexture_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="Artboard"]
+layout_mode = 0
+offset_left = 684.0
+offset_top = 259.0
+offset_right = 1236.0
+offset_bottom = 343.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.57, 1, 0.85)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 64
+text = "LOADING"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpinnerPivot" type="Control" parent="Artboard"]
+layout_mode = 0
+offset_left = 788.0
+offset_top = 364.0
+offset_right = 1132.0
+offset_bottom = 725.5
+mouse_filter = 2
+pivot_offset = Vector2(172, 180.75)
+
+[node name="Spinner" type="TextureRect" parent="Artboard/SpinnerPivot"]
+layout_mode = 0
+offset_right = 344.0
+offset_bottom = 361.5
+mouse_filter = 2
+texture = SubResource("AtlasTexture_spinner")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LoadingBarArt" type="TextureRect" parent="Artboard"]
+layout_mode = 0
+offset_left = 304.0
+offset_top = 666.0
+offset_right = 1613.0
+offset_bottom = 810.0
+mouse_filter = 2
+texture = SubResource("AtlasTexture_bar")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Panel" type="Control" parent="Artboard" unique_id=516691400]
+layout_mode = 0
+offset_left = 426.0
+offset_top = 697.0
+offset_right = 1502.0
+offset_bottom = 770.0
+mouse_filter = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="Artboard/Panel" unique_id=1422825214]
+layout_mode = 0
+offset_right = 1076.0
+offset_bottom = 73.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+show_percentage = false
+
+[node name="Label" type="Label" parent="Artboard/Panel" unique_id=268401270]
+layout_mode = 0
+offset_left = 386.0
+offset_top = -15.0
+offset_right = 690.0
+offset_bottom = 88.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.6, 0.02, 0.08, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 46
+text = "0%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TipPanel" type="TextureRect" parent="Artboard"]
+layout_mode = 0
+offset_left = 408.0
+offset_top = 770.25
+offset_right = 1507.5
+offset_bottom = 933.75
+mouse_filter = 2
+texture = SubResource("AtlasTexture_tip")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TipLabel" type="Label" parent="Artboard"]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 832.0
+offset_right = 1400.0
+offset_bottom = 894.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 1, 1, 0.96)
+theme_override_colors/font_shadow_color = Color(0, 0.08, 0.16, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 31
+text = "TIP: Keep moving while the sector stabilizes."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpinnerPulse" type="AnimationPlayer" parent="Artboard"]
+autoplay = "spin"
+libraries = {
+"": SubResource("AnimationLibrary_spinner")
+}

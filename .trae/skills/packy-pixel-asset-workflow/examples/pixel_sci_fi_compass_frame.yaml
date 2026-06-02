@@ -1,0 +1,20 @@
+project: 像素赛博指南针实心边框
+output_dir: ./generated_assets/pixel_sci_fi_compass_frame
+style:
+  art_style: pixel art, 16-bit SNES era, crisp square pixels, limited color palette (16-32 colors), cyberpunk sci-fi HUD interface, clean minimal UI asset
+  quality: high
+size: 1024x1024
+n: 1
+style_seed:
+  enabled: false
+pixel_clean:
+  enabled: true
+  target_size: 128
+  num_colors: 20
+  contrast: 1.2
+assets:
+  - name: 天蓝赛博指南针实心边框
+    type: ui
+    variants:
+      - count: 1
+        description: solid continuous pixel art cyber compass frame UI asset, main color sky blue, electric cyan neon glow, one unbroken solid circular ring border, continuous filled frame shape, clean solid pixels, easy to cut out, no dashed lines, no broken segments, no transparent gaps inside the border itself, subtle futuristic tick marks attached to the solid ring, four subtle cardinal direction markers without letters, central area empty and transparent for game content, clean symmetric design, no text, no numbers, no map, no background, no shadow, centered composition, transparent background

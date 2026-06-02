@@ -1,0 +1,20 @@
+project: 逃离成功弹窗
+output_dir: ./generated_assets/escape_success_popup
+style:
+  art_style: pixel art, 16-bit SNES era, crisp square pixels, limited color palette (16-32 colors), retro game UI, sci-fi interface, clean readable silhouette
+  quality: high
+size: 1024x1024
+n: 1
+style_seed:
+  enabled: false
+pixel_clean:
+  enabled: true
+  target_size: 128
+  num_colors: 20
+  contrast: 1.1
+assets:
+  - name: 逃离成功弹窗
+    type: ui
+    variants:
+      - count: 1
+        description: green sci-fi game popup window, pixel art UI panel, top-left Chinese text "逃离成功", bright green theme, neon sci-fi frame, large empty center area reserved for later settlement content, clean border, game interface, no extra icons, no character, no button, no text except title, centered composition
