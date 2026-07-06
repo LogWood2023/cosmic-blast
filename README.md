@@ -1,6 +1,21 @@
-# Cosmic Blast — Boss Rush 弹幕射击游戏
+# Cosmic Blast — 肉鸽弹幕射击游戏
 
-Godot 4 弹幕射击 Boss Rush 游戏。玩家操控战机与四大 Boss 家族战斗。
+Godot 4 弹幕射击游戏，已从 Boss Rush 演进为肉鸽（roguelite）结构：
+
+```
+主菜单 → 世界地图（24 节点航图，危机/警报/算力/矿物经济）
+  ├─ 探索节点 → 程序生成探索房间（太空石/隔离带/电击带/炮台/宝箱/矿脉/撤离点）
+  ├─ 事件节点 → 事件方案选择（收益/代价/临时契约）
+  ├─ 奖励缓存 / 增益信标 / 商店 / 机库（142 件装备，20 武器 + 122 辅助机）
+  └─ 危机警报（阈值 5/12/21）→ Boss 战（20 个 Boss）→ 结算
+```
+
+小怪体系：25 个按 Boss 家族设计的敌人（`DesignedEnemyCatalog.gd`），
+机制精确规格见 `note/DESIGNED_ENEMY_MECHANIC_SPECS.md`。
+测试设施：约 78 个无头自检场景（`scenes/tests/` + `tools/`），
+可用 `Godot --headless --path . res://scenes/tests/<名称>.tscn` 运行。
+
+以下为四大 Boss 家族的设计说明。
 
 ## Boss 家族
 
@@ -148,8 +163,9 @@ assets/images/explore/clutter/generated/props/
 
 ## 技术栈
 
-- **引擎**: Godot 4 (GDScript)
-- **分辨率**: 1920×1080
+- **引擎**: Godot 4.6 (GDScript, Forward+, D3D12)
+- **分辨率**: 1920×1080（窗口默认 960×540, canvas_items 拉伸）
+- **Autoload**: `GameManager`（全局状态/狂热/帧预算）+ `RunManager`（肉鸽局内系统）
 - **模块化**: Boss 基类 → 亚种重写 `_ready()` 覆盖导出变量，所有核心逻辑通过继承复用
 
 ## 文件结构
