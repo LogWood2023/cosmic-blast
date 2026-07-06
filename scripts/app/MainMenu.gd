@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 const SETTINGS_POPUP_SCENE := preload("res://scenes/ui/main_menu/SettingsPopup.tscn")
+const CombatUiTheme := preload("res://scripts/ui/theme/CombatUiTheme.gd")
+const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
 const MENU_ITEMS := [
 	{"button": "StartButton", "frame": "StartFrame", "callback": "_on_start_pressed"},
@@ -26,6 +28,7 @@ var _settings_popup: Control
 
 func _ready() -> void:
 	_setup_menu_buttons()
+	CombatUiMotion.bind_tree(ui_root)
 
 
 func _find_button(node_name: String) -> Button:
@@ -61,6 +64,7 @@ func _setup_menu_buttons() -> void:
 			push_warning("MainMenu frame not found: %s" % frame_name)
 			continue
 
+		CombatUiTheme.style_button(button, true)
 		var index := _menu_entries.size()
 		var pivot := Vector2(frame.size.x, frame.size.y * 0.5)
 		frame.pivot_offset = pivot

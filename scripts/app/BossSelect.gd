@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
+
 const BOSS_SCENES = {
 	"Boss1Button": "res://scenes/gameplay/boss/BossBattle.tscn",
 	"Boss2Button": "res://scenes/gameplay/boss/BossBattle_Frontier.tscn",
@@ -25,6 +27,7 @@ const BOSS_SCENES = {
 
 
 func _ready() -> void:
+	CombatUiMotion.bind_tree(self)
 	for btn_name in BOSS_SCENES:
 		get_node(btn_name).pressed.connect(_on_boss_selected.bind(BOSS_SCENES[btn_name]))
 	$BackButton.pressed.connect(_on_back_pressed)

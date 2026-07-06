@@ -1,8 +1,72 @@
-[gd_scene format=3 uid="uid://cmknpgyjhohrc"]
+[gd_scene load_steps=6 format=3 uid="uid://cmknpgyjhohrc"]
 
 [ext_resource type="Texture2D" uid="uid://fi31ahwaybry" path="res://assets/images/background/generated/deep_space_bg_01_1080x1080.png" id="1_bg"]
-[ext_resource type="Texture2D" uid="uid://dpda57ht80oiq" path="res://assets/images/ui/main_menu/title_plate.png" id="2_title"]
-[ext_resource type="Texture2D" uid="uid://b1iemkc6vsgax" path="res://assets/images/ui/main_menu/menu_button.png" id="3_button"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_title"]
+bg_color = Color(0.03, 0.07, 0.1, 0.68)
+border_width_left = 4
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.72156864, 0.3019608, 0.62)
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+content_margin_left = 22.0
+content_margin_top = 16.0
+content_margin_right = 22.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_menu_frame"]
+bg_color = Color(0.07, 0.025, 0.018, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.72156864, 0.3019608, 0.58)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 2
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_normal"]
+bg_color = Color(0.18, 0.08, 0.06, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.72156864, 0.3019608, 0.6)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_hover"]
+bg_color = Color(0.05, 0.18, 0.22, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.32156864, 0.9098039, 1, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_pressed"]
+bg_color = Color(0.24, 0.05, 0.08, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.30980393, 0.41568628, 0.92)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 2
 
 [node name="MainMenuGeneratedUI" type="Control" unique_id=873074032]
 layout_mode = 3
@@ -22,33 +86,59 @@ stretch_mode = 6
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0, 0.015, 0.045, 0.38)
+color = Color(0.02, 0.006, 0.012, 0.58)
 
-[node name="TitlePlate" type="TextureRect" parent="." unique_id=797603698]
+[node name="HeatWash" type="ColorRect" parent="."]
 layout_mode = 0
-offset_left = -1720.0
-offset_top = 156.0
-offset_right = -210.0
-offset_bottom = 455.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.32, 0.08, 0.025, 0.16)
+
+[node name="TitlePlate" type="Panel" parent="." unique_id=797603698]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 118.0
+offset_right = 760.0
+offset_bottom = 332.0
 mouse_filter = 2
-texture = ExtResource("2_title")
-expand_mode = 1
-stretch_mode = 5
+theme_override_styles/panel = SubResource("StyleBox_title")
+
+[node name="TitleKicker" type="Label" parent="TitlePlate"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 30.0
+offset_top = 24.0
+offset_right = -30.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 22
+text = "方舟战备系统"
 
 [node name="TitleLabel" type="Label" parent="." unique_id=928247958]
 layout_mode = 0
-offset_left = -1227.0
-offset_top = 251.0
-offset_right = -687.0
-offset_bottom = 331.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
+offset_left = 126.0
+offset_top = 170.0
+offset_right = 730.0
+offset_bottom = 250.0
+theme_override_colors/font_color = Color(1, 0.98, 0.92, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.7)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 4
-theme_override_font_sizes/font_size = 58
+theme_override_font_sizes/font_size = 62
 text = "星际战机"
-horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 126.0
+offset_top = 260.0
+offset_right = 730.0
+offset_bottom = 306.0
+theme_override_colors/font_color = Color(0.82, 0.9, 0.95, 0.86)
+theme_override_font_sizes/font_size = 18
+text = "炉心警报已接入，选择一条出航协议。"
+autowrap_mode = 3
 
 [node name="MenuButtons" type="Control" parent="." unique_id=1401433098]
 anchors_preset = 0
@@ -56,187 +146,267 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="StartFrame" type="TextureRect" parent="MenuButtons" unique_id=130184492]
+[node name="StartFrame" type="Panel" parent="MenuButtons" unique_id=130184492]
+custom_minimum_size = Vector2(360, 76)
 layout_mode = 0
-offset_left = 1567.0
-offset_top = 671.0
-offset_right = 1899.84
-offset_bottom = 798.0001
+offset_left = 1458.0
+offset_top = 456.0
+offset_right = 1818.0
+offset_bottom = 532.0
 mouse_filter = 2
-texture = ExtResource("3_button")
-expand_mode = 1
-stretch_mode = 5
+theme_override_styles/panel = SubResource("StyleBox_menu_frame")
 
 [node name="StartButton" type="Button" parent="MenuButtons/StartFrame" unique_id=1745429222]
+custom_minimum_size = Vector2(360, 76)
 layout_mode = 0
-offset_top = 34.395
-offset_right = 333.14
-offset_bottom = 94.945
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+offset_right = 360.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.98, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.92, 0.84, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
 flat = true
 
 [node name="StartTitle" type="Label" parent="MenuButtons/StartFrame" unique_id=1293275747]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 36.0
-offset_right = 331.86
-offset_bottom = 89.0
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 300.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.75)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 31
 text = "开始游戏"
-horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
 
-[node name="ExploreFrame" type="TextureRect" parent="MenuButtons" unique_id=1167902943]
+[node name="StartIndex" type="Label" parent="MenuButtons/StartFrame"]
 layout_mode = 0
-offset_left = 1537.0
-offset_top = 743.0
-offset_right = 1869.84
-offset_bottom = 870.0001
+offset_left = 306.0
+offset_top = 22.0
+offset_right = 346.0
+offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("3_button")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 20
+text = "01"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ExploreFrame" type="Panel" parent="MenuButtons" unique_id=1167902943]
+custom_minimum_size = Vector2(360, 76)
+layout_mode = 0
+offset_left = 1458.0
+offset_top = 548.0
+offset_right = 1818.0
+offset_bottom = 624.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_menu_frame")
 
 [node name="ExploreButton" type="Button" parent="MenuButtons/ExploreFrame" unique_id=163304808]
+custom_minimum_size = Vector2(360, 76)
 layout_mode = 0
-offset_top = 34.395
-offset_right = 333.14
-offset_bottom = 94.945
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+offset_right = 360.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.98, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.92, 0.84, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
 flat = true
 
 [node name="ExploreTitle" type="Label" parent="MenuButtons/ExploreFrame" unique_id=573309316]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 34.0
-offset_right = 331.86
-offset_bottom = 87.0
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 300.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.75)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 31
 text = "探索房间"
-horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
 
-[node name="BossFrame" type="TextureRect" parent="MenuButtons" unique_id=528908074]
+[node name="ExploreIndex" type="Label" parent="MenuButtons/ExploreFrame"]
 layout_mode = 0
-offset_left = 1477.0
-offset_top = 817.0
-offset_right = 1809.84
-offset_bottom = 944.0001
+offset_left = 306.0
+offset_top = 22.0
+offset_right = 346.0
+offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("3_button")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 20
+text = "02"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BossFrame" type="Panel" parent="MenuButtons" unique_id=528908074]
+custom_minimum_size = Vector2(360, 76)
+layout_mode = 0
+offset_left = 1458.0
+offset_top = 640.0
+offset_right = 1818.0
+offset_bottom = 716.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_menu_frame")
 
 [node name="BossButton" type="Button" parent="MenuButtons/BossFrame" unique_id=1845497628]
+custom_minimum_size = Vector2(360, 76)
 layout_mode = 0
-offset_top = 34.395
-offset_right = 333.14
-offset_bottom = 94.945
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+offset_right = 360.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.98, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.92, 0.84, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
 flat = true
 
 [node name="BossTitle" type="Label" parent="MenuButtons/BossFrame" unique_id=154831038]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 32.0
-offset_right = 331.86
-offset_bottom = 85.0
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 300.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.75)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 38
-text = "Boss挑战"
-horizontal_alignment = 1
-vertical_alignment = 2
+theme_override_font_sizes/font_size = 31
+text = "执行体挑战"
+vertical_alignment = 1
 
-[node name="SettingsFrame" type="TextureRect" parent="MenuButtons" unique_id=1206497609]
+[node name="BossIndex" type="Label" parent="MenuButtons/BossFrame"]
 layout_mode = 0
-offset_left = 1375.0
-offset_top = 891.0
-offset_right = 1707.84
-offset_bottom = 1018.0003
+offset_left = 306.0
+offset_top = 22.0
+offset_right = 346.0
+offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("3_button")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 20
+text = "03"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SettingsFrame" type="Panel" parent="MenuButtons" unique_id=1206497609]
+custom_minimum_size = Vector2(360, 76)
+layout_mode = 0
+offset_left = 1458.0
+offset_top = 732.0
+offset_right = 1818.0
+offset_bottom = 808.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_menu_frame")
 
 [node name="SettingsButton" type="Button" parent="MenuButtons/SettingsFrame" unique_id=906483847]
+custom_minimum_size = Vector2(360, 76)
 layout_mode = 0
-offset_top = 34.395
-offset_right = 333.14
-offset_bottom = 94.945
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+offset_right = 360.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.98, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.92, 0.84, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
 flat = true
 
 [node name="SettingsMenuTitle" type="Label" parent="MenuButtons/SettingsFrame" unique_id=1238866165]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 32.0
-offset_right = 331.86
-offset_bottom = 85.0
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 300.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.75)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 31
 text = "设置"
-horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
 
-[node name="QuitFrame" type="TextureRect" parent="MenuButtons" unique_id=1543904117]
+[node name="SettingsIndex" type="Label" parent="MenuButtons/SettingsFrame"]
 layout_mode = 0
-offset_left = 1263.185
-offset_top = 963.9
-offset_right = 1596.025
-offset_bottom = 1090.9001
+offset_left = 306.0
+offset_top = 22.0
+offset_right = 346.0
+offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("3_button")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 20
+text = "04"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="QuitFrame" type="Panel" parent="MenuButtons" unique_id=1543904117]
+custom_minimum_size = Vector2(360, 76)
+layout_mode = 0
+offset_left = 1458.0
+offset_top = 824.0
+offset_right = 1818.0
+offset_bottom = 900.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_menu_frame")
 
 [node name="QuitButton" type="Button" parent="MenuButtons/QuitFrame" unique_id=1770121124]
+custom_minimum_size = Vector2(360, 76)
 layout_mode = 0
-offset_top = 34.395
-offset_right = 333.14
-offset_bottom = 94.945
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.68, 1, 1, 1)
+offset_right = 360.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.98, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.92, 0.84, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
 flat = true
 
 [node name="QuitTitle" type="Label" parent="MenuButtons/QuitFrame" unique_id=1463563257]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 32.0
-offset_right = 331.86
-offset_bottom = 85.0
-theme_override_colors/font_color = Color(0.94, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.72, 0.86, 0.82)
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 300.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.75)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 31
 text = "退出游戏"
+vertical_alignment = 1
+
+[node name="QuitIndex" type="Label" parent="MenuButtons/QuitFrame"]
+layout_mode = 0
+offset_left = 306.0
+offset_top = 22.0
+offset_right = 346.0
+offset_bottom = 54.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 20
+text = "05"
 horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1

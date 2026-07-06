@@ -23,20 +23,20 @@ atlas = ExtResource("5_tip")
 region = Rect2(544, 1027, 1466, 218)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
-bg_color = Color(0.2, 0.012, 0.026, 0.78)
+bg_color = Color(0.012, 0.022, 0.034, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.86, 0.08, 0.16, 0.55)
+border_color = Color(1, 0.309804, 0.415686, 0.62)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
-bg_color = Color(1, 0.74, 0.06, 0.9)
+bg_color = Color(1, 0.721569, 0.301961, 0.92)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(1, 0.95, 0.38, 0.84)
+border_color = Color(0.321569, 0.909804, 1, 0.74)
 
 [sub_resource type="Animation" id="Animation_spinner_spin"]
 resource_name = "spin"
@@ -78,7 +78,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.003, 0.012, 0.035, 1)
+color = Color(0.005, 0.008, 0.012, 1)
 
 [node name="BlueWash" type="ColorRect" parent="."]
 layout_mode = 1
@@ -88,7 +88,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.02, 0.12, 0.38, 0.42)
+color = Color(0.24, 0.055, 0.045, 0.46)
 
 [node name="ReferencePreview" type="TextureRect" parent="."]
 visible = false
@@ -136,12 +136,12 @@ offset_top = 259.0
 offset_right = 1236.0
 offset_bottom = 343.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.86, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.57, 1, 0.85)
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.309804, 0.415686, 0.85)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 4
 theme_override_font_sizes/font_size = 64
-text = "LOADING"
+text = "扇区同步"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -199,7 +199,7 @@ offset_right = 690.0
 offset_bottom = 88.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0.6, 0.02, 0.08, 1)
+theme_override_colors/font_shadow_color = Color(0.321569, 0.909804, 1, 0.9)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 46
@@ -225,12 +225,12 @@ offset_top = 832.0
 offset_right = 1400.0
 offset_bottom = 894.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.86, 1, 1, 0.96)
-theme_override_colors/font_shadow_color = Color(0, 0.08, 0.16, 1)
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 0.96)
+theme_override_colors/font_shadow_color = Color(0.06, 0.015, 0.02, 1)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 31
-text = "TIP: Keep moving while the sector stabilizes."
+text = "航行提示：保持移动，等待扇区稳定。"
 horizontal_alignment = 1
 vertical_alignment = 1
 

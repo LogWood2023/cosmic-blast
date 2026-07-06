@@ -1,9 +1,17 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/images/boss/hud_score_panel.png" id="1_score_panel"]
-[ext_resource type="Script" path="res://scripts/ui/LifeBar.gd" id="2_life_bar"]
-[ext_resource type="Texture2D" path="res://assets/images/boss/hud_lifebar_frame.png" id="3_lifebar_frame"]
-[ext_resource type="Script" path="res://scripts/ui/FrenzyBar.gd" id="4_frenzy_bar"]
+[ext_resource type="Script" path="res://scripts/ui/LifeBar.gd" id="1_life_bar"]
+[ext_resource type="Script" path="res://scripts/ui/FrenzyBar.gd" id="2_frenzy_bar"]
+[ext_resource type="Texture2D" path="res://assets/images/boss/hud_score_panel.png" id="3_score_panel"]
+
+[sub_resource type="Gradient" id="Gradient_score"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.18, 0.08, 0.06, 0.86, 0.03, 0.12, 0.16, 0.78)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture_score"]
+gradient = SubResource("Gradient_score")
+width = 360
+height = 92
 
 [node name="PlayerStatusHUD" type="Control"]
 layout_mode = 3
@@ -16,81 +24,116 @@ mouse_filter = 2
 
 [node name="ScorePanel" type="TextureRect" parent="." unique_id=481513499]
 layout_mode = 0
-offset_left = 1450.0
-offset_top = 965.0
-offset_right = 1770.0
-offset_bottom = 1063.0
+offset_left = 44.0
+offset_top = 920.0
+offset_right = 420.0
+offset_bottom = 1026.0
 mouse_filter = 2
-texture = ExtResource("1_score_panel")
+texture = SubResource("GradientTexture_score")
 expand_mode = 1
+metadata/original_texture = ExtResource("3_score_panel")
+
+[node name="ScoreAccent" type="ColorRect" parent="ScorePanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 16.0
+offset_bottom = 94.0
+mouse_filter = 2
+color = Color(1, 0.72156864, 0.3019608, 0.88)
 
 [node name="ScoreLabel" type="Label" parent="." unique_id=1251250620]
 layout_mode = 0
-offset_left = 1486.0
-offset_top = 996.0
-offset_right = 1734.0
-offset_bottom = 1030.0
+offset_left = 80.0
+offset_top = 948.0
+offset_right = 388.0
+offset_bottom = 986.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.98, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.7)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 26
 text = "分数: 0"
-horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LifeLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 54.0
+offset_top = 842.0
+offset_right = 214.0
+offset_bottom = 870.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 18
+text = "机体结构"
 
 [node name="LifeBar" type="Node2D" parent="." unique_id=837937734]
-position = Vector2(216, 1047)
-scale = Vector2(0.115, 0.07)
-script = ExtResource("2_life_bar")
+position = Vector2(220, 902)
+scale = Vector2(1, 1)
+script = ExtResource("1_life_bar")
+
+[node name="BackBar" type="ColorRect" parent="LifeBar"]
+offset_left = -166.0
+offset_top = -16.0
+offset_right = 166.0
+offset_bottom = 16.0
+color = Color(0.018, 0.022, 0.032, 0.92)
 
 [node name="YellowBar" type="ColorRect" parent="LifeBar" unique_id=1768318049]
-offset_left = -663.0
-offset_top = -115.0
-offset_right = 681.0
-offset_bottom = 132.0
-color = Color(1, 0.8509804, 0.2, 1)
+offset_left = -160.0
+offset_top = -10.0
+offset_right = 160.0
+offset_bottom = 10.0
+color = Color(1, 0.72156864, 0.3019608, 0.95)
 metadata/_edit_use_anchors_ = true
 
 [node name="RedBar" type="ColorRect" parent="LifeBar" unique_id=855178748]
-offset_left = -663.0
-offset_top = -115.0
-offset_right = 681.0
-offset_bottom = 132.0
-color = Color(0.9411765, 0.2, 0.2, 1)
+offset_left = -160.0
+offset_top = -10.0
+offset_right = 160.0
+offset_bottom = 10.0
+color = Color(1, 0.30980393, 0.41568628, 1)
 metadata/_edit_use_anchors_ = true
 
-[node name="FrameSprite" type="Sprite2D" parent="LifeBar" unique_id=1514432648]
-texture = ExtResource("3_lifebar_frame")
+[node name="Frame" type="ColorRect" parent="LifeBar"]
+offset_left = -170.0
+offset_top = -20.0
+offset_right = 170.0
+offset_bottom = -16.0
+color = Color(0.32156864, 0.9098039, 1, 0.72)
 
 [node name="FrenzyBar" type="Node2D" parent="."]
-position = Vector2(216, 1006)
-scale = Vector2(0.72, 0.72)
-script = ExtResource("4_frenzy_bar")
+position = Vector2(220, 834)
+scale = Vector2(1, 1)
+script = ExtResource("2_frenzy_bar")
 
 [node name="BackBar" type="ColorRect" parent="FrenzyBar"]
-offset_left = -76.0
-offset_top = -8.0
-offset_right = 76.0
-offset_bottom = 8.0
-color = Color(0.1, 0.05, 0.13, 0.86)
+offset_left = -166.0
+offset_top = -10.0
+offset_right = 166.0
+offset_bottom = 10.0
+color = Color(0.018, 0.022, 0.032, 0.9)
 
 [node name="FillBar" type="ColorRect" parent="FrenzyBar"]
-offset_left = -76.0
-offset_top = -8.0
-offset_right = 76.0
-offset_bottom = 8.0
-color = Color(0.9, 0.35, 1, 1)
+offset_left = -160.0
+offset_top = -6.0
+offset_right = 160.0
+offset_bottom = 6.0
+color = Color(0.72, 0.55, 1, 1)
 
 [node name="Frame" type="ColorRect" parent="FrenzyBar"]
-offset_left = -80.0
-offset_top = -12.0
-offset_right = 80.0
-offset_bottom = -8.0
-color = Color(0.75, 0.88, 1, 0.9)
+offset_left = -170.0
+offset_top = -14.0
+offset_right = 170.0
+offset_bottom = -10.0
+color = Color(1, 0.72156864, 0.3019608, 0.78)
 
 [node name="Label" type="Label" parent="FrenzyBar"]
-offset_left = -78.0
-offset_top = -36.0
-offset_right = 78.0
-offset_bottom = -12.0
-theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
-theme_override_font_sizes/font_size = 17
+offset_left = -166.0
+offset_top = -42.0
+offset_right = 166.0
+offset_bottom = -16.0
+theme_override_colors/font_color = Color(0.93, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 18
 text = "狂热"
 horizontal_alignment = 1

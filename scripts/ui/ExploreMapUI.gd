@@ -6,6 +6,13 @@ const ROOM_SIZE: Vector2 = Vector2(10800, 10800)
 const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 const FOG_CELL_WORLD_SIZE: float = 240.0
 const FOG_REVEAL_RADIUS: float = 720.0
+const DANGER_RED := Color("#ff4f6a")
+const FURNACE_AMBER := Color("#ffb84d")
+const COMMAND_CYAN := Color("#52e8ff")
+const VOID_VIOLET := Color("#b78cff")
+const DEEP_PANEL := Color("#071018")
+const TEXT_MAIN := Color("#f8fbff")
+const TEXT_MUTED := Color("#b7c4cf")
 
 @export var space_rocks_path: NodePath
 @export var isolation_bands_path: NodePath
@@ -183,12 +190,47 @@ func _draw() -> void:
 	if not visible:
 		return
 	var rect = _map_rect()
-	draw_rect(Rect2(Vector2.ZERO, VIEW_SIZE), Color(0, 0, 0, 0.45), true)
-	draw_rect(rect, Color(0.015, 0.025, 0.065, 0.96), true)
+	draw_rect(Rect2(Vector2.ZERO, VIEW_SIZE), Color(0.005, 0.008, 0.012, 0.72), true)
+	_draw_map_shell(rect)
 	var content_origin = rect.position + Vector2(0, _content_offset_y)
 	draw_set_transform(content_origin, 0.0, Vector2.ONE)
 	_draw_map_content()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_map_overlay(rect)
+
+
+func _draw_map_shell(rect: Rect2) -> void:
+	var outer := rect.grow(24.0)
+	draw_rect(outer, Color(0.02, 0.045, 0.07, 0.94), true)
+	draw_rect(outer, FURNACE_AMBER.darkened(0.15), false, 3.0)
+	draw_rect(outer.grow(-6.0), Color(DANGER_RED.r, DANGER_RED.g, DANGER_RED.b, 0.58), false, 2.0)
+	draw_rect(rect, Color(0.015, 0.025, 0.065, 0.96), true)
+	draw_line(outer.position + Vector2(0.0, 18.0), outer.position + Vector2(outer.size.x, 18.0), DANGER_RED, 4.0)
+	draw_line(outer.position + Vector2(18.0, 0.0), outer.position + Vector2(18.0, outer.size.y), Color(DANGER_RED.r, DANGER_RED.g, DANGER_RED.b, 0.65), 2.0)
+
+
+func _draw_map_overlay(rect: Rect2) -> void:
+	var font := get_theme_default_font()
+	var title_pos := rect.position + Vector2(0.0, -46.0)
+	var title_rect := Rect2(title_pos, Vector2(rect.size.x, 36.0))
+	draw_rect(title_rect, Color(0.027, 0.063, 0.094, 0.9), true)
+	draw_rect(title_rect, Color(COMMAND_CYAN.r, COMMAND_CYAN.g, COMMAND_CYAN.b, 0.36), false, 1.0)
+	draw_string(font, title_pos + Vector2(18.0, 25.0), "深空战术地图", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 24, TEXT_MAIN)
+	draw_string(font, title_pos + Vector2(rect.size.x - 390.0, 25.0), "拖拽纵向扫描 · 已探索区域高亮", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, TEXT_MUTED)
+
+	var legend_pos := rect.position + Vector2(0.0, rect.size.y + 18.0)
+	var legend_rect := Rect2(legend_pos, Vector2(rect.size.x, 34.0))
+	draw_rect(legend_rect, Color(0.027, 0.063, 0.094, 0.88), true)
+	draw_rect(legend_rect, Color(FURNACE_AMBER.r, FURNACE_AMBER.g, FURNACE_AMBER.b, 0.42), false, 1.0)
+	_draw_legend_item(font, legend_pos + Vector2(20.0, 22.0), COMMAND_CYAN, "玩家")
+	_draw_legend_item(font, legend_pos + Vector2(150.0, 22.0), FURNACE_AMBER, "资源")
+	_draw_legend_item(font, legend_pos + Vector2(280.0, 22.0), DANGER_RED, "巡逻/炮塔")
+	_draw_legend_item(font, legend_pos + Vector2(440.0, 22.0), VOID_VIOLET, "异常区域")
+
+
+func _draw_legend_item(font: Font, baseline: Vector2, color: Color, text: String) -> void:
+	draw_circle(baseline + Vector2(8.0, -8.0), 6.0, color)
+	draw_string(font, baseline + Vector2(22.0, 0.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16, TEXT_MUTED)
 
 
 func _draw_map_content() -> void:

@@ -1,6 +1,62 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/world_map/ShopPopup.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.027451, 0.0627451, 0.0941176, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.721569, 0.301961, 0.68)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 8
+content_margin_left = 24.0
+content_margin_top = 22.0
+content_margin_right = 24.0
+content_margin_bottom = 22.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.24, 0.055, 0.045, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.309804, 0.415686, 0.82)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 8
+content_margin_left = 18.0
+content_margin_right = 18.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.04, 0.18, 0.22, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.321569, 0.909804, 1, 0.88)
+corner_radius_top_left = 2
+corner_radius_top_right = 8
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 8
+content_margin_left = 18.0
+content_margin_right = 18.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
+bg_color = Color(0.012, 0.022, 0.034, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.321569, 0.909804, 1, 0.24)
+corner_radius_top_left = 2
+corner_radius_top_right = 6
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 6
 
 [node name="ShopPopup" type="Control"]
 layout_mode = 3
@@ -19,7 +75,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.58)
+color = Color(0.005, 0.008, 0.012, 0.72)
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
@@ -28,60 +84,159 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -390.0
+offset_left = -500.0
 offset_top = -390.0
-offset_right = 390.0
+offset_right = 500.0
 offset_bottom = 390.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="HeaderAccent" type="ColorRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 22.0
+offset_right = -24.0
+offset_bottom = 26.0
+grow_horizontal = 2
+color = Color(1, 0.309804, 0.415686, 0.92)
 
 [node name="TitleLabel" type="Label" parent="Panel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 32.0
-offset_top = 24.0
-offset_right = -32.0
-offset_bottom = 66.0
+offset_left = 28.0
+offset_top = 42.0
+offset_right = -280.0
+offset_bottom = 82.0
 grow_horizontal = 2
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 32
 text = "方舟核心 / 商店"
 
 [node name="MineralsLabel" type="Label" parent="Panel"]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 5
+anchor_left = 1.0
 anchor_right = 1.0
-offset_left = 32.0
-offset_top = 76.0
-offset_right = -32.0
-offset_bottom = 106.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(0.63, 0.93, 1, 1)
-theme_override_font_sizes/font_size = 20
+offset_left = -264.0
+offset_top = 46.0
+offset_right = -28.0
+offset_bottom = 78.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.321569, 0.909804, 1, 1)
+theme_override_font_sizes/font_size = 22
 text = "星髓矿：0"
+horizontal_alignment = 2
 
 [node name="HintLabel" type="Label" parent="Panel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 32.0
-offset_top = 110.0
-offset_right = -32.0
-offset_bottom = 140.0
+offset_left = 28.0
+offset_top = 90.0
+offset_right = -28.0
+offset_bottom = 122.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.68, 0.78, 0.86, 1)
+theme_override_colors/font_color = Color(0.72, 0.79, 0.86, 1)
+theme_override_font_sizes/font_size = 18
+text = "采购装备会立即消耗资源，已拥有项目会锁定为只读状态。"
+
+[node name="ControlsBar" type="HBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 134.0
+offset_right = -28.0
+offset_bottom = 182.0
+grow_horizontal = 2
+theme_override_constants/separation = 14
+alignment = 2
+
+[node name="ShopStateLabel" type="Label" parent="Panel/ControlsBar"]
+custom_minimum_size = Vector2(330, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "货单：全域随机 / 重抽 0 次"
+vertical_alignment = 1
+
+[node name="FamilyFocusOption" type="OptionButton" parent="Panel/ControlsBar"]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
+theme_override_colors/font_hover_color = Color(0.97, 0.985, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+
+[node name="RerollButton" type="Button" parent="Panel/ControlsBar"]
+custom_minimum_size = Vector2(170, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
+theme_override_colors/font_hover_color = Color(0.97, 0.985, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+text = "重抽 18"
+
+[node name="ItemsFrame" type="Panel" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 264.0
+offset_right = -28.0
+offset_bottom = -112.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
+
+[node name="ShopGuidanceBar" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 194.0
+offset_right = -28.0
+offset_bottom = 252.0
+grow_horizontal = 2
+theme_override_constants/separation = 6
+
+[node name="ShopGuidanceTitle" type="Label" parent="Panel/ShopGuidanceBar"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.721569, 0.301961, 1)
 theme_override_font_sizes/font_size = 17
-text = "购买装备会立即消耗星髓矿。"
+text = "采购校准：未定航路"
+text_overrun_behavior = 3
+
+[node name="ShopGuidanceDetail" type="Label" parent="Panel/ShopGuidanceBar"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "货单会在方舟完成航向测算后偏移。"
+text_overrun_behavior = 3
 
 [node name="ItemsScroll" type="ScrollContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 154.0
-offset_right = -32.0
-offset_bottom = -116.0
+offset_left = 40.0
+offset_top = 276.0
+offset_right = -40.0
+offset_bottom = -124.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -90,6 +245,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
+[node name="FooterLine" type="ColorRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -96.0
+offset_right = -28.0
+offset_bottom = -94.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.721569, 0.301961, 0.55)
+
 [node name="MessageLabel" type="Label" parent="Panel"]
 layout_mode = 1
 anchors_preset = 12
@@ -97,9 +266,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 32.0
-offset_top = -104.0
-offset_right = -190.0
-offset_bottom = -44.0
+offset_top = -84.0
+offset_right = -300.0
+offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
@@ -107,17 +276,23 @@ theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
 [node name="CloseButton" type="Button" parent="Panel"]
+custom_minimum_size = Vector2(240, 56)
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -162.0
-offset_top = -92.0
-offset_right = -32.0
-offset_bottom = -44.0
+offset_left = -268.0
+offset_top = -86.0
+offset_right = -28.0
+offset_bottom = -30.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
+theme_override_colors/font_hover_color = Color(0.97, 0.985, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
 text = "关闭"

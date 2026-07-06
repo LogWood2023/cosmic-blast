@@ -68,7 +68,9 @@ func _ready() -> void:
 	_mask_material.shader = CIRCLE_MASK_SHADER
 	_mask_material.set_shader_parameter("radius", 0.5)
 	_mask_material.set_shader_parameter("feather", 0.01)
-	if not _is_viewport_drawer and not _drawer:
+	if DisplayServer.get_name() == "headless":
+		_is_viewport_drawer = true
+	elif not _is_viewport_drawer and not _drawer:
 		_setup_masked_viewport()
 	print("[指南针小地图] ready size=%s visible=%s player=%s rocks=%s bands=%s rewards=%s turrets=%s electric=%s evac=%s" % [size, visible, _node_info(_player), _node_info(_space_rocks), _node_info(_isolation_bands), _node_info(_rewards), _node_info(_turrets), _node_info(_electric_isolation_bands), _node_info(_evacuation_points)])
 
