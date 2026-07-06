@@ -32,6 +32,7 @@ var _pending_reward_seed: int = -1
 var _pending_boss_reward_popup_summary: Dictionary = {}
 var _pending_special_bonus_popup_summary: Dictionary = {}
 var _pending_route_directive_popup_summary: Dictionary = {}
+var _startup_popup_queue: Array[Callable] = []
 
 @onready var title_label: Label = $TopBar/TitleLabel
 @onready var stats_label: Label = $TopBar/StatsLabel
@@ -57,12 +58,15 @@ func _ready() -> void:
 	archive_button.pressed.connect(_show_equipment_archive)
 	back_button.pressed.connect(_on_back_pressed)
 	_refresh_all()
+	# 入场弹窗排队依次展示；此前三个同帧打开会互相 queue_free，玩家只看到最后一个
 	if not _pending_special_bonus_popup_summary.is_empty():
-		call_deferred("_show_pending_special_bonus_popup")
+		_startup_popup_queue.append(_show_pending_special_bonus_popup)
 	if not _pending_route_directive_popup_summary.is_empty():
-		call_deferred("_show_pending_route_directive_popup")
+		_startup_popup_queue.append(_show_pending_route_directive_popup)
 	if not _pending_boss_reward_popup_summary.is_empty():
-		call_deferred("_show_pending_boss_reward_popup")
+		_startup_popup_queue.append(_show_pending_boss_reward_popup)
+	if not _startup_popup_queue.is_empty():
+		call_deferred("_show_next_startup_popup")
 
 
 func _consume_node_completion_feedback() -> void:
@@ -911,12 +915,22 @@ func _on_event_choice_selected(choice_id: String) -> void:
 	_show_event_result(result)
 
 
+func _show_next_startup_popup() -> void:
+	if _startup_popup_queue.is_empty() or is_instance_valid(_active_popup):
+		return
+	var show_popup: Callable = _startup_popup_queue.pop_front()
+	show_popup.call()
+
+
 func _open_popup(scene: PackedScene) -> Control:
 	if is_instance_valid(_active_popup):
 		_active_popup.queue_free()
 	_active_popup = scene.instantiate() as Control
 	add_child(_active_popup)
-	_active_popup.connect("closed", _on_popup_closed.bind(_active_popup))
+	if _active_popup.has_signal("closed"):
+		_active_popup.connect("closed", _on_popup_closed.bind(_active_popup))
+	else:
+		push_warning("弹窗 %s 缺少 closed 信号，关闭后无法回收" % _active_popup.name)
 	return _active_popup
 
 
@@ -924,6 +938,8 @@ func _on_popup_closed(popup: Control) -> void:
 	if _active_popup == popup:
 		_active_popup = null
 	_refresh_all()
+	if not _startup_popup_queue.is_empty():
+		call_deferred("_show_next_startup_popup")
 
 
 func _set_message(message: String) -> void:

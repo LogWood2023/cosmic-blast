@@ -5,6 +5,5 @@
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1695189305]
 script = ExtResource("1_menu")
-menu_button_gap = 1.0
 
 [node name="MainMenuGeneratedUI" parent="." unique_id=899229016 instance=ExtResource("2_ui")]

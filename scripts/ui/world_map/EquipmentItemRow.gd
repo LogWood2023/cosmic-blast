@@ -45,7 +45,8 @@ func _apply_crest_state(meta_text: String, disabled: bool, status_text: String, 
 	var item_type := EquipmentCatalogScript.get_type(_item_id)
 	var is_known_item := not item_type.is_empty()
 	var is_aux: bool = item_type == EquipmentCatalogScript.TYPE_AUX if is_known_item else _meta_describes_auxiliary(meta_text)
-	var compute_cost: int = EquipmentCatalogScript.get_compute_cost(_item_id) if is_aux and is_known_item else _compute_cost_from_meta(meta_text)
+	# 已知条目一律取目录数据；从 meta 文本串数字兜底只留给未知条目（武器走 meta 会把价格串成刻痕数）
+	var compute_cost: int = EquipmentCatalogScript.get_compute_cost(_item_id) if is_known_item else _compute_cost_from_meta(meta_text)
 	var is_equipped: bool = status_text.contains("已装配") or status_text.contains("已装填") or action_text.contains("卸下")
 
 	crest_slot.visible = true

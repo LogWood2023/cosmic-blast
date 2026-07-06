@@ -39,14 +39,6 @@ func _find_control(node_name: String) -> Control:
 	return ui_root.find_child(node_name, true, false) as Control
 
 
-func _bind_simple_button(node_name: String, callback: Callable) -> void:
-	var button := _find_button(node_name)
-	if not button:
-		push_warning("MainMenu button not found: %s" % node_name)
-		return
-	button.pressed.connect(callback)
-
-
 func _setup_menu_buttons() -> void:
 	_menu_entries.clear()
 	_setup_hover_highlight()

@@ -29,7 +29,10 @@ func _format_run_summary(summary: Dictionary) -> String:
 		int(summary.get("equipment_count", 0)),
 		int(summary.get("compute_capacity", 0)),
 	])
-	lines.append("肃清执行体: %d/3" % int(summary.get("cleared_boss_count", 0)))
+	lines.append("肃清执行体: %d/%d" % [
+		int(summary.get("cleared_boss_count", 0)),
+		RunManager.CRISIS_THRESHOLDS.size(),
+	])
 	var boss_reward := Dictionary(summary.get("last_boss_reward", {}))
 	var item_id := String(boss_reward.get("item_id", ""))
 	if not item_id.is_empty() and EquipmentCatalogScript.has_item(item_id):
@@ -41,13 +44,12 @@ func _format_run_summary(summary: Dictionary) -> String:
 	return "\n".join(lines)
 
 
-func _on_restart_pressed() -> void:
-	GameManager.reset_run_state()
-	RunManager.start_new_run()
-	get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
-
-
 func _on_restart_button_pressed() -> void:
 	GameManager.reset_run_state()
 	RunManager.start_new_run()
 	get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
+
+
+func _on_menu_button_pressed() -> void:
+	GameManager.reset_run_state()
+	get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")

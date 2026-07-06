@@ -124,9 +124,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -140.0
+offset_left = -300.0
 offset_top = -348.0
-offset_right = 140.0
+offset_right = -20.0
 offset_bottom = -288.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -136,6 +136,28 @@ theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-text = "返回世界地图"
+text = "开始新航程"
+
+[node name="MenuButton" type="Button" parent="."]
+custom_minimum_size = Vector2(280, 60)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -348.0
+offset_right = 300.0
+offset_bottom = -288.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
+theme_override_colors/font_hover_color = Color(0.97, 0.985, 1, 1)
+theme_override_font_sizes/font_size = 23
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+text = "返回主菜单"
 
 [connection signal="pressed" from="RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="MenuButton" to="." method="_on_menu_button_pressed"]

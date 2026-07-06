@@ -3,6 +3,7 @@ extends Control
 signal closed
 
 const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
+const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd")
 
 @onready var title_label: Label = $Panel/TitleLabel
 @onready var body_label: RichTextLabel = $Panel/BodyLabel
@@ -63,7 +64,7 @@ func _append_reward_lines(lines: Array[String], result: Dictionary) -> void:
 	if compute > 0:
 		rewards.append("算力容量 +%d" % compute)
 	if not equipment_id.is_empty():
-		rewards.append("装备蓝图：%s" % equipment_id)
+		rewards.append("装备蓝图：%s" % EquipmentCatalogScript.get_display_name(equipment_id))
 	if not special_bonus_id.is_empty():
 		var special_name := special_bonus_id
 		var run_manager := _get_run_manager()

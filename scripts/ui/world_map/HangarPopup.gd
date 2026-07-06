@@ -154,6 +154,11 @@ func _sync_family_filter_buttons() -> void:
 
 
 func _refresh_charm_slots(used: int, capacity: int) -> void:
+	# 算力上限随进度增长（每节点 +1，事件还能再加），场景里的固定槽位不够就动态补
+	while charm_slots.get_child_count() < capacity:
+		var extra_slot := ColorRect.new()
+		extra_slot.custom_minimum_size = Vector2(34, 24)
+		charm_slots.add_child(extra_slot)
 	var slots := charm_slots.get_children()
 	for i in range(slots.size()):
 		var slot := slots[i] as ColorRect
