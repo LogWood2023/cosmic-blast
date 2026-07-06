@@ -157,8 +157,6 @@ func _ready() -> void:
 	add_to_group(&"explore_rewards")
 	collision_layer = 4
 	collision_mask = 5
-	area_entered.connect(_on_area_entered)
-	body_entered.connect(_on_body_entered)
 	_spawn_position = global_position
 	_hp = max_hp
 	_apply_shape()
@@ -337,12 +335,6 @@ func _apply_texture() -> void:
 		shine_sprite.visible = false
 
 
-func _on_area_entered(_area: Area2D) -> void:
-	return
-
-
-func _on_body_entered(_body: Node2D) -> void:
-	return
 
 
 func take_damage(dmg: int) -> void:

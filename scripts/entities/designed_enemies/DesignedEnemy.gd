@@ -83,12 +83,7 @@ var _attack_timer: float = 0.0
 var _special_timer: float = 0.0
 var _burst_left: int = 0
 var _burst_gap: float = 0.0
-var _charge_target: Vector2 = Vector2.ZERO
-var _is_charging: bool = false
-var _charge_time: float = 0.0
-var _suction_time: float = 0.0
 var _shield_energy: int = 0
-var _phase: int = 0
 var _visual_parts: Array[ColorRect] = []
 var _visual_behavior: int = -1
 var _visual_waiting_for_texture: bool = false
@@ -158,7 +153,6 @@ var _calibrator_recoil_velocity: Vector2 = Vector2.ZERO
 var _calibrator_dodge_side: float = 1.0
 var _calibrator_ray_timer: float = 0.0
 var _calibrator_ray_points: PackedVector2Array = PackedVector2Array()
-var _calibrator_ray_clear: bool = false
 var _sanctum_spin_speed: float = 0.0
 var _sanctum_spin_active: bool = false
 var _sanctum_spin_fire_timer: float = 0.0
@@ -199,7 +193,6 @@ var _explore_patrol_offset: Vector2 = Vector2.ZERO
 var _explore_patrol_index: int = 1
 var _explore_patrol_room_bounds: Rect2 = Rect2(Vector2.ZERO, Vector2.ZERO)
 var _explore_patrol_despawn_margin: float = 900.0
-var _explore_patrol_returning: bool = false
 var _explore_room_idle_enabled: bool = false
 var _explore_pool_enabled: bool = false
 var _explore_pool_active: bool = false
@@ -550,7 +543,6 @@ func setup_explore_patrol(points: PackedVector2Array, path_offset: Vector2, room
 	_explore_patrol_despawn_margin = despawn_margin
 	screen_size = room_bounds.size
 	_explore_patrol_index = 1
-	_explore_patrol_returning = false
 	_explore_alert_probe_timer = randf_range(0.0, EXPLORE_ALERT_PROBE_INTERVAL + EXPLORE_ALERT_PROBE_JITTER)
 	_explore_pursuit_probe_timer = randf_range(0.0, EXPLORE_PURSUIT_PROBE_INTERVAL + EXPLORE_ALERT_PROBE_JITTER)
 	_detection_los_timer = randf_range(0.0, DETECTION_LOS_CHECK_INTERVAL)
@@ -670,12 +662,7 @@ func _reset_common_runtime_state_for_pool() -> void:
 	_special_timer = 0.0
 	_burst_left = 0
 	_burst_gap = 0.0
-	_charge_target = Vector2.ZERO
-	_is_charging = false
-	_charge_time = 0.0
-	_suction_time = 0.0
 	_shield_energy = 0
-	_phase = 0
 	_last_safe_position = global_position
 	_blocking_obstacles_cache.clear()
 	_blocking_obstacles_cache_time = -9999.0
@@ -737,7 +724,6 @@ func _reset_common_runtime_state_for_pool() -> void:
 	_calibrator_dodge_side = 1.0
 	_calibrator_ray_timer = 0.0
 	_calibrator_ray_points = PackedVector2Array()
-	_calibrator_ray_clear = false
 	_sanctum_spin_speed = 0.0
 	_sanctum_spin_active = false
 	_sanctum_spin_fire_timer = 0.0
@@ -763,7 +749,6 @@ func _reset_common_runtime_state_for_pool() -> void:
 	_explore_patrol_index = 1
 	_explore_patrol_room_bounds = Rect2(Vector2.ZERO, Vector2.ZERO)
 	_explore_patrol_despawn_margin = 900.0
-	_explore_patrol_returning = false
 	_explore_room_idle_enabled = false
 	_explore_room_bounds = Rect2(Vector2.ZERO, Vector2.ZERO)
 	_explore_alert_probe_timer = 0.0
@@ -1583,35 +1568,8 @@ func _update_cooldown(delta: float) -> void:
 			_calibrator_attack(delta)
 		Behavior.PARADISE_SANCTUM_SUPPRESSOR:
 			_sanctum_attack()
-		Behavior.WARPED_MICRO_CORE:
-			pass
-		Behavior.WARPED_REFRACTION_SHOOTER:
-			pass
-		Behavior.WARPED_ORBIT_DISRUPTOR:
-			pass
-		Behavior.WARPED_COLLAPSE_BEACON:
-			pass
-		Behavior.WARPED_DEFLECTION_MATRIX:
-			pass
-		Behavior.HELLEYE_INVERTED_MOTH:
-			pass
-		Behavior.HELLEYE_BLIND_MOTH:
-			pass
-		Behavior.HELLEYE_MISALIGNED_GAZER:
-			pass
-		Behavior.HELLEYE_INVERT_PRIEST:
-			pass
-		Behavior.HELLEYE_HORIZON_DEFLECTOR:
-			pass
-		Behavior.DIVINE_WING_RAIDER:
-			pass
-		Behavior.DIVINE_BLINK_BEACON:
-			pass
-		Behavior.DIVINE_BROKEN_WING_ASSASSIN:
-			pass
-		Behavior.DIVINE_SERAPH_HUNTER:
-			pass
-		Behavior.DIVINE_ORACLE_PHANTOM:
+		_:
+			# WARPED/HELLEYE/DIVINE 系的攻击已迁移到各自的占位/幻影系统，冷却期无额外动作
 			pass
 
 
@@ -1891,7 +1849,6 @@ func _update_explore_patrol(delta: float) -> void:
 	var to_target = target - global_position
 	if to_target.length() <= IDLE_PATROL_REACHED_DISTANCE:
 		_explore_patrol_index += 1
-		_explore_patrol_returning = false
 		return
 	var move_dir = to_target.normalized()
 	var before = global_position
@@ -1933,11 +1890,7 @@ func _enter_explore_patrol_from_nearest_point() -> void:
 			best_distance = distance
 			best_index = i
 	_explore_patrol_index = best_index
-	_explore_patrol_returning = true
 
-
-func _is_inside_explore_room(pos: Vector2) -> bool:
-	return _explore_patrol_room_bounds.size != Vector2.ZERO and _explore_patrol_room_bounds.has_point(pos)
 
 
 func _is_outside_explore_despawn_bounds() -> bool:
@@ -1978,7 +1931,6 @@ func _enter_idle_ai(force: bool = false) -> void:
 	_calibrator_dodge_side = 1.0 if randf() < 0.5 else -1.0
 	_calibrator_ray_timer = 0.0
 	_calibrator_ray_points = PackedVector2Array()
-	_calibrator_ray_clear = false
 	_sanctum_spin_speed = 0.0
 	_sanctum_spin_active = false
 	_sanctum_spin_fire_timer = 0.0
@@ -2047,21 +1999,6 @@ func _enter_pursuit_ai() -> void:
 	queue_redraw()
 
 
-func _enter_explore_light_combat() -> void:
-	state = State.COOLDOWN
-	cooldown_remaining = move_cooldown
-	_is_pursuing_player = false
-	_pursuit_target = Vector2.ZERO
-	_pursuit_repath_timer = 0.0
-	_explore_combat_target = Vector2.ZERO
-	_explore_combat_target_timer = 0.0
-	if behavior == Behavior.COLOSSUS_CORE_DEVOURER:
-		_core_devourer_claw_timer = randf_range(3.0, 8.0)
-		_request_core_devourer_gravity_claw_pool_prewarm()
-	if behavior == Behavior.DIVINE_ORACLE_PHANTOM:
-		_divine_oracle_spawn_timer = randf_range(DIVINE_ORACLE_PHANTOM_MIN_INTERVAL, DIVINE_ORACLE_PHANTOM_MAX_INTERVAL)
-	queue_redraw()
-
 
 func _update_pursuit_movement(delta: float) -> void:
 	if _apply_obstacle_bounce(delta):
@@ -2098,22 +2035,6 @@ func _update_pursuit_movement(delta: float) -> void:
 		_pursuit_repath_timer = 0.0
 	_update_effects(delta)
 
-
-func _update_explore_light_combat(delta: float) -> void:
-	if not player:
-		_enter_idle_ai()
-		return
-	_attack_timer = maxf(_attack_timer - delta, 0.0)
-	_special_timer = maxf(_special_timer - delta, 0.0)
-	_burst_gap = maxf(_burst_gap - delta, 0.0)
-	_explore_combat_target_timer -= delta
-	if _explore_combat_target == Vector2.ZERO or _explore_combat_target_timer <= 0.0:
-		_explore_combat_target = _find_explore_light_combat_target()
-		_explore_combat_target_timer = EXPLORE_COMBAT_TARGET_INTERVAL + randf_range(0.0, 0.2)
-	_move_toward_explore_combat_target(delta)
-	_update_explore_light_combat_attack(delta)
-	_update_effects(delta)
-	queue_redraw()
 
 
 func _find_explore_light_combat_target() -> Vector2:
@@ -2352,9 +2273,6 @@ func _uses_paradise_formation_shooter() -> bool:
 	return behavior == Behavior.PARADISE_PATROL or behavior == Behavior.PARADISE_ARC_SCATTER or behavior == Behavior.PARADISE_RAIL_CHAIN or behavior == Behavior.PARADISE_CALIBRATOR or behavior == Behavior.PARADISE_SANCTUM_SUPPRESSOR or behavior == Behavior.WARPED_REFRACTION_SHOOTER or behavior == Behavior.WARPED_COLLAPSE_BEACON or behavior == Behavior.DIVINE_BLINK_BEACON
 
 
-func _uses_divine_assassin_back_positioning() -> bool:
-	return behavior == Behavior.DIVINE_BROKEN_WING_ASSASSIN or behavior == Behavior.DIVINE_SERAPH_HUNTER
-
 
 func _locks_rotation_for_positioning_ai() -> bool:
 	return behavior == Behavior.PARADISE_SANCTUM_SUPPRESSOR or _uses_warped_spin()
@@ -2431,12 +2349,6 @@ func _burst_shot(interval: float, count: int, gap: float, speed: float, dmg: int
 			_burst_gap = gap
 			_shoot_at_player(speed, dmg)
 
-
-func _shield_pulse(delta: float) -> void:
-	_special_timer -= delta
-	if _special_timer <= 0.0:
-		_special_timer = 3.0
-		_spawn_ring(8, 10, 150)
 
 
 func _shield_bee_counter_shot(dmg: int) -> void:
@@ -3802,7 +3714,6 @@ func _update_calibrator_ray_cache(delta: float) -> void:
 	if ray.size() >= 2:
 		_calibrator_ray_points.append(ray[0])
 		_calibrator_ray_points.append(ray[1])
-	_calibrator_ray_clear = ray.size() >= 2
 
 
 func _fire_calibrator_sniper() -> void:
@@ -4515,15 +4426,6 @@ func _get_player_aim_direction() -> Vector2:
 	return Vector2.DOWN
 
 
-func _periodic_claw() -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 2.4
-	var dir := (player.global_position - global_position).normalized()
-	_spawn_bullet(dir, 420, 10, 1.4)
-	if global_position.distance_to(player.global_position) < 180:
-		player.take_knockback_damage(8, 450, 0.18, -dir)
-
 
 func _prepare_gravity_claw_charge_path() -> void:
 	if not player:
@@ -4920,25 +4822,6 @@ func _deactivate_core_devourer_gravity_claw() -> void:
 		queue_free()
 
 
-func _guard_charge(delta: float) -> void:
-	if _is_charging:
-		var before := global_position
-		_charge_time -= delta
-		var dir := (_charge_target - global_position).normalized()
-		position += dir * 560 * delta
-		if _resolve_obstacle_contact(before, true):
-			_is_charging = false
-			_attack_timer = 2.2
-			return
-		if _charge_time <= 0.0 or global_position.distance_to(_charge_target) < 16:
-			_is_charging = false
-			_attack_timer = 2.2
-		return
-	if _attack_timer <= 0.0 and player:
-		_charge_target = _find_reachable_target(player.global_position)
-		_charge_time = 0.45
-		_is_charging = true
-
 
 func _devourer_attack() -> void:
 	if _attack_timer > 0.0:
@@ -4965,134 +4848,18 @@ func _sanctum_attack() -> void:
 	_spawn_bullet(Vector2.DOWN, 260, 8, 1.2, center + Vector2(0, -150))
 
 
-func _micro_core_suction(delta: float) -> void:
-	_suction_time -= delta
-	if _suction_time <= 0.0:
-		_suction_time = 3.0
-	GameManager.suction_active = true
-	GameManager.suction_center = global_position
-	_periodic_spread(2.0, 4, TAU, 140, 7)
 
 
-func _refracted_shot() -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 1.8
-	var dir := (player.global_position - global_position).normalized().rotated(randf_range(-0.45, 0.45))
-	_spawn_bullet(dir, 230, 10)
-	await get_tree().create_timer(0.45).timeout
-	if is_instance_valid(self) and is_instance_valid(player):
-		_shoot_at_player(320, 10)
 
 
-func _collapse_beacon(delta: float) -> void:
-	_suction_time -= delta
-	if _suction_time > 0.0:
-		GameManager.suction_active = true
-		GameManager.suction_center = global_position
-		return
-	if _attack_timer <= 0.0:
-		_attack_timer = 4.0
-		_suction_time = 1.4
-		_spawn_ring(12, 9, 210)
 
 
-func _deflection_matrix() -> void:
-	if _attack_timer > 0.0:
-		return
-	_attack_timer = 2.0
-	for i in 8:
-		var dir := Vector2.RIGHT.rotated(i * TAU / 8.0 + _phase * 0.3)
-		_spawn_bullet(dir, 220, 9)
-	_phase += 1
 
 
-func _inverting_ray(strong: bool) -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 3.0 if strong else 2.2
-	_shoot_at_player(420, 8 if not strong else 9, 1.2)
-	if global_position.distance_to(player.global_position) < (260 if strong else 180):
-		GameManager.controls_inverted = true
-		await get_tree().create_timer(1.5 if strong else 1.0).timeout
-		GameManager.controls_inverted = false
 
 
-func _blind_cloud() -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 2.8
-	_create_cloud(player.global_position, 90, 1.5)
-	if global_position.distance_to(player.global_position) < 100:
-		player.take_damage_from_boss(3)
 
 
-func _misaligned_shot() -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 1.4
-	var dir := (player.global_position - global_position).normalized().rotated(randf_range(-0.28, 0.28))
-	_spawn_bullet(dir, 270, 9)
-
-
-func _invert_priest(delta: float) -> void:
-	_inverting_ray(true)
-	_periodic_spread(2.8, 5, PI / 2.0, 170, 8)
-
-
-func _horizon_attack() -> void:
-	if _attack_timer > 0.0:
-		return
-	_attack_timer = 2.6
-	var angle := randf_range(-0.8, 0.8)
-	for i in 5:
-		_spawn_bullet(Vector2.DOWN.rotated(angle + (i - 2) * 0.15), 240, 10)
-
-
-func _raider_drop() -> void:
-	if _attack_timer > 0.0:
-		return
-	_attack_timer = 0.7
-	_spawn_bullet(Vector2.DOWN.rotated(randf_range(-0.25, 0.25)), 260, 7)
-
-
-func _blink_beacon() -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 2.0
-	global_position = _safe_near_player(180)
-	_shoot_at_player(460, 10)
-
-
-func _assassin_dash(delta: float) -> void:
-	_guard_charge(delta)
-
-
-func _seraph_hunter(delta: float) -> void:
-	if _is_charging:
-		_guard_charge(delta)
-		return
-	if _attack_timer <= 0.0 and player:
-		global_position = _safe_near_player(230)
-		_shoot_at_player(390, 10)
-		_phase += 1
-		if _phase % 3 == 0:
-			_charge_target = _find_reachable_target(player.global_position)
-			_charge_time = 0.5
-			_is_charging = true
-		_attack_timer = 1.0
-
-
-func _oracle_phantom() -> void:
-	if _attack_timer > 0.0 or not player:
-		return
-	_attack_timer = 2.8
-	for i in 3:
-		var pos := global_position + Vector2.RIGHT.rotated(i * TAU / 3.0) * 90
-		_create_afterimage(pos)
-		_spawn_bullet((player.global_position - pos).normalized(), 230, 8, 1.0, pos)
-	global_position = _safe_near_player(220)
-	_shoot_at_player(260, 14)
 
 
 func _shoot_at_player(speed: float, dmg: int, scale_mult: float = 1.0) -> void:
@@ -5347,7 +5114,6 @@ func _resolve_obstacle_contact(before: Vector2, should_bounce: bool) -> bool:
 	if impact_dir == Vector2.ZERO:
 		impact_dir = Vector2.DOWN
 	global_position = pushed
-	_is_charging = false
 	if should_bounce:
 		_obstacle_bounce_velocity = impact_dir * maxf(move_speed * 0.85, 180.0)
 		_obstacle_bounce_time = 0.28
@@ -5407,41 +5173,7 @@ func _update_idle_facing(delta: float) -> void:
 	_smooth_face_direction(direction, delta, turn_speed * 0.55)
 
 
-func _safe_near_player(radius: float) -> Vector2:
-	if not player:
-		return global_position
-	for i in range(24):
-		var angle := randf_range(0.0, TAU)
-		var distance := randf_range(radius * 0.75, radius * 1.25)
-		var candidate := _clamped_point(player.global_position + Vector2.RIGHT.rotated(angle) * distance)
-		var pushed := _push_out_from_obstacles(candidate)
-		if pushed.distance_to(candidate) < 2.0 and not _path_blocked_by_obstacle(candidate, player.global_position):
-			return candidate
-	return _find_reachable_target(player.global_position)
 
-
-func _create_cloud(pos: Vector2, radius: float, duration: float) -> void:
-	var cloud := ColorRect.new()
-	cloud.color = Color(0, 0, 0, 0.35)
-	cloud.size = Vector2(radius * 2, radius * 2)
-	cloud.position = pos - cloud.size * 0.5
-	cloud.z_index = 20
-	_get_effect_parent().add_child(cloud)
-	var tw := cloud.create_tween()
-	tw.tween_property(cloud, "modulate:a", 0.0, duration)
-	tw.finished.connect(cloud.queue_free)
-
-
-func _create_afterimage(pos: Vector2) -> void:
-	var img := ColorRect.new()
-	img.color = Color(accent_color.r, accent_color.g, accent_color.b, 0.35)
-	img.size = body_size
-	img.position = pos - body_size * 0.5
-	img.z_index = -5
-	_get_effect_parent().add_child(img)
-	var tw := img.create_tween()
-	tw.tween_property(img, "modulate:a", 0.0, 0.8)
-	tw.finished.connect(img.queue_free)
 
 
 func _update_effects(_delta: float) -> void:

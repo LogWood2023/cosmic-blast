@@ -3,8 +3,6 @@ extends Area2D
 @export var clutter_texture: Texture2D
 @export var visual_size: float = 180.0
 @export var max_hp: int = 5
-@export var outline_samples: int = 48
-@export var alpha_threshold: float = 0.1
 @export var shake_duration: float = 0.18
 @export var shake_strength: float = 6.0
 @export var sway_speed_min: float = 0.18
@@ -263,26 +261,3 @@ func _build_simple_collision_outline(size: float) -> PackedVector2Array:
 	])
 
 
-func _build_texture_outline(tex: Texture2D, texture_scale: Vector2) -> PackedVector2Array:
-	var image = tex.get_image()
-	if not image:
-		return PackedVector2Array()
-	var img_size = image.get_size()
-	var center = Vector2(img_size) * 0.5
-	var radius = maxf(img_size.x, img_size.y) * 0.5
-	var points: Array[Vector2] = []
-	for i in outline_samples:
-		var angle = TAU * float(i) / float(outline_samples)
-		var dir = Vector2(cos(angle), sin(angle))
-		var hit = center
-		for step in range(int(radius), 0, -1):
-			var probe = center + dir * float(step)
-			var px = int(round(probe.x))
-			var py = int(round(probe.y))
-			if px < 0 or py < 0 or px >= img_size.x or py >= img_size.y:
-				continue
-			if image.get_pixel(px, py).a > alpha_threshold:
-				hit = probe
-				break
-		points.append((hit - center) * texture_scale)
-	return PackedVector2Array(points)

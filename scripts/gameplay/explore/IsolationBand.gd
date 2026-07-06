@@ -6,8 +6,6 @@ extends Node2D
 @export var band_color: Color = Color.WHITE
 @export var band_texture: Texture2D
 @export var tile_textures: Array[Texture2D] = []
-@export var outline_samples: int = 64
-@export var alpha_threshold: float = 0.1
 @export var fallback_center_collision_width: float = 300.0
 var _tile_sequence: Array[Texture2D] = []
 var _outline: PackedVector2Array = PackedVector2Array()
@@ -216,30 +214,6 @@ func _build_tile_sprites(length: float) -> void:
 		tile.position = Vector2(-length * 0.5 + i * tile_width, -tile_height * 0.5)
 		add_child(tile)
 
-
-func _build_texture_outline(tex: Texture2D, region: Rect2) -> PackedVector2Array:
-	var image = tex.get_image()
-	if not image:
-		return PackedVector2Array()
-	var img_size = image.get_size()
-	var center = region.size * 0.5
-	var radius = maxf(region.size.x, region.size.y) * 0.5
-	var points: Array[Vector2] = []
-	for i in outline_samples:
-		var angle = TAU * float(i) / float(outline_samples)
-		var dir = Vector2(cos(angle), sin(angle))
-		var hit = center
-		for step in range(int(radius), 0, -1):
-			var probe = center + dir * float(step)
-			var px = int(round((region.position.x + probe.x) / region.size.x * img_size.x))
-			var py = int(round((region.position.y + probe.y) / region.size.y * img_size.y))
-			if px < 0 or py < 0 or px >= img_size.x or py >= img_size.y:
-				continue
-			if image.get_pixel(px, py).a > alpha_threshold:
-				hit = probe
-				break
-		points.append(hit - center)
-	return PackedVector2Array(points)
 
 
 func _build_rect_polygon(size: Vector2) -> PackedVector2Array:
