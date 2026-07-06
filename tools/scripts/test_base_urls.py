@@ -2,7 +2,7 @@
 import os
 from openai import OpenAI
 
-api_key = "***REMOVED***"
+api_key = os.environ.get("PACKY_API_KEY", "")
 base_url = "https://www.packyapi.com/v1"
 
 models_to_test = [
