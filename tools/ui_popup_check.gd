@@ -2,7 +2,13 @@ extends SceneTree
 
 const SHOP_POPUP_SCENE := preload("res://scenes/ui/world_map/ShopPopup.tscn")
 const HANGAR_POPUP_SCENE := preload("res://scenes/ui/world_map/HangarPopup.tscn")
+const EQUIPMENT_ARCHIVE_POPUP_SCENE := preload("res://scenes/ui/world_map/EquipmentArchivePopup.tscn")
+const EVENT_CHOICE_POPUP_SCENE := preload("res://scenes/ui/world_map/EventChoicePopup.tscn")
 const EVENT_RESULT_POPUP_SCENE := preload("res://scenes/ui/world_map/EventResultPopup.tscn")
+const REWARD_CACHE_CHOICE_POPUP_SCENE := preload("res://scenes/ui/world_map/RewardCacheChoicePopup.tscn")
+const BOSS_REWARD_POPUP_SCENE := preload("res://scenes/ui/world_map/BossRewardPopup.tscn")
+const SPECIAL_BONUS_POPUP_SCENE := preload("res://scenes/ui/world_map/SpecialBonusPopup.tscn")
+const ROUTE_DIRECTIVE_POPUP_SCENE := preload("res://scenes/ui/world_map/RouteDirectivePopup.tscn")
 const SETTINGS_POPUP_SCENE := preload("res://scenes/ui/main_menu/SettingsPopup.tscn")
 const COMMAND_CONSOLE_POPUP_SCENE := preload("res://scenes/ui/explore/CommandConsolePopup.tscn")
 
@@ -20,7 +26,13 @@ func _run() -> void:
 	run_manager.start_new_run()
 	_check_shop_popup()
 	_check_hangar_popup()
+	_check_equipment_archive_popup()
+	_check_event_choice_popup()
 	_check_event_popup()
+	_check_reward_cache_choice_popup()
+	_check_boss_reward_popup()
+	_check_special_bonus_popup()
+	_check_route_directive_popup()
 	_check_settings_popup()
 	_check_command_console_popup()
 	print("UI popup scene check passed.")
@@ -32,6 +44,8 @@ func _check_shop_popup() -> void:
 	root.add_child(popup)
 	popup.call("setup")
 	_assert_has_node(popup, "Panel/ItemsScroll/ItemsList")
+	_assert_has_node(popup, "Panel/ControlsBar/FamilyFocusOption")
+	_assert_has_node(popup, "Panel/ControlsBar/RerollButton")
 	popup.queue_free()
 
 
@@ -40,14 +54,120 @@ func _check_hangar_popup() -> void:
 	root.add_child(popup)
 	popup.call("setup")
 	_assert_has_node(popup, "Panel/ItemsScroll/ItemsList")
+	_assert_has_node(popup, "Panel/LoadoutBar/SummaryLabel")
+	_assert_has_node(popup, "Panel/LoadoutBar/Loadout1SaveButton")
+	_assert_has_node(popup, "Panel/LoadoutBar/Loadout1ApplyButton")
+	popup.queue_free()
+
+
+func _check_equipment_archive_popup() -> void:
+	var popup := EQUIPMENT_ARCHIVE_POPUP_SCENE.instantiate()
+	root.add_child(popup)
+	popup.call("setup")
+	_assert_has_node(popup, "Panel/ItemsScroll/ItemsList")
+	_assert_has_node(popup, "Panel/FamilyFilterBar/ColossusButton")
+	_assert_has_node(popup, "Panel/TypeFilterBar/WeaponButton")
+	_assert_has_node(popup, "Panel/SummaryLabel")
+	popup.queue_free()
+
+
+func _check_event_choice_popup() -> void:
+	var popup := EVENT_CHOICE_POPUP_SCENE.instantiate()
+	root.add_child(popup)
+	popup.call("setup", {"tier": 2, "intel_title": "失落航标", "family_bias": "paradise"}, [
+		{"choice_id": "a", "title": "接入补给链", "category": "minerals", "preview": "获得矿物"},
+		{"choice_id": "b", "title": "静默修复", "category": "heal", "preview": "修复机体"},
+		{"choice_id": "c", "title": "密封蓝图", "category": "equipment", "preview": "获得蓝图"},
+	])
+	_assert_has_node(popup, "Panel/ChoicesScroll/ChoicesList")
+	var list := popup.get_node("Panel/ChoicesScroll/ChoicesList")
+	if list.get_child_count() != 3:
+		push_error("Event choice popup should create 3 choice buttons.")
 	popup.queue_free()
 
 
 func _check_event_popup() -> void:
 	var popup := EVENT_RESULT_POPUP_SCENE.instantiate()
 	root.add_child(popup)
-	popup.call("setup", {"ok": true, "message": "测试事件。"})
+	popup.call("setup", {"ok": true, "message": "航标信号已经归档。"})
 	_assert_has_node(popup, "Panel/BodyLabel")
+	popup.queue_free()
+
+
+func _check_reward_cache_choice_popup() -> void:
+	var popup := REWARD_CACHE_CHOICE_POPUP_SCENE.instantiate()
+	root.add_child(popup)
+	popup.call("setup", {"tier": 2, "reward_title": "天堂弹仓", "cache_family_bias": "paradise"}, [
+		{"choice_id": "a", "title": "星髓回收箱", "description": "矿脉优先标定。", "preview": "星髓收益提高。"},
+		{"choice_id": "b", "title": "封存蓝图箱", "description": "扫描带宽让给蓝图。", "preview": "装备蓝图检出提高。"},
+		{"choice_id": "c", "title": "天堂号同调箱", "description": "锁定天堂号回响。", "preview": "天堂号蓝图更容易出现。"},
+	])
+	_assert_has_node(popup, "Panel/ChoicesScroll/ChoicesList")
+	var list := popup.get_node("Panel/ChoicesScroll/ChoicesList")
+	if list.get_child_count() != 3:
+		push_error("Reward cache choice popup should create 3 choice buttons.")
+	popup.queue_free()
+
+
+func _check_boss_reward_popup() -> void:
+	var popup := BOSS_REWARD_POPUP_SCENE.instantiate()
+	root.add_child(popup)
+	popup.call("setup", {
+		"ok": true,
+		"threshold": 5,
+		"stage": 1,
+		"family_name": "星间巨构",
+		"item_name": "巨构折跃撞角",
+	})
+	_assert_has_node(popup, "Panel/TitleLabel")
+	_assert_has_node(popup, "Panel/BodyLabel")
+	_assert_has_node(popup, "Panel/CloseButton")
+	var text := "%s\n%s" % [
+		(popup.get_node("Panel/TitleLabel") as Label).text,
+		(popup.get_node("Panel/BodyLabel") as RichTextLabel).text,
+	]
+	for expected in ["执行体肃清", "星间巨构", "缴获纹章", "巨构折跃撞角"]:
+		if not text.contains(expected):
+			push_error("Boss reward popup should include %s. Popup: %s" % [expected, text])
+	popup.queue_free()
+
+
+func _check_special_bonus_popup() -> void:
+	var popup := SPECIAL_BONUS_POPUP_SCENE.instantiate()
+	root.add_child(popup)
+	popup.call("setup", {
+		"activated_names": ["冲刺碰撞协议"],
+		"beacon_echo_routes": [
+			{
+				"node_name": "巨构残响带",
+				"family_name": "星间巨构",
+				"equipment_bonus": 0.08,
+				"reward_bonus": 0.10,
+			},
+		],
+	})
+	_assert_has_node(popup, "Panel/TitleLabel")
+	_assert_has_node(popup, "Panel/BodyLabel")
+	_assert_has_node(popup, "Panel/CloseButton")
+	popup.queue_free()
+
+
+func _check_route_directive_popup() -> void:
+	var popup := ROUTE_DIRECTIVE_POPUP_SCENE.instantiate()
+	root.add_child(popup)
+	popup.call("setup", {
+		"completed_directives": [
+			{
+				"title": "清扫前哨航线",
+				"description": "方舟航线已经稳定。",
+				"reward_text": "星髓矿与算力补给",
+			},
+		],
+		"reward_summary": {"minerals": 33, "compute": 1},
+	})
+	_assert_has_node(popup, "Panel/TitleLabel")
+	_assert_has_node(popup, "Panel/BodyLabel")
+	_assert_has_node(popup, "Panel/CloseButton")
 	popup.queue_free()
 
 

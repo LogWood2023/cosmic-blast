@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/reward_cache_route_calibration_check.gd" id="1_0mj1t"]
+
+[node name="RewardCacheRouteCalibrationCheck" type="Node"]
+script = ExtResource("1_0mj1t")

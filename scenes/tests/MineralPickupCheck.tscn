@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cqx1ecslcbefi"]
+
+[ext_resource type="Script" path="res://tools/mineral_pickup_check.gd" id="1_n1lrv"]
+
+[node name="MineralPickupCheck" type="Node"]
+script = ExtResource("1_n1lrv")

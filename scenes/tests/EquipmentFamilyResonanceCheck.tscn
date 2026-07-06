@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/equipment_family_resonance_check.gd" id="1_i7f2v"]
+
+[node name="EquipmentFamilyResonanceCheck" type="Node"]
+script = ExtResource("1_i7f2v")

@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/equipment_copy_quality_check.gd" id="1_qvdmd"]
+
+[node name="EquipmentCopyQualityCheck" type="Node"]
+script = ExtResource("1_qvdmd")

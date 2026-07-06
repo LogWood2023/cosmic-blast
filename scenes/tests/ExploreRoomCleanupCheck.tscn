@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/explore_room_cleanup_check.gd" id="1_1msoi"]
+
+[node name="ExploreRoomCleanupCheck" type="Node"]
+script = ExtResource("1_1msoi")

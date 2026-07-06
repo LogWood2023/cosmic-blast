@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cw4v6gbfoqk3h"]
+
+[ext_resource type="Script" path="res://tools/ore_source_profile_check.gd" id="1_o54ie"]
+
+[node name="OreSourceProfileCheck" type="Node"]
+script = ExtResource("1_o54ie")

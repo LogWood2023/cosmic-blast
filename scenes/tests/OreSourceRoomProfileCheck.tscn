@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/ore_source_room_profile_check.gd" id="1_gq23n"]
+
+[node name="OreSourceRoomProfileCheck" type="Node"]
+script = ExtResource("1_gq23n")

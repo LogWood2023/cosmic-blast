@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dru5qvw5nsv63"]
+
+[ext_resource type="Script" path="res://tools/mineral_drop_sources_check.gd" id="1_43aky"]
+
+[node name="MineralDropSourcesCheck" type="Node"]
+script = ExtResource("1_43aky")

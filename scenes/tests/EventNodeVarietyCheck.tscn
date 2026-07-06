@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/event_node_variety_check.gd" id="1_q36cx"]
+
+[node name="EventNodeVarietyCheck" type="Node"]
+script = ExtResource("1_q36cx")

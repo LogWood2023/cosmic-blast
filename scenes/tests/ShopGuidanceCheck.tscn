@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/shop_guidance_check.gd" id="1_fw4n0"]
+
+[node name="ShopGuidanceCheck" type="Node"]
+script = ExtResource("1_fw4n0")

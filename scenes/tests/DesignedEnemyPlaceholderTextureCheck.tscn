@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/designed_enemy_placeholder_texture_check.gd" id="1_mv856"]
+
+[node name="DesignedEnemyPlaceholderTextureCheck" type="Node"]
+script = ExtResource("1_mv856")

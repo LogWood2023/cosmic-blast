@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/game_over_summary_check.gd" id="1_d1q0t"]
+
+[node name="GameOverSummaryCheck" type="Node"]
+script = ExtResource("1_d1q0t")

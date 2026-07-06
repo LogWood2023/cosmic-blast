@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/special_beacon_resonance_check.gd" id="1_r4m0u"]
+
+[node name="SpecialBeaconResonanceCheck" type="Node"]
+script = ExtResource("1_r4m0u")

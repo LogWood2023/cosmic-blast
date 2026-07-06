@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/world_map_progression_check.gd" id="1_t2d4w"]
+
+[node name="WorldMapProgressionCheck" type="Node"]
+script = ExtResource("1_t2d4w")

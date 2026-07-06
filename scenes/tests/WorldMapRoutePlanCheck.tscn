@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/world_map_route_plan_check.gd" id="1_0d56s"]
+
+[node name="WorldMapRoutePlanCheck" type="Node"]
+script = ExtResource("1_0d56s")

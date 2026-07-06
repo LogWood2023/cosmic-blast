@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/special_beacon_shop_drift_check.gd" id="1_v8l27"]
+
+[node name="SpecialBeaconShopDriftCheck" type="Node"]
+script = ExtResource("1_v8l27")

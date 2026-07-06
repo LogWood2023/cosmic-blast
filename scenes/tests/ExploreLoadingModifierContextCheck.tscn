@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/explore_loading_modifier_context_check.gd" id="1_3qr2m"]
+
+[node name="ExploreLoadingModifierContextCheck" type="Node"]
+script = ExtResource("1_3qr2m")

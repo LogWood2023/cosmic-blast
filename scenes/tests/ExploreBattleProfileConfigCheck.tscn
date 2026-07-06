@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/explore_battle_profile_config_check.gd" id="1_hb40h"]
+
+[node name="ExploreBattleProfileConfigCheck" type="Node"]
+script = ExtResource("1_hb40h")

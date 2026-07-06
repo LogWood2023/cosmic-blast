@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/mineral_collect_feedback_check.gd" id="1_0d8gl"]
+
+[node name="MineralCollectFeedbackCheck" type="Node"]
+script = ExtResource("1_0d8gl")

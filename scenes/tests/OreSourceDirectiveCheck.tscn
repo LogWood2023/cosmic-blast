@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bt86y6cpb4old"]
+
+[ext_resource type="Script" path="res://tools/ore_source_directive_check.gd" id="1_5sodk"]
+
+[node name="OreSourceDirectiveCheck" type="Node"]
+script = ExtResource("1_5sodk")

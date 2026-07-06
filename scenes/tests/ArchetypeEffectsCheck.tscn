@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/archetype_effects_check.gd" id="1_0ew7l"]
+
+[node name="ArchetypeEffectsCheck" type="Node"]
+script = ExtResource("1_0ew7l")

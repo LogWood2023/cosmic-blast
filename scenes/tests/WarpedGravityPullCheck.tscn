@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/warped_gravity_pull_check.gd" id="1_fh8fb"]
+
+[node name="WarpedGravityPullCheck" type="Node"]
+script = ExtResource("1_fh8fb")

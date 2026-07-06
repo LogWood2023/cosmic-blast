@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ckd7qenmnq361"]
+
+[ext_resource type="Script" path="res://tools/dash_logic_check.gd" id="1_0eht4"]
+
+[node name="DashLogicCheck" type="Node"]
+script = ExtResource("1_0eht4")

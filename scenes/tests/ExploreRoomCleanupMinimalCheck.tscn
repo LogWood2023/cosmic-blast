@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/explore_room_cleanup_variant_check.gd" id="1_b743e"]
+
+[node name="ExploreRoomCleanupMinimalCheck" type="Node"]
+script = ExtResource("1_b743e")
+variant = "minimal"

@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/hell_eye_frenzy_damage_check.gd" id="1_dfjy6"]
+
+[node name="HellEyeFrenzyDamageCheck" type="Node"]
+script = ExtResource("1_dfjy6")

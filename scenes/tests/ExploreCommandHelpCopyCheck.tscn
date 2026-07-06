@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/explore_command_help_copy_check.gd" id="1_dqg3b"]
+
+[node name="ExploreCommandHelpCopyCheck" type="Node"]
+script = ExtResource("1_dqg3b")

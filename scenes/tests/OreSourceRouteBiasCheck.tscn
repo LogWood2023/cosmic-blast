@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cgkgvn6beuy7r"]
+
+[ext_resource type="Script" path="res://tools/ore_source_route_bias_check.gd" id="1_aalyy"]
+
+[node name="OreSourceRouteBiasCheck" type="Node"]
+script = ExtResource("1_aalyy")

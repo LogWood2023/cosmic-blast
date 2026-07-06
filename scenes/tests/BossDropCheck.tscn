@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://d0i4nwl3m8ljp"]
+
+[ext_resource type="Script" path="res://tools/boss_drop_check.gd" id="1_5iuxg"]
+
+[node name="BossDropCheck" type="Node"]
+script = ExtResource("1_5iuxg")

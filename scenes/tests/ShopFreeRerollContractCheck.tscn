@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/shop_free_reroll_contract_check.gd" id="1_xj71v"]
+
+[node name="ShopFreeRerollContractCheck" type="Node"]
+script = ExtResource("1_xj71v")

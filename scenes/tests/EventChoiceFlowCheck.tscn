@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/event_choice_flow_check.gd" id="1_ucdj8"]
+
+[node name="EventChoiceFlowCheck" type="Node"]
+script = ExtResource("1_ucdj8")

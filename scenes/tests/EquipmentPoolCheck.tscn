@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/equipment_pool_check.gd" id="1_qm44p"]
+
+[node name="EquipmentPoolCheck" type="Node"]
+script = ExtResource("1_qm44p")

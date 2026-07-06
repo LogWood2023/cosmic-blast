@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/equipment_economy_synergy_check.gd" id="1_df6bm"]
+
+[node name="EquipmentEconomySynergyCheck" type="Node"]
+script = ExtResource("1_df6bm")

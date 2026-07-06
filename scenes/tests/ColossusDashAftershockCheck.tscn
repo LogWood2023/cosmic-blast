@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/colossus_dash_aftershock_check.gd" id="1_g82dk"]
+
+[node name="ColossusDashAftershockCheck" type="Node"]
+script = ExtResource("1_g82dk")
