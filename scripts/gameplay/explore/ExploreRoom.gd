@@ -120,6 +120,12 @@ const ORE_VEIN_TEXTURE_PATHS: Array[String] = [
 	"res://assets/images/rewards/ore_02.png",
 	"res://assets/images/rewards/ore_03.png",
 ]
+const ORE_SOURCE_WEIGHTS: Dictionary = {
+	"star_marrow": 52.0,
+	"gleam_crystal": 24.0,
+	"rift_cluster": 16.0,
+	"deep_core": 8.0,
+}
 const ISOLATION_BAND_TILE_PATHS: Array[Array] = [
 	[
 		"res://assets/images/isolation_band_tiles/space_elevator_1_cutout.png",
@@ -143,15 +149,6 @@ const COMMAND_HELP_ENTRIES: Array[Dictionary] = [
 	{"command": "/展示陷阱", "description": "切换小地图中的炮台与电击隔离带端点显示"},
 	{"command": "/展示刷怪", "description": "切换小地图中的巡逻路线显示"},
 	{"command": "/清除迷雾", "description": "隐藏小地图上的所有战争迷雾"},
-	{"command": "/刷敌 编号 [数量]", "description": "临时在玩家附近生成指定设计敌人，编号0-24"},
-	{"command": "/刷校准者", "description": "临时生成天堂校准者用于卡顿测试"},
-	{"command": "/刷小怪家族 家族 [数量]", "description": "临时生成某个家族的1-3号小怪，家族可用colossus/paradise/warped/hell_eye/divine"},
-	{"command": "/刷精英 [家族|all] [数量]", "description": "临时生成某个家族的4-5号精英，不填则随机家族"},
-	{"command": "/刷全精英", "description": "临时生成五个家族的全部精英敌人"},
-	{"command": "/刷全敌", "description": "临时在玩家附近分散生成25种设计敌人"},
-	{"command": "/轮测敌 [秒]", "description": "自动逐个生成25种设计敌人并清理上一只"},
-	{"command": "/停轮测", "description": "停止自动轮测敌人"},
-	{"command": "/清测试敌", "description": "清除通过临时指令生成的测试敌人"},
 ]
 
 @export var large_space_rock_count: int = -1
@@ -165,6 +162,10 @@ const COMMAND_HELP_ENTRIES: Array[Dictionary] = [
 @export var divine_family_weight: float = 1.0
 @export var enemy_spawn_interval: float = PATROL_ENEMY_DEFAULT_SPAWN_INTERVAL
 @export var max_patrol_enemy_count: int = PATROL_ENEMY_DEFAULT_MAX_COUNT
+@export var patrol_path_min_count: int = PATROL_PATH_MIN_COUNT
+@export var patrol_path_max_count: int = PATROL_PATH_MAX_COUNT
+@export var elite_replacement_min_count: int = ELITE_CHEST_REPLACEMENT_MIN_COUNT
+@export var elite_replacement_max_count: int = ELITE_CHEST_REPLACEMENT_MAX_COUNT
 
 @onready var player: Area2D = $player
 @onready var camera: Camera2D = $Camera2D
@@ -176,6 +177,7 @@ const COMMAND_HELP_ENTRIES: Array[Dictionary] = [
 @onready var rewards: Node2D = $Rewards
 @onready var clutter: Node2D = $Clutter
 @onready var evacuation_points: Node2D = $EvacuationPoints
+@onready var enemy_effects: Node2D = $EnemyEffects if has_node("EnemyEffects") else null
 @onready var map_ui: Control = $UILayer/ExploreMapUI
 @onready var loading_screen: Control = $UILayer/LoadingScreen
 @onready var loading_bar: ProgressBar = loading_screen.find_child("ProgressBar", true, false) as ProgressBar
@@ -196,9 +198,9 @@ var _large_rock_target_count: int = 0
 var _small_parent_index: int = 0
 var _small_rock_spawn_queue: Array[Node2D] = []
 var _command_layer: Control
-var _command_dialog_panel: ColorRect
+var _command_dialog_panel: Control
 var _command_dialog_label: RichTextLabel
-var _command_input_panel: ColorRect
+var _command_input_panel: Control
 var _command_input_edit: LineEdit
 var _command_dialog_tween: Tween
 var _command_history: Array[String] = []
@@ -217,14 +219,19 @@ var _render_cull_timer: float = 0.0
 var _render_cull_in_progress: bool = false
 var _render_cull_container_index: int = 0
 var _render_cull_child_index: int = 0
+var _ore_source_weights: Dictionary = ORE_SOURCE_WEIGHTS.duplicate(true)
 var _render_cull_active_rect: Rect2 = Rect2()
 var _debug_enemy_cycle_active: bool = false
 var _debug_enemy_cycle_index: int = 0
 var _debug_enemy_cycle_timer: float = 0.0
 var _debug_enemy_cycle_interval: float = 5.0
+var _engineering_console_unlocked: bool = false
+var _room_setup_cancelled: bool = false
+var _loading_context_tip_text: String = ""
 
 
 func _ready() -> void:
+	_ensure_enemy_effects_root()
 	_apply_pending_room_config()
 	player.movement_bounds = Rect2(Vector2.ZERO, ROOM_SIZE)
 	player.blocked_by_space_rocks = true
@@ -238,6 +245,33 @@ func _ready() -> void:
 	player.visible = false
 	_setup_command_ui()
 	_start_room_setup()
+
+
+func _exit_tree() -> void:
+	_room_setup_cancelled = true
+	if _command_dialog_tween and _command_dialog_tween.is_running():
+		_command_dialog_tween.kill()
+	_clear_patrol_runtime()
+	_clear_enemy_effects_root()
+	DesignedEnemyScript.release_static_runtime_resources()
+
+
+func _ensure_enemy_effects_root() -> void:
+	if is_instance_valid(enemy_effects):
+		return
+	enemy_effects = Node2D.new()
+	enemy_effects.name = "EnemyEffects"
+	add_child(enemy_effects)
+
+
+func _clear_enemy_effects_root() -> void:
+	if not is_instance_valid(enemy_effects):
+		return
+	for child in enemy_effects.get_children():
+		if is_instance_valid(child):
+			child.queue_free()
+	enemy_effects.queue_free()
+	enemy_effects = null
 
 
 func setup_room_counts(p_large_space_rock_count: int = -1, p_trap_count: int = -1, p_chest_crystal_count: int = -1, p_clutter_count: int = -1) -> void:
@@ -270,6 +304,11 @@ func setup_room_config(config: Dictionary) -> void:
 		enemy_spawn_interval = maxf(0.1, float(config["enemy_spawn_interval"]))
 	if config.has("max_patrol_enemy_count"):
 		max_patrol_enemy_count = maxi(0, int(config["max_patrol_enemy_count"]))
+	if config.has("modifier_tip_text"):
+		_loading_context_tip_text = String(config["modifier_tip_text"]).strip_edges()
+	if config.has("ore_source_weights"):
+		_apply_ore_source_weights(config["ore_source_weights"])
+	_apply_battle_profile_config(config)
 
 
 func get_room_config() -> Dictionary:
@@ -285,7 +324,47 @@ func get_room_config() -> Dictionary:
 		"divine_family_weight": divine_family_weight,
 		"enemy_spawn_interval": enemy_spawn_interval,
 		"max_patrol_enemy_count": max_patrol_enemy_count,
+		"patrol_path_min_count": patrol_path_min_count,
+		"patrol_path_max_count": patrol_path_max_count,
+		"elite_replacement_min_count": elite_replacement_min_count,
+		"elite_replacement_max_count": elite_replacement_max_count,
 	}
+
+
+func _apply_battle_profile_config(config: Dictionary) -> void:
+	if config.has("battle_trap_pressure"):
+		trap_count = maxi(trap_count, int(config["battle_trap_pressure"]))
+	if config.has("battle_enemy_spawn_interval"):
+		enemy_spawn_interval = minf(enemy_spawn_interval, maxf(0.1, float(config["battle_enemy_spawn_interval"])))
+	if config.has("battle_max_patrol_enemy_count"):
+		max_patrol_enemy_count = maxi(max_patrol_enemy_count, int(config["battle_max_patrol_enemy_count"]))
+	if config.has("battle_family_bias"):
+		_apply_battle_family_bias(
+			String(config["battle_family_bias"]),
+			maxf(1.0, float(config.get("battle_family_weight_boost", 1.0)))
+		)
+	if config.has("battle_patrol_path_min_count"):
+		patrol_path_min_count = maxi(0, int(config["battle_patrol_path_min_count"]))
+	if config.has("battle_patrol_path_max_count"):
+		patrol_path_max_count = maxi(patrol_path_min_count, int(config["battle_patrol_path_max_count"]))
+	if config.has("battle_elite_replacement_min"):
+		elite_replacement_min_count = maxi(0, int(config["battle_elite_replacement_min"]))
+	if config.has("battle_elite_replacement_max"):
+		elite_replacement_max_count = maxi(elite_replacement_min_count, int(config["battle_elite_replacement_max"]))
+
+
+func _apply_battle_family_bias(family: String, weight_boost: float) -> void:
+	match family:
+		"colossus":
+			colossus_family_weight = maxf(colossus_family_weight, weight_boost)
+		"paradise":
+			paradise_family_weight = maxf(paradise_family_weight, weight_boost)
+		"warped":
+			warped_family_weight = maxf(warped_family_weight, weight_boost)
+		"hell_eye":
+			hell_eye_family_weight = maxf(hell_eye_family_weight, weight_boost)
+		"divine":
+			divine_family_weight = maxf(divine_family_weight, weight_boost)
 
 
 func _apply_pending_room_config() -> void:
@@ -505,6 +584,9 @@ func _execute_command(command: String) -> String:
 		return "指令必须以 / 开头。输入 /help 查看可用指令。"
 	if command == "/help":
 		return _get_command_help_text()
+	if command == "/工程席位":
+		_engineering_console_unlocked = true
+		return "工程席位已接管航图指令。"
 	if command == "/展示陷阱":
 		var enabled = map_ui.toggle_turret_trap_mode()
 		return "已开启陷阱显示。" if enabled else "已关闭陷阱显示。"
@@ -514,6 +596,8 @@ func _execute_command(command: String) -> String:
 	if command == "/清除迷雾":
 		map_ui.clear_fog()
 		return "已清除迷雾。"
+	if _is_engineering_command(command) and not _engineering_console_unlocked:
+		return "工程席位尚未接管，当前只开放航图辅助指令。"
 	if command == "/刷校准者":
 		return _spawn_debug_enemy_command(["/刷敌", "8", "1"])
 	if command == "/刷全精英":
@@ -537,10 +621,24 @@ func _execute_command(command: String) -> String:
 
 
 func _get_command_help_text() -> String:
-	var lines: Array[String] = []
+	var lines: Array[String] = ["航图指令："]
 	for entry in COMMAND_HELP_ENTRIES:
 		lines.append("%s：%s" % [entry.get("command", ""), entry.get("description", "")])
 	return "\n".join(lines)
+
+
+func _is_engineering_command(command: String) -> bool:
+	return (
+		command == "/刷校准者"
+		or command == "/刷全精英"
+		or command == "/刷全敌"
+		or command == "/停轮测"
+		or command == "/清测试敌"
+		or command.begins_with("/轮测敌")
+		or command.begins_with("/刷小怪家族")
+		or command.begins_with("/刷精英")
+		or command.begins_with("/刷敌")
+	)
 
 
 func _refresh_command_dialog() -> void:
@@ -854,6 +952,8 @@ func _start_room_setup() -> void:
 
 func _load_room_async() -> void:
 	await _load_space_rock_textures_async()
+	if _is_room_setup_cancelled():
+		return
 	_large_rocks.clear()
 	_large_rock_positions.clear()
 	_large_attempts = 0
@@ -862,6 +962,8 @@ func _load_room_async() -> void:
 	_large_rock_target_count = _configured_or_random_count(large_space_rock_count, SPACE_ROCK_MIN_COUNT, SPACE_ROCK_MAX_COUNT)
 	_set_loading_progress(LOAD_STAGE_TEXTURES, "正在生成大块太空石...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	while _large_rocks.size() < _large_rock_target_count and _large_attempts < _large_rock_target_count * 200:
 		for _i in range(LARGE_ROCKS_PER_FRAME):
 			if _large_rocks.size() >= _large_rock_target_count or _large_attempts >= _large_rock_target_count * 200:
@@ -873,8 +975,12 @@ func _load_room_async() -> void:
 		var p = maxf(count_progress, attempt_progress)
 		_set_loading_progress(lerpf(LOAD_STAGE_TEXTURES, LOAD_STAGE_LARGE_ROCKS, p), "正在生成大块太空石...")
 		await get_tree().process_frame
+		if _is_room_setup_cancelled():
+			return
 	_set_loading_progress(LOAD_STAGE_LARGE_ROCKS, "正在生成小块太空石...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	while _small_parent_index < _large_rocks.size() or not _small_rock_spawn_queue.is_empty():
 		var spawned_small := 0
 		while spawned_small < SMALL_ROCKS_PER_FRAME:
@@ -895,54 +1001,91 @@ func _load_room_async() -> void:
 		var p = float(_small_parent_index) / maxf(1.0, float(_large_rocks.size()))
 		_set_loading_progress(lerpf(LOAD_STAGE_LARGE_ROCKS, LOAD_STAGE_SMALL_ROCKS, p), "正在生成小块太空石...")
 		await get_tree().process_frame
+		if _is_room_setup_cancelled():
+			return
 	_set_loading_progress(LOAD_STAGE_SMALL_ROCKS, "正在生成隔离带...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	await _spawn_isolation_bands_async(_large_rocks)
+	if _is_room_setup_cancelled():
+		return
 	_set_loading_progress(LOAD_STAGE_ISOLATION_BANDS, "正在生成电击隔离带...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_spawn_electric_isolation_bands(_large_rocks)
 	_set_loading_progress(LOAD_STAGE_ELECTRIC_ISOLATION_BANDS, "正在生成自动防卫炮台...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_spawn_defense_turrets(_large_rocks)
 	_set_loading_progress(LOAD_STAGE_TURRETS, "正在生成奖励...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_spawn_rewards(_large_rocks)
 	_set_loading_progress(LOAD_STAGE_REWARDS, "正在生成漂浮杂物...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_spawn_clutter(_large_rocks)
 	_set_loading_progress(LOAD_STAGE_CLUTTER, "正在决定玩家出生点...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_place_player_randomly()
 	_spawn_evacuation_point()
 	_set_loading_progress(LOAD_STAGE_SPAWN_POINTS, "正在生成巡逻路径...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	await _generate_patrol_paths_async()
+	if _is_room_setup_cancelled():
+		return
 	_set_loading_progress(LOAD_STAGE_PATROL_PATHS, "正在排队巡逻敌人池...")
+	await _prewarm_patrol_enemy_pool_for_loading()
+	if _is_room_setup_cancelled():
+		return
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_set_loading_progress(LOAD_STAGE_PATROL_POOL, "正在替换宝箱敌人...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	_spawn_elite_chest_replacement_enemies()
 	_enemy_spawn_timer = enemy_spawn_interval
 	_set_loading_progress(LOAD_STAGE_ELITE_CHESTS, "正在完成探索房间...")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	camera.position = player.position
 	camera.global_position = player.global_position
 	_update_background_position()
 	player.visible = true
 	_set_loading_progress(LOAD_STAGE_DONE, "加载完成")
 	await get_tree().process_frame
+	if _is_room_setup_cancelled():
+		return
 	loading_screen.visible = false
 	GameManager.stutter_context = "ExploreRoom.ready"
 
 
+func _is_room_setup_cancelled() -> bool:
+	return _room_setup_cancelled or not is_inside_tree()
+
+
 func _set_loading_progress(value: float, text: String) -> void:
+	if _is_room_setup_cancelled():
+		return
 	GameManager.stutter_context = "ExploreRoom.loading:%s:%d%%" % [text, int(clampf(value * 100.0, 0.0, 100.0))]
 	if not loading_bar or not loading_label:
 		return
 	loading_bar.value = clampf(value * 100.0, 0.0, 100.0)
 	loading_label.text = "%d%%" % int(loading_bar.value)
 	if loading_tip_label:
-		loading_tip_label.text = text
+		loading_tip_label.text = _loading_context_tip_text if not _loading_context_tip_text.is_empty() else text
 
 
 func _load_space_rock_textures() -> void:
@@ -1003,6 +1146,8 @@ func _load_space_rock_textures_async() -> void:
 func _load_texture_paths_async(paths: Array, target: Array[Texture2D], progress_from: float, progress_to: float, text: String) -> void:
 	var total := maxi(1, paths.size())
 	for i in range(paths.size()):
+		if _is_room_setup_cancelled():
+			return
 		var tex = load(String(paths[i]))
 		if tex is Texture2D:
 			target.append(tex)
@@ -1010,6 +1155,8 @@ func _load_texture_paths_async(paths: Array, target: Array[Texture2D], progress_
 			var progress := float(i + 1) / float(total)
 			_set_loading_progress(lerpf(progress_from, progress_to, progress), text)
 			await get_tree().process_frame
+			if _is_room_setup_cancelled():
+				return
 	_set_loading_progress(progress_to, text)
 	await get_tree().process_frame
 
@@ -1280,21 +1427,57 @@ func _spawn_ore_veins(large_rocks: Array[Node2D], placed: Array[Vector2], count:
 			pos += outward * 20.0
 			if not _is_reward_position_valid(pos, placed):
 				continue
-			_create_reward(pos, 1, angle + PI / 2.0, rock, _ore_vein_textures.pick_random() if not _ore_vein_textures.is_empty() else null)
+			_create_reward(
+				pos,
+				1,
+				angle + PI / 2.0,
+				rock,
+				_ore_vein_textures.pick_random() if not _ore_vein_textures.is_empty() else null,
+				_pick_ore_source_profile()
+			)
 			placed.append(pos)
 			break
 
 
-func _create_reward(pos: Vector2, reward_type: int, rotation_angle: float = 0.0, follow_target: Node2D = null, p_texture: Texture2D = null) -> void:
+func _create_reward(pos: Vector2, reward_type: int, rotation_angle: float = 0.0, follow_target: Node2D = null, p_texture: Texture2D = null, ore_source_profile: Dictionary = {}) -> void:
 	var reward = EXPLORE_REWARD_SCENE.instantiate()
 	reward.position = pos
 	reward.rotation = rotation_angle
 	reward.setup(reward_type)
+	if reward_type == 1 and reward.has_method("apply_ore_source_profile"):
+		reward.apply_ore_source_profile(ore_source_profile)
 	if p_texture:
 		reward.set_reward_texture(p_texture)
 	rewards.add_child(reward)
 	if is_instance_valid(follow_target) and reward.has_method("follow_target"):
 		reward.follow_target(follow_target, pos - follow_target.global_position)
+
+
+func _pick_ore_source_profile() -> Dictionary:
+	var profiles: Array = preload("res://scripts/gameplay/explore/ExploreReward.gd").get_ore_source_profiles_static()
+	if profiles.is_empty():
+		return {}
+	var total_weight := 0.0
+	for raw_profile in profiles:
+		var profile := Dictionary(raw_profile)
+		total_weight += maxf(0.0, float(_ore_source_weights.get(String(profile.get("id", "")), 1.0)))
+	if total_weight <= 0.0:
+		return Dictionary(profiles.pick_random()).duplicate(true)
+	var roll := randf() * total_weight
+	var cursor := 0.0
+	for raw_profile in profiles:
+		var profile := Dictionary(raw_profile)
+		cursor += maxf(0.0, float(_ore_source_weights.get(String(profile.get("id", "")), 1.0)))
+		if roll <= cursor:
+			return profile.duplicate(true)
+	return Dictionary(profiles.back()).duplicate(true)
+
+
+func _apply_ore_source_weights(raw_weights) -> void:
+	if raw_weights is Dictionary:
+		_ore_source_weights = ORE_SOURCE_WEIGHTS.duplicate(true)
+		for key in raw_weights.keys():
+			_ore_source_weights[String(key)] = maxf(0.0, float(raw_weights[key]))
 
 
 func _is_reward_position_valid(pos: Vector2, placed: Array[Vector2]) -> bool:
@@ -1487,6 +1670,8 @@ func _spawn_isolation_bands_async(large_rocks: Array[Node2D]) -> void:
 	var bands_by_key: Dictionary = {}
 	var removed_by_pathfinding: int = 0
 	for i in range(target_count):
+		if _is_room_setup_cancelled():
+			return
 		if large_rocks.size() < 2:
 			return
 		if _try_spawn_one_isolation_band(large_rocks, connected, bands_by_key):
@@ -1767,9 +1952,13 @@ func _generate_patrol_paths_async() -> void:
 		return
 	GameManager.stutter_context = "ExploreRoom.patrol_paths:grid"
 	var grid = await _build_patrol_path_grid_async()
-	var target_count = randi_range(PATROL_PATH_MIN_COUNT, PATROL_PATH_MAX_COUNT)
+	if _is_room_setup_cancelled():
+		return
+	var target_count = randi_range(patrol_path_min_count, maxi(patrol_path_min_count, patrol_path_max_count))
 	var generated_count = 0
 	for path_index in range(target_count):
+		if _is_room_setup_cancelled():
+			return
 		GameManager.stutter_context = "ExploreRoom.patrol_paths:path_%d" % path_index
 		var points = PackedVector2Array()
 		var shuffled_rewards = reward_candidates.duplicate()
@@ -1780,10 +1969,14 @@ func _generate_patrol_paths_async() -> void:
 				break
 			if GameManager.should_defer_work("ExploreRoom.patrol_paths.reward_attempt"):
 				await get_tree().process_frame
+				if _is_room_setup_cancelled():
+					return
 		if points.size() < 2:
 			print("[巡逻路径] 生成失败")
 			_set_loading_progress(lerpf(LOAD_STAGE_SPAWN_POINTS, LOAD_STAGE_PATROL_PATHS, float(path_index + 1) / float(maxi(1, target_count))), "正在生成巡逻路径...")
 			await get_tree().process_frame
+			if _is_room_setup_cancelled():
+				return
 			continue
 		var family = _pick_patrol_enemy_family()
 		points = _adjust_patrol_path_for_enemy_spawn(points)
@@ -1794,6 +1987,8 @@ func _generate_patrol_paths_async() -> void:
 		generated_count += 1
 		_set_loading_progress(lerpf(LOAD_STAGE_SPAWN_POINTS, LOAD_STAGE_PATROL_PATHS, float(path_index + 1) / float(maxi(1, target_count))), "正在生成巡逻路径...")
 		await get_tree().process_frame
+		if _is_room_setup_cancelled():
+			return
 		print("[巡逻路径] 已生成，家族: %s, 路径点数量: %d" % [family, points.size()])
 	print("[巡逻路径] 目标生成数量: %d, 实际生成数量: %d" % [target_count, generated_count])
 	_queue_patrol_enemy_pool_prewarm()
@@ -1814,6 +2009,33 @@ func _clear_patrol_paths() -> void:
 		add_child(_patrol_paths)
 	for child in _patrol_paths.get_children():
 		child.queue_free()
+
+
+func _clear_patrol_runtime() -> void:
+	_pending_patrol_enemy_spawns.clear()
+	_patrol_enemy_pool_prewarm_queue.clear()
+	_patrol_path_points.clear()
+	_patrol_path_families.clear()
+	_static_enemy_map_icons.clear()
+	for pool_key in _patrol_enemy_pool.keys():
+		var pool: Array = _patrol_enemy_pool.get(pool_key, [])
+		for enemy in pool:
+			if is_instance_valid(enemy):
+				enemy.queue_free()
+	_patrol_enemy_pool.clear()
+	if is_instance_valid(_enemies):
+		for enemy in _enemies.get_children():
+			if is_instance_valid(enemy):
+				enemy.queue_free()
+		_enemies.queue_free()
+	_enemies = null
+	_patrol_enemy_pool_container = null
+	if is_instance_valid(_patrol_paths):
+		for child in _patrol_paths.get_children():
+			if is_instance_valid(child):
+				child.queue_free()
+		_patrol_paths.queue_free()
+	_patrol_paths = null
 
 
 func _ensure_enemy_container() -> void:
@@ -1883,7 +2105,7 @@ func _spawn_elite_chest_replacement_enemies() -> void:
 		return
 	chests.shuffle()
 	_ensure_enemy_container()
-	var target_count = mini(randi_range(ELITE_CHEST_REPLACEMENT_MIN_COUNT, ELITE_CHEST_REPLACEMENT_MAX_COUNT), chests.size())
+	var target_count = mini(randi_range(elite_replacement_min_count, maxi(elite_replacement_min_count, elite_replacement_max_count)), chests.size())
 	var spawned_count = 0
 	for i in range(target_count):
 		var chest = chests[i]
@@ -2056,6 +2278,8 @@ func _build_patrol_path_grid_async() -> AStarGrid2D:
 	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	grid.update()
 	for x in range(grid_size.x):
+		if _is_room_setup_cancelled():
+			return grid
 		GameManager.stutter_context = "ExploreRoom.patrol_paths:grid_col_%d" % x
 		for y in range(grid_size.y):
 			var id = Vector2i(x, y)
@@ -2063,6 +2287,8 @@ func _build_patrol_path_grid_async() -> AStarGrid2D:
 		if x % PATROL_PATH_GRID_ROWS_PER_FRAME == PATROL_PATH_GRID_ROWS_PER_FRAME - 1:
 			_set_loading_progress(lerpf(LOAD_STAGE_SPAWN_POINTS, LOAD_STAGE_PATROL_PATHS, float(x + 1) / float(maxi(1, grid_size.x))), "正在生成巡逻路径...")
 			await get_tree().process_frame
+			if _is_room_setup_cancelled():
+				return grid
 	return grid
 
 
@@ -2431,6 +2657,8 @@ func _request_patrol_enemy_pool_fill(behavior: int, target_count: int) -> void:
 func _prewarm_patrol_enemy_pool_for_loading() -> void:
 	var total := maxi(1, _patrol_enemy_pool_prewarm_queue.size())
 	while not _patrol_enemy_pool_prewarm_queue.is_empty():
+		if _is_room_setup_cancelled():
+			return
 		_process_patrol_enemy_pool_prewarm()
 		var remaining := _patrol_enemy_pool_prewarm_queue.size()
 		var progress := 1.0 - float(remaining) / float(total)
@@ -2439,6 +2667,8 @@ func _prewarm_patrol_enemy_pool_for_loading() -> void:
 			"正在预热巡逻敌人池..."
 		)
 		await get_tree().process_frame
+		if _is_room_setup_cancelled():
+			return
 
 
 func _process_patrol_enemy_pool_prewarm() -> void:
@@ -2456,7 +2686,6 @@ func _process_patrol_enemy_pool_prewarm() -> void:
 			continue
 		_prewarm_one_patrol_enemy(behavior, pool)
 		warmed += 1
-	GameManager.stutter_context = "ExploreRoom.ready"
 
 
 func _prewarm_one_patrol_enemy(behavior: int, pool: Array) -> void:

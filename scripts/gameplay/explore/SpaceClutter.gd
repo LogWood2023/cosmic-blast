@@ -16,10 +16,15 @@ extends Area2D
 @export var fragment_lifetime: float = 0.7
 @export var explosion_min_radius: float = 14.0
 @export var explosion_max_radius: float = 70.0
+@export var mineral_min: int = 1
+@export var mineral_max: int = 4
+@export var mineral_pickup_count_min: int = 1
+@export var mineral_pickup_count_max: int = 3
 
 const HIT_SOUND := preload("res://assets/audio/metal_hit.wav")
 const BREAK_SOUND := preload("res://assets/audio/ai_explosion_00_4217.wav")
 const EXPLOSION_TEXTURE_SIZE: int = 128
+const MINERAL_PICKUP_SCENE := preload("res://scenes/gameplay/explore/MineralPickup.tscn")
 
 var _hp: int = 5
 var _broken: bool = false
@@ -135,6 +140,8 @@ func _play_hit_feedback() -> void:
 
 func _break() -> void:
 	_broken = true
+	if RunManager.is_formal_run_active():
+		_spawn_mineral_pickups(randi_range(mineral_min, mineral_max), randi_range(mineral_pickup_count_min, mineral_pickup_count_max))
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	collision_polygon.disabled = true
@@ -143,6 +150,33 @@ func _break() -> void:
 	sprite.visible = false
 	await get_tree().create_timer(fragment_lifetime).timeout
 	queue_free()
+
+
+func _spawn_mineral_pickups(total_amount: int, pickup_count: int) -> void:
+	var parent = get_parent()
+	if not parent:
+		return
+	var remaining := maxi(1, total_amount)
+	var count := maxi(1, mini(pickup_count, remaining))
+	var target := _find_player()
+	for i in range(count):
+		var slots_left := count - i
+		var amount := remaining
+		if slots_left > 1:
+			amount = randi_range(1, maxi(1, remaining - slots_left + 1))
+		remaining -= amount
+		var pickup = MINERAL_PICKUP_SCENE.instantiate()
+		pickup.global_position = global_position + Vector2.RIGHT.rotated(randf_range(0.0, TAU)) * randf_range(0.0, 36.0)
+		parent.add_child(pickup)
+		if pickup.has_method("setup"):
+			pickup.setup(amount, target)
+
+
+func _find_player() -> Node2D:
+	for node in get_tree().get_nodes_in_group(&"player"):
+		if node is Node2D:
+			return node
+	return null
 
 
 func _spawn_explosion_effect() -> void:
@@ -187,6 +221,8 @@ func _spawn_explosion_effect() -> void:
 
 
 func _play_sfx(stream: AudioStream) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
 	var sfx = AudioStreamPlayer.new()
 	sfx.stream = stream
 	var scene = get_tree().current_scene
