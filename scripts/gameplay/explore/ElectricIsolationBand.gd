@@ -47,8 +47,9 @@ var _end_offset: Vector2 = Vector2.ZERO
 var _start_angle: float = 0.0
 var _end_angle: float = 0.0
 var _pulse_t: float = 0.0
-var _light_texture: Texture2D
-var _tip_circle_texture: Texture2D
+# 程序生成的光斑/端点贴图全部隔离带共享，避免每条带重复逐像素生成
+static var _light_texture: Texture2D
+static var _tip_circle_texture: Texture2D
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _line_seeds: Array[float] = []
 var _last_player_pos: Dictionary = {}

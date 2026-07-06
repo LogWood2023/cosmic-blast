@@ -34,7 +34,8 @@ var _sway_t: float = 0.0
 var _sway_speed: float = 0.3
 var _sway_amplitude: float = 6.0
 var _outline: PackedVector2Array = PackedVector2Array()
-var _explosion_texture: Texture2D
+# 爆炸贴图逐像素生成一次即可，全部杂物实例共享（此前每个实例首次破碎都重新生成一张）
+static var _explosion_texture: Texture2D
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_polygon: CollisionPolygon2D = $CollisionPolygon2D

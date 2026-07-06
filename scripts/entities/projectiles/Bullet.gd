@@ -24,6 +24,9 @@ const ANIM_FPS: float = 28.0
 
 var _destroy_burst_spawned: bool = false
 var _anim_time: float = 0.0
+var _homing_target: Node = null
+var _homing_retarget_timer: float = 0.0
+const HOMING_RETARGET_INTERVAL: float = 0.2
 @onready var _sprite: Sprite2D = get_node_or_null("Sprite2D")
 
 
@@ -45,11 +48,8 @@ func _process(delta: float) -> void:
 	position += direction * speed * delta
 	var bounds = _active_bounds()
 	if position.x < bounds.position.x - 50 or position.x > bounds.position.x + bounds.size.x + 50 or position.y < bounds.position.y - 50 or position.y > bounds.position.y + bounds.size.y + 50:
-		destroy()
-
-
-func _exit_tree() -> void:
-	pass
+		# 出界不算命中：直接移除，不触发分裂和销毁特效
+		queue_free()
 
 
 func destroy() -> void:
@@ -66,7 +66,8 @@ func _active_bounds() -> Rect2:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"enemies"):
-		area.take_damage(atk, self)
+		if area.has_method("take_damage"):
+			area.take_damage(atk, self)
 		destroy()
 	elif area.is_in_group(&"explore_rewards"):
 		if area.has_method("take_damage"):
@@ -94,7 +95,12 @@ func apply_force_field(accel: Vector2, delta: float) -> void:
 func _update_homing(delta: float) -> void:
 	if homing_strength <= 0.0 or homing_range <= 0.0:
 		return
-	var target := _find_homing_target()
+	# 全场扫描开销大，目标每 0.2s 重选一次即可
+	_homing_retarget_timer -= delta
+	if _homing_retarget_timer <= 0.0 or not is_instance_valid(_homing_target) or _homing_target.is_queued_for_deletion():
+		_homing_target = _find_homing_target()
+		_homing_retarget_timer = HOMING_RETARGET_INTERVAL
+	var target := _homing_target
 	if target == null:
 		return
 	var to_target := _get_node_world_position(target) - global_position

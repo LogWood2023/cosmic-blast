@@ -927,21 +927,6 @@ func _update_background_position() -> void:
 	background_tiles.global_position = camera_top_left - background_pos
 
 
-func _setup_room() -> void:
-	await _setup_room_async()
-
-
-func _setup_room_async() -> void:
-	_load_space_rock_textures()
-	var large_rocks = _spawn_large_space_rocks()
-	_spawn_small_space_rocks(large_rocks)
-	_spawn_isolation_bands(large_rocks)
-	_spawn_defense_turrets(large_rocks)
-	_spawn_rewards(large_rocks)
-	_spawn_clutter(large_rocks)
-	_place_player_randomly()
-	_spawn_evacuation_point()
-	await _generate_patrol_paths_async()
 
 
 func _start_room_setup() -> void:
@@ -1029,13 +1014,19 @@ func _load_room_async() -> void:
 	await get_tree().process_frame
 	if _is_room_setup_cancelled():
 		return
-	_spawn_clutter(_large_rocks)
+	await _spawn_clutter(_large_rocks)
+	if _is_room_setup_cancelled():
+		return
 	_set_loading_progress(LOAD_STAGE_CLUTTER, "正在决定玩家出生点...")
 	await get_tree().process_frame
 	if _is_room_setup_cancelled():
 		return
-	_place_player_randomly()
-	_spawn_evacuation_point()
+	await _place_player_randomly()
+	if _is_room_setup_cancelled():
+		return
+	await _spawn_evacuation_point()
+	if _is_room_setup_cancelled():
+		return
 	_set_loading_progress(LOAD_STAGE_SPAWN_POINTS, "正在生成巡逻路径...")
 	await get_tree().process_frame
 	if _is_room_setup_cancelled():
@@ -1087,36 +1078,6 @@ func _set_loading_progress(value: float, text: String) -> void:
 	if loading_tip_label:
 		loading_tip_label.text = _loading_context_tip_text if not _loading_context_tip_text.is_empty() else text
 
-
-func _load_space_rock_textures() -> void:
-	_space_rock_textures.clear()
-	for path in SPACE_ROCK_TEXTURE_PATHS:
-		var tex = load(path)
-		if tex is Texture2D:
-			_space_rock_textures.append(tex)
-	_isolation_band_tile_sets.clear()
-	for paths in ISOLATION_BAND_TILE_PATHS:
-		var textures: Array[Texture2D] = []
-		for path in paths:
-			var tex = load(path)
-			if tex is Texture2D:
-				textures.append(tex)
-		if not textures.is_empty():
-			_isolation_band_tile_sets.append(textures)
-	_chest_textures.clear()
-	for path in CHEST_TEXTURE_PATHS:
-		var tex = load(path)
-		if tex is Texture2D:
-			_chest_textures.append(tex)
-	_ore_vein_textures.clear()
-	for path in ORE_VEIN_TEXTURE_PATHS:
-		var tex = load(path)
-		if tex is Texture2D:
-			_ore_vein_textures.append(tex)
-	_electric_endpoint_textures = _load_texture_list(ELECTRIC_ISOLATION_ENDPOINT_PATHS)
-	_clutter_textures = _load_textures_from_dir(CLUTTER_TEXTURE_DIR)
-	print("[电击隔离带] 端点贴图数量: %d" % _electric_endpoint_textures.size())
-	print("[杂物] 贴图数量: %d" % _clutter_textures.size())
 
 
 func _load_space_rock_textures_async() -> void:
@@ -1218,34 +1179,6 @@ func _load_texture_list(paths: Array[String]) -> Array[Texture2D]:
 	return textures
 
 
-func _spawn_large_space_rocks() -> Array[Node2D]:
-	var large_rocks: Array[Node2D] = []
-	var placed: Array[Vector2] = []
-	var attempts: int = 0
-	var target_count = _configured_or_random_count(large_space_rock_count, SPACE_ROCK_MIN_COUNT, SPACE_ROCK_MAX_COUNT)
-	_large_rocks.clear()
-	_large_rock_positions.clear()
-	while placed.size() < target_count and attempts < target_count * 200:
-		attempts += 1
-		var pos = Vector2(
-			randf_range(SPACE_ROCK_EDGE_MARGIN, ROOM_SIZE.x - SPACE_ROCK_EDGE_MARGIN),
-			randf_range(SPACE_ROCK_EDGE_MARGIN, ROOM_SIZE.y - SPACE_ROCK_EDGE_MARGIN)
-		)
-		if not _is_space_rock_position_valid(pos, placed):
-			continue
-		var rock = SPACE_ROCK_SCENE.instantiate()
-		rock.position = pos
-		rock.radius = SPACE_ROCK_BASE_RADIUS * randf_range(SPACE_ROCK_MIN_SCALE, SPACE_ROCK_MAX_SCALE)
-		rock.visual_rotation = randf_range(0.0, TAU)
-		if not _space_rock_textures.is_empty():
-			rock.texture = _space_rock_textures.pick_random()
-		space_rocks.add_child(rock)
-		large_rocks.append(rock)
-		_large_rocks.append(rock)
-		placed.append(pos)
-		_large_rock_positions.append(pos)
-	return large_rocks
-
 
 func _try_spawn_large_space_rock() -> void:
 	_large_attempts += 1
@@ -1265,10 +1198,6 @@ func _try_spawn_large_space_rock() -> void:
 	_large_rocks.append(rock)
 	_large_rock_positions.append(pos)
 
-
-func _spawn_small_space_rocks(large_rocks: Array[Node2D]) -> void:
-	for large_rock in large_rocks:
-		_spawn_small_space_rocks_for_parent(large_rock)
 
 
 func _spawn_small_space_rocks_for_parent(large_rock: Node2D) -> void:
@@ -1503,6 +1432,11 @@ func _spawn_clutter(large_rocks: Array[Node2D]) -> void:
 	var attempts = 0
 	while placed.size() < target_count and attempts < CLUTTER_MAX_ATTEMPTS:
 		attempts += 1
+		# 暴力重试上限 16000 次，必须分帧，否则加载期单帧可达数秒
+		if attempts % 400 == 0:
+			await get_tree().process_frame
+			if _is_room_setup_cancelled():
+				return
 		var pos = Vector2(randf_range(0.0, ROOM_SIZE.x), randf_range(0.0, ROOM_SIZE.y))
 		if not _is_clutter_position_valid(pos, placed, large_rocks):
 			continue
@@ -1620,47 +1554,6 @@ func _segment_distance(a1: Vector2, a2: Vector2, b1: Vector2, b2: Vector2) -> fl
 	var p4 = Geometry2D.get_closest_point_to_segment(b2, a1, a2)
 	return minf(minf(a1.distance_to(p1), a2.distance_to(p2)), minf(b1.distance_to(p3), b2.distance_to(p4)))
 
-
-func _spawn_isolation_bands(large_rocks: Array[Node2D]) -> void:
-	var target_count = randi_range(ISOLATION_BAND_MIN_COUNT, ISOLATION_BAND_MAX_COUNT)
-	print("[隔离带] 目标生成数量: %d (范围 %d-%d)" % [target_count, ISOLATION_BAND_MIN_COUNT, ISOLATION_BAND_MAX_COUNT])
-	var connected: Array[String] = []
-	var bands_by_key: Dictionary = {}
-	var removed_by_pathfinding: int = 0
-	for _i in range(target_count):
-		if large_rocks.size() < 2:
-			return
-		var a_index = randi_range(0, large_rocks.size() - 1)
-		var a = large_rocks[a_index]
-		var candidates: Array[int] = []
-		for b_index in range(large_rocks.size()):
-			if b_index == a_index:
-				continue
-			var b = large_rocks[b_index]
-			if a.get_base_position().distance_to(b.get_base_position()) <= ISOLATION_BAND_MAX_DISTANCE:
-				candidates.append(b_index)
-		if candidates.is_empty():
-			continue
-		var b_index = candidates.pick_random()
-		var key = _band_key(a_index, b_index)
-		if connected.has(key):
-			continue
-		var b = large_rocks[b_index]
-		if _is_band_blocked(a, b, large_rocks):
-			continue
-		var start = a.get_base_position()
-		var end = b.get_base_position()
-		_destroy_small_space_rocks_on_band_path(start, end)
-		var band = _create_isolation_band(start, end)
-		var band_w: float = band.get_collision_width() if band.has_method("get_collision_width") else ISOLATION_BAND_WIDTH
-		if not _can_traverse_between_band_sides(start, end, band_w):
-			band.queue_free()
-			removed_by_pathfinding += 1
-			continue
-		connected.append(key)
-		bands_by_key[key] = band
-		_sync_connected_sway_component(a_index, large_rocks, connected, bands_by_key)
-	print("[隔离带] 实际生成数量: %d, 因寻路验证删除: %d" % [connected.size(), removed_by_pathfinding])
 
 
 func _spawn_isolation_bands_async(large_rocks: Array[Node2D]) -> void:
@@ -1895,6 +1788,10 @@ func _spawn_evacuation_point() -> void:
 	for child in evacuation_points.get_children():
 		child.queue_free()
 	for _i in range(EVACUATION_MAX_ATTEMPTS):
+		if _i > 0 and _i % 250 == 0:
+			await get_tree().process_frame
+			if _is_room_setup_cancelled():
+				return
 		var pos = Vector2(
 			randf_range(PLAYER_SPAWN_MARGIN, ROOM_SIZE.x - PLAYER_SPAWN_MARGIN),
 			randf_range(PLAYER_SPAWN_MARGIN, ROOM_SIZE.y - PLAYER_SPAWN_MARGIN)
@@ -1996,9 +1893,6 @@ func _generate_patrol_paths_async() -> void:
 	if map_ui and map_ui.has_method("set_patrol_paths"):
 		map_ui.set_patrol_paths(_patrol_path_points)
 
-
-func _generate_patrol_paths() -> void:
-	_generate_patrol_paths_async()
 
 
 func _clear_patrol_paths() -> void:
@@ -2255,19 +2149,6 @@ func _pick_patrol_via_point(reward_pos: Vector2) -> Vector2:
 			return pos
 	return Vector2.INF
 
-
-func _build_patrol_path_grid() -> AStarGrid2D:
-	var grid = AStarGrid2D.new()
-	var grid_size = Vector2i(int(ceil(ROOM_SIZE.x / PATROL_PATH_GRID_SIZE)), int(ceil(ROOM_SIZE.y / PATROL_PATH_GRID_SIZE)))
-	grid.region = Rect2i(Vector2i.ZERO, grid_size)
-	grid.cell_size = Vector2(PATROL_PATH_GRID_SIZE, PATROL_PATH_GRID_SIZE)
-	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
-	grid.update()
-	for x in range(grid_size.x):
-		for y in range(grid_size.y):
-			var id = Vector2i(x, y)
-			grid.set_point_solid(id, _is_patrol_path_point_blocked(_patrol_grid_to_world(id)))
-	return grid
 
 
 func _build_patrol_path_grid_async() -> AStarGrid2D:
@@ -2638,9 +2519,11 @@ func _get_patrol_enemy_pool_for_behavior(behavior: int) -> Array:
 func _queue_patrol_enemy_pool_prewarm() -> void:
 	_ensure_enemy_container()
 	_patrol_enemy_pool_prewarm_queue.clear()
+	# 先发起线程化贴图加载，让贴图在预热 await 期间后台就绪，避免首次刷怪时同步加载
+	_preload_patrol_enemy_textures()
 	for family in _patrol_path_families:
 		for behavior in _get_patrol_enemy_behaviors_for_family(family):
-			_request_patrol_enemy_pool_fill(behavior, 1)
+			_request_patrol_enemy_pool_fill(behavior, PATROL_ENEMY_POOL_PREWARM_PER_BEHAVIOR)
 
 
 func _request_patrol_enemy_pool_fill(behavior: int, target_count: int) -> void:
@@ -2748,6 +2631,10 @@ func _on_evacuation_button_pressed() -> void:
 
 func _place_player_randomly() -> void:
 	for _i in range(1000):
+		if _i > 0 and _i % 200 == 0:
+			await get_tree().process_frame
+			if _is_room_setup_cancelled():
+				return
 		var pos = Vector2(
 			randf_range(PLAYER_SPAWN_MARGIN, ROOM_SIZE.x - PLAYER_SPAWN_MARGIN),
 			randf_range(PLAYER_SPAWN_MARGIN, ROOM_SIZE.y - PLAYER_SPAWN_MARGIN)

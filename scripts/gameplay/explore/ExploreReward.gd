@@ -492,11 +492,18 @@ func _create_fragment_node(is_ore: bool) -> Node2D:
 	return poly
 
 
+# 碎片贴图缓存：破碎瞬间不再做同步磁盘加载
+static var _fragment_texture_cache: Dictionary = {}
+
+
 func _get_random_fragment_texture(is_ore: bool) -> Texture2D:
 	var paths = CRYSTAL_FRAGMENT_PATHS if is_ore else CRATE_FRAGMENT_PATHS
 	var variant_paths: Array = paths[clampi(_fragment_variant_index, 0, paths.size() - 1)]
-	var tex = load(variant_paths.pick_random())
-	return tex if tex is Texture2D else null
+	var path: String = variant_paths.pick_random()
+	if not _fragment_texture_cache.has(path):
+		var tex = load(path)
+		_fragment_texture_cache[path] = tex if tex is Texture2D else null
+	return _fragment_texture_cache[path]
 
 
 func _update_fragment_variant_index() -> void:
@@ -524,7 +531,14 @@ func _play_sfx(stream: AudioStream) -> void:
 		sfx.queue_free()
 
 
+# 同一张贴图的轮廓扫描只做一次，所有奖励实例共享（参照 SpaceRock 的缓存做法）
+static var _outline_cache: Dictionary = {}
+
+
 func _build_texture_outline(tex: Texture2D) -> PackedVector2Array:
+	var cache_key := "%s|%d|%.3f" % [tex.get_rid(), outline_samples, alpha_threshold]
+	if _outline_cache.has(cache_key):
+		return _outline_cache[cache_key]
 	var image = tex.get_image()
 	if not image:
 		return PackedVector2Array()
@@ -546,4 +560,6 @@ func _build_texture_outline(tex: Texture2D) -> PackedVector2Array:
 				hit = probe
 				break
 		points.append(hit - center)
-	return PackedVector2Array(points)
+	var outline := PackedVector2Array(points)
+	_outline_cache["%s|%d|%.3f" % [tex.get_rid(), outline_samples, alpha_threshold]] = outline
+	return outline
