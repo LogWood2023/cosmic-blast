@@ -1,17 +1,28 @@
 # Godot — 导入缓存（会自动重建）
 .godot/
 
+# 密钥与环境变量（密钥泄露过一次，绝不再提交）
+.env
+.env.*
+
 # Python
 __pycache__/
+.venv/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE / 工具
 .vscode/
 .idea/
+.trae/
+.workbuddy/
 
-# 临时文件
+# 临时文件与调试产物
 *.tmp
 *.log
+.superpowers/
+_tmp/
+stutter_log.txt
+New Assets/
