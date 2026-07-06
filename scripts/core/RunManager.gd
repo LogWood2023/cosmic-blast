@@ -1853,6 +1853,7 @@ var compute_capacity: int = 5
 var minerals: int = 0
 var completed_node_count: int = 0
 var current_node_id: int = -1
+var current_room_mineral_mult: float = 1.0
 var pending_room_loot: Dictionary = {}
 var equipment_inventory: Array[String] = []
 var equipped_weapon: String = "pulse_cannon"
@@ -1892,6 +1893,7 @@ func start_new_run() -> void:
 	minerals = 0
 	completed_node_count = 0
 	current_node_id = -1
+	current_room_mineral_mult = 1.0
 	pending_room_loot = _empty_loot()
 	equipment_inventory = ["pulse_cannon"]
 	equipped_weapon = "pulse_cannon"
@@ -1923,6 +1925,7 @@ func cancel_run() -> void:
 	run_victory = false
 	last_result_summary.clear()
 	current_node_id = -1
+	current_room_mineral_mult = 1.0
 	pending_boss_threshold = 0
 	pending_boss_scene = ""
 	last_boss_reward.clear()
@@ -2255,6 +2258,7 @@ func start_explore_node(node_id: int) -> bool:
 		room_config["battle_profile_title"] = String(node.get("battle_title", ""))
 		room_config["battle_threat"] = int(node.get("battle_threat", 1))
 	if node_type == NODE_REWARD:
+		# 奖励房默认值只补缺席的键，不覆盖情报/词缀/局势已合入的数值；倍率与已有值相乘
 		var reward_config := {
 			"large_space_rock_count": 12,
 			"trap_count": 4,
@@ -2262,10 +2266,11 @@ func start_explore_node(node_id: int) -> bool:
 			"clutter_count": 35,
 			"enemy_spawn_interval": 60.0,
 			"max_patrol_enemy_count": 6,
-			"reward_mineral_mult": 1.12,
 		}
 		for key in reward_config.keys():
-			room_config[key] = reward_config[key]
+			if not room_config.has(key):
+				room_config[key] = reward_config[key]
+		room_config["reward_mineral_mult"] = float(room_config.get("reward_mineral_mult", 1.0)) * 1.12
 		var profile_config: Dictionary = node.get("reward_room_config", {})
 		for key in profile_config.keys():
 			room_config[key] = profile_config[key]
@@ -2281,6 +2286,8 @@ func start_explore_node(node_id: int) -> bool:
 	_apply_loading_context_to_room_config(room_config, node)
 	var latest_node := get_map_node(node_id)
 	_apply_ore_source_bias_to_room_config(room_config, latest_node if not latest_node.is_empty() else node)
+	# 进房后 GameManager 的配置会被 consume 清空，倍率必须在这里缓存供拾取时读取
+	current_room_mineral_mult = maxf(0.0, float(room_config.get("reward_mineral_mult", 1.0)))
 	GameManager.set_next_explore_room_config(room_config)
 	return true
 
@@ -2322,8 +2329,7 @@ func record_mineral_collected(amount: int) -> void:
 		return
 	if pending_room_loot.is_empty():
 		pending_room_loot = _empty_loot()
-	var room_mult := float(GameManager.next_explore_room_config.get("reward_mineral_mult", 1.0))
-	var scaled_amount := maxi(1, int(round(float(amount) * get_node_reward_mult(current_node_id) * room_mult)))
+	var scaled_amount := maxi(1, int(round(float(amount) * get_node_reward_mult(current_node_id) * current_room_mineral_mult)))
 	pending_room_loot["minerals"] = int(pending_room_loot.get("minerals", 0)) + scaled_amount
 
 
@@ -2345,6 +2351,7 @@ func consume_last_boss_completion_summary() -> Dictionary:
 
 func abandon_current_room() -> void:
 	current_node_id = -1
+	current_room_mineral_mult = 1.0
 	pending_room_loot = _empty_loot()
 
 
@@ -5486,18 +5493,19 @@ func _apply_event_profile(node: Dictionary, profile: Dictionary, rng: RandomNumb
 	}
 	var lines: Array[String] = [title, description]
 	_apply_event_cost(profile, node, result, lines)
-	match event_id:
-		"old_supply_chain", "salvage_contract":
+	# 按 category 分发奖励，与 _make_event_reward_preview 的承诺保持一致
+	match String(profile.get("category", "mixed")):
+		"minerals":
 			var amount := _roll_event_minerals(profile, node, rng)
 			pending_room_loot["minerals"] = int(pending_room_loot.get("minerals", 0)) + amount
 			result["minerals_gained"] = amount
 			lines.append("获得 %d 星髓矿。" % amount)
-		"ark_medical_relay":
+		"heal":
 			var heal := _roll_event_heal(profile, rng)
 			GameManager.player_hp = mini(GameManager.PLAYER_MAX_HP, GameManager.player_hp + heal)
 			result["heal_gained"] = heal
 			lines.append("恢复 %d 生命。" % heal)
-		"sealed_weapon_cache", "family_resonance":
+		"equipment":
 			var item_id := EquipmentCatalogScript.get_random_loot_item_id(
 				equipment_inventory,
 				crisis_level,
@@ -5507,28 +5515,25 @@ func _apply_event_profile(node: Dictionary, profile: Dictionary, rng: RandomNumb
 			pending_room_loot["equipment"] = [item_id]
 			result["equipment_id"] = item_id
 			lines.append("获得装备蓝图：%s。" % EquipmentCatalogScript.get_display_name(item_id))
-		"compute_splice":
+		"compute":
 			var compute_bonus := int(profile.get("compute_bonus", 1))
 			compute_capacity += compute_bonus
 			result["compute_gained"] = compute_bonus
 			lines.append("额外接入 %d 点算力容量。" % compute_bonus)
-		"beacon_sync":
+		"special":
 			var bonus_id := _activate_event_special_bonus(String(node.get("family_bias", "")))
 			result["special_bonus_id"] = bonus_id
 			lines.append("同步增益信标：%s。" % get_special_bonus_display_name(bonus_id))
-		"crisis_blackbox":
-			var minerals := _roll_event_minerals(profile, node, rng)
-			var heal_amount := _roll_event_heal(profile, rng)
-			pending_room_loot["minerals"] = int(pending_room_loot.get("minerals", 0)) + minerals
-			GameManager.player_hp = mini(GameManager.PLAYER_MAX_HP, GameManager.player_hp + heal_amount)
-			result["minerals_gained"] = minerals
-			result["heal_gained"] = heal_amount
-			lines.append("获得 %d 星髓矿，并恢复 %d 生命。" % [minerals, heal_amount])
+		"contract":
+			pass  # 契约类事件没有直接奖励，契约本体在下方统一签订
 		_:
-			var fallback := _roll_event_minerals(profile, node, rng)
-			pending_room_loot["minerals"] = int(pending_room_loot.get("minerals", 0)) + fallback
-			result["minerals_gained"] = fallback
-			lines.append("获得 %d 星髓矿。" % fallback)
+			var minerals_gained := _roll_event_minerals(profile, node, rng)
+			var heal_amount := _roll_event_heal(profile, rng)
+			pending_room_loot["minerals"] = int(pending_room_loot.get("minerals", 0)) + minerals_gained
+			GameManager.player_hp = mini(GameManager.PLAYER_MAX_HP, GameManager.player_hp + heal_amount)
+			result["minerals_gained"] = minerals_gained
+			result["heal_gained"] = heal_amount
+			lines.append("获得 %d 星髓矿，并恢复 %d 生命。" % [minerals_gained, heal_amount])
 	var contract_data := _make_event_contract_data(profile, node)
 	if not contract_data.is_empty():
 		result["pending_event_contract"] = contract_data
@@ -5557,9 +5562,10 @@ func _apply_event_cost(profile: Dictionary, node: Dictionary, result: Dictionary
 		if actual_mineral_cost > 0:
 			cost_lines.append("星髓矿 -%d" % actual_mineral_cost)
 	if crisis_add > 0:
-		crisis_level += crisis_add
-		result["crisis_added"] = crisis_add
-		cost_lines.append("危机 +%d" % crisis_add)
+		var actual_crisis_add := _add_crisis_with_alert_stop(crisis_add)
+		result["crisis_added"] = actual_crisis_add
+		if actual_crisis_add > 0:
+			cost_lines.append("危机 +%d" % actual_crisis_add)
 	if not cost_lines.is_empty():
 		lines.append("代价结算：%s。" % " / ".join(cost_lines))
 

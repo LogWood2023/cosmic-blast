@@ -21,6 +21,7 @@ func _run() -> void:
 	node["reward_mult"] = 1.0
 	RunManager.map_nodes[node_id] = node
 	GameManager.next_explore_room_config["reward_mineral_mult"] = 1.0
+	RunManager.current_room_mineral_mult = 1.0
 	RunManager.pending_room_loot = {"minerals": 0, "equipment": []}
 
 	var scene := Node2D.new()
