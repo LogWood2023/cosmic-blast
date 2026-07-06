@@ -44,6 +44,76 @@ const EXPLORE_ROOM_CONFIG_KEYS: Array[String] = [
 	"divine_family_weight",
 	"enemy_spawn_interval",
 	"max_patrol_enemy_count",
+	"reward_mineral_mult",
+	"reward_profile_id",
+	"reward_profile_title",
+	"reward_cache_family_bias",
+	"reward_cache_choice_id",
+	"reward_cache_choice_type",
+	"reward_cache_choice_title",
+	"reward_cache_choice_summary",
+	"reward_cache_choice_family",
+	"reward_cache_shop_focus_family",
+	"reward_cache_shop_focus_text",
+	"reward_cache_route_calibration_tip_text",
+	"reward_equipment_chance_bonus",
+	"battle_profile_id",
+	"battle_profile_title",
+	"battle_threat",
+	"battle_trap_pressure",
+	"battle_enemy_spawn_interval",
+	"battle_max_patrol_enemy_count",
+	"battle_large_space_rock_hint",
+	"battle_reward_density_hint",
+	"battle_clutter_density_hint",
+	"battle_family_bias",
+	"battle_family_weight_boost",
+	"battle_patrol_path_min_count",
+	"battle_patrol_path_max_count",
+	"battle_elite_replacement_min",
+	"battle_elite_replacement_max",
+	"node_intel_title",
+	"beacon_echo_tip_text",
+	"boss_aftershock_tip_text",
+	"run_condition_tip_text",
+	"run_condition_summary_text",
+	"modifier_tip_text",
+	"modifier_summary_text",
+	"opportunity_tip_text",
+	"ore_source_bias",
+	"ore_source_name",
+	"ore_source_room_effect_text",
+	"ore_source_weights",
+]
+const EXPLORE_ROOM_STRING_CONFIG_KEYS: Array[String] = [
+	"reward_profile_id",
+	"reward_profile_title",
+	"reward_cache_family_bias",
+	"reward_cache_choice_id",
+	"reward_cache_choice_type",
+	"reward_cache_choice_title",
+	"reward_cache_choice_summary",
+	"reward_cache_choice_family",
+	"reward_cache_shop_focus_family",
+	"reward_cache_shop_focus_text",
+	"reward_cache_route_calibration_tip_text",
+	"battle_profile_id",
+	"battle_profile_title",
+	"battle_family_bias",
+	"node_intel_title",
+	"beacon_echo_tip_text",
+	"boss_aftershock_tip_text",
+	"run_condition_tip_text",
+	"run_condition_summary_text",
+	"modifier_tip_text",
+	"modifier_summary_text",
+	"opportunity_tip_text",
+	"ore_source_bias",
+	"ore_source_name",
+	"ore_source_room_effect_text",
+]
+const EXPLORE_ROOM_DICTIONARY_CONFIG_KEYS: Array[String] = [
+	"ore_source_weights",
 ]
 
 # 测试功能：游戏场景缩放（正式版移除）
@@ -108,6 +178,8 @@ func add_score(amount: int) -> void:
 func add_frenzy(amount: float) -> void:
 	if amount <= 0.0 or frenzy_active:
 		return
+	if RunManager.is_formal_run_active():
+		amount *= RunManager.get_frenzy_gain_mult()
 	frenzy_value = minf(FRENZY_MAX, frenzy_value + amount)
 	if frenzy_value >= FRENZY_MAX:
 		_start_frenzy()
@@ -120,13 +192,32 @@ func get_frenzy_ratio() -> float:
 func get_incoming_damage_after_frenzy(damage: int) -> int:
 	if damage <= 0:
 		return 0
+	if RunManager.is_formal_run_active():
+		var run_mult := RunManager.get_damage_taken_mult()
+		if frenzy_active:
+			run_mult *= FRENZY_DAMAGE_TAKEN_MULT * RunManager.get_frenzy_damage_taken_mult()
+		return maxi(1, int(ceil(float(damage) * run_mult)))
 	if not frenzy_active:
 		return damage
-	return maxi(1, int(ceil(float(damage) * FRENZY_DAMAGE_TAKEN_MULT)))
+	var mult := FRENZY_DAMAGE_TAKEN_MULT
+	return maxi(1, int(ceil(float(damage) * mult)))
 
 
 func get_fire_rate_multiplier() -> float:
-	return FRENZY_FIRE_RATE_MULT if frenzy_active else 1.0
+	if not frenzy_active:
+		return 1.0
+	var mult := FRENZY_FIRE_RATE_MULT
+	if RunManager.is_formal_run_active():
+		mult *= RunManager.get_frenzy_fire_rate_mult()
+	return mult
+
+
+func get_outgoing_damage_multiplier() -> float:
+	if not frenzy_active:
+		return 1.0
+	if RunManager.is_formal_run_active():
+		return RunManager.get_frenzy_damage_mult()
+	return 1.0
 
 
 func reset_run_state() -> void:
@@ -177,6 +268,12 @@ func set_next_explore_room_config(config: Dictionary) -> void:
 	next_explore_room_config.clear()
 	for key in config:
 		if not EXPLORE_ROOM_CONFIG_KEYS.has(key):
+			continue
+		if EXPLORE_ROOM_STRING_CONFIG_KEYS.has(key):
+			next_explore_room_config[key] = String(config[key])
+			continue
+		if EXPLORE_ROOM_DICTIONARY_CONFIG_KEYS.has(key):
+			next_explore_room_config[key] = Dictionary(config[key]).duplicate(true)
 			continue
 		var value = float(config[key])
 		next_explore_room_config[key] = value if value >= 0.0 else -1

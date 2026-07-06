@@ -813,6 +813,8 @@ func _release_explore_pooled_enemy() -> void:
 		GameManager.suction_center = Vector2.ZERO
 	if behavior == Behavior.HELLEYE_INVERTED_MOTH or behavior == Behavior.HELLEYE_INVERT_PRIEST:
 		GameManager.controls_inverted = false
+	if behavior == Behavior.COLOSSUS_CORE_DEVOURER:
+		_clear_core_devourer_gravity_claw_pool()
 	_explore_pool_active = false
 	_ai_alert = false
 	_is_pursuing_player = false
@@ -1081,6 +1083,8 @@ func _draw_hell_eye_black_link() -> void:
 
 
 func _exit_tree() -> void:
+	if behavior == Behavior.COLOSSUS_CORE_DEVOURER:
+		_clear_core_devourer_gravity_claw_pool()
 	if _explore_pool_releasing:
 		return
 	if _gravity_claw_core_summoned:
@@ -1126,14 +1130,14 @@ func _build_placeholder_visuals() -> void:
 	var texture := _load_behavior_texture()
 	if texture:
 		sprite_proxy.texture = texture
+		sprite_proxy.visible = true
 		sprite_proxy.scale = Vector2(body_size.x / texture.get_width(), body_size.y / texture.get_height())
 		sprite_proxy.modulate = Color.WHITE
 		_visual_waiting_for_texture = false
 	else:
-		var img := Image.create(maxi(1, int(body_size.x)), maxi(1, int(body_size.y)), false, Image.FORMAT_RGBA8)
-		img.fill(body_color)
-		sprite_proxy.texture = ImageTexture.create_from_image(img)
-		sprite_proxy.modulate = Color(1, 1, 1, 0.01)
+		sprite_proxy.texture = null
+		sprite_proxy.visible = false
+		sprite_proxy.modulate = Color.WHITE
 		_visual_waiting_for_texture = true
 	sprite_proxy.centered = true
 	sprite_proxy.rotation = DESIGNED_ENEMY_SPRITE_ROTATION_OFFSET
@@ -1166,11 +1170,15 @@ func _ensure_behavior_visuals(force: bool = false) -> void:
 func _clear_placeholder_visual_parts() -> void:
 	for part in _visual_parts:
 		if is_instance_valid(part):
+			if part.get_parent() == self:
+				remove_child(part)
 			part.queue_free()
 	_visual_parts.clear()
 	_visual_waiting_for_texture = false
 	var stray_body := get_node_or_null("PlaceholderBody") as ColorRect
 	if is_instance_valid(stray_body):
+		if stray_body.get_parent() == self:
+			remove_child(stray_body)
 		stray_body.queue_free()
 
 
@@ -1258,6 +1266,8 @@ func _add_part(center: Vector2, size: Vector2, color: Color) -> void:
 
 
 func _load_behavior_texture() -> Texture2D:
+	if DisplayServer.get_name() == "headless":
+		return null
 	var index := int(behavior)
 	if _explore_pool_enabled or _explore_patrol_enabled or _explore_room_idle_enabled:
 		return poll_behavior_texture(index)
@@ -1267,6 +1277,8 @@ func _load_behavior_texture() -> Texture2D:
 func _try_apply_pending_behavior_texture() -> void:
 	if not _visual_waiting_for_texture:
 		return
+	if DisplayServer.get_name() == "headless":
+		return
 	var texture := poll_behavior_texture(int(behavior))
 	if not texture:
 		return
@@ -1274,6 +1286,7 @@ func _try_apply_pending_behavior_texture() -> void:
 	if not sprite_proxy:
 		return
 	sprite_proxy.texture = texture
+	sprite_proxy.visible = true
 	sprite_proxy.scale = Vector2(body_size.x / texture.get_width(), body_size.y / texture.get_height())
 	sprite_proxy.modulate = Color.WHITE
 	_clear_placeholder_visual_parts()
@@ -1333,6 +1346,39 @@ static func preload_behavior_textures(behaviors: Array[int]) -> void:
 		request_behavior_texture(behavior_index)
 
 
+static func flush_pending_behavior_texture_requests() -> void:
+	var pending_paths: Array[String] = []
+	for key in _behavior_texture_thread_requests.keys():
+		var path := String(_behavior_texture_thread_requests[key])
+		if not pending_paths.has(path):
+			pending_paths.append(path)
+	for path in pending_paths:
+		var status := ResourceLoader.load_threaded_get_status(path)
+		while status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			OS.delay_msec(1)
+			status = ResourceLoader.load_threaded_get_status(path)
+		if status != ResourceLoader.THREAD_LOAD_LOADED:
+			continue
+		var resource := ResourceLoader.load_threaded_get(path)
+		if resource is Texture2D:
+			var index := ENEMY_TEXTURE_PATHS.find(path)
+			if index >= 0:
+				_behavior_texture_cache[index] = resource
+	_behavior_texture_thread_requests.clear()
+
+
+static func release_static_runtime_resources() -> void:
+	flush_pending_behavior_texture_requests()
+	_behavior_texture_cache.clear()
+	_designed_enemy_scene = null
+	_horizon_phantom_material = null
+	_divine_oracle_phantom_material = null
+	for claw in _core_devourer_gravity_claw_pool:
+		if is_instance_valid(claw):
+			claw.queue_free()
+	_core_devourer_gravity_claw_pool.clear()
+
+
 static func _get_designed_enemy_scene() -> PackedScene:
 	if _designed_enemy_scene == null:
 		_designed_enemy_scene = load(DESIGNED_ENEMY_SCENE_PATH) as PackedScene
@@ -1340,10 +1386,24 @@ static func _get_designed_enemy_scene() -> PackedScene:
 
 
 func _get_effect_parent() -> Node:
+	var owner := _explore_pool_owner
+	if is_instance_valid(owner):
+		var effect_root := owner.get_node_or_null("EnemyEffects")
+		if effect_root:
+			return effect_root
 	if get_tree() and get_tree().current_scene:
+		var scene_effect_root := get_tree().current_scene.get_node_or_null("EnemyEffects")
+		if scene_effect_root:
+			return scene_effect_root
 		return get_tree().current_scene
 	var parent := get_parent()
 	if parent:
+		var scene_parent := parent
+		while scene_parent:
+			var effect_root := scene_parent.get_node_or_null("EnemyEffects")
+			if effect_root:
+				return effect_root
+			scene_parent = scene_parent.get_parent()
 		return parent
 	return self
 
@@ -1717,7 +1777,7 @@ func _show_overhead_notice(text: String, color: Color) -> void:
 		_alert_notice_node.queue_free()
 	var anchor := Node2D.new()
 	anchor.z_index = 120
-	var notice_parent := get_tree().current_scene if get_tree() and get_tree().current_scene else get_parent()
+	var notice_parent := _get_effect_parent()
 	notice_parent.add_child(anchor)
 	_alert_notice_node = anchor
 	_update_alert_notice_position()
@@ -1757,7 +1817,7 @@ func _show_alert_arrow_to_player() -> void:
 	var arrow := Node2D.new()
 	arrow.name = "AlertArrowToPlayer"
 	arrow.set_script(ALERT_ARROW_SCRIPT)
-	var notice_parent := get_tree().current_scene if get_tree() and get_tree().current_scene else get_parent()
+	var notice_parent := _get_effect_parent()
 	notice_parent.add_child(arrow)
 	_alert_arrow_node = arrow
 	var enemy_radius := maxf(body_size.x, body_size.y) * 0.55
@@ -2520,6 +2580,13 @@ static func _release_core_devourer_gravity_claw_to_pool(claw: Node2D) -> void:
 		claw.queue_free()
 		return
 	_core_devourer_gravity_claw_pool.append(claw)
+
+
+static func _clear_core_devourer_gravity_claw_pool() -> void:
+	for claw in _core_devourer_gravity_claw_pool:
+		if is_instance_valid(claw):
+			claw.queue_free()
+	_core_devourer_gravity_claw_pool.clear()
 
 
 func _core_devourer_can_queue_gravity_claw() -> bool:
@@ -3889,6 +3956,11 @@ func _spawn_divine_oracle_phantom_raider() -> void:
 	var own_sprite := get_node_or_null("Sprite2D") as Sprite2D
 	if not own_sprite or not own_sprite.texture or not player:
 		return
+	var phantom_texture := get_behavior_texture(int(Behavior.DIVINE_WING_RAIDER))
+	if phantom_texture == null:
+		phantom_texture = own_sprite.texture
+	if phantom_texture == null:
+		return
 	var start := _find_divine_oracle_phantom_start()
 	var to_player := player.global_position - start
 	if to_player.length() <= 0.01:
@@ -3897,11 +3969,9 @@ func _spawn_divine_oracle_phantom_raider() -> void:
 	var target := start + charge_dir * maxf(start.distance_to(player.global_position) + DIVINE_ORACLE_PHANTOM_CHARGE_OVERSHOOT, DIVINE_ORACLE_PHANTOM_MIN_CHARGE_DISTANCE)
 	var sprite_node := Sprite2D.new()
 	sprite_node.name = "DivineOracleWingRaiderPhantom"
-	sprite_node.texture = get_behavior_texture(int(Behavior.DIVINE_WING_RAIDER))
-	if sprite_node.texture == null:
-		sprite_node.texture = own_sprite.texture
+	sprite_node.texture = phantom_texture
 	sprite_node.centered = true
-	sprite_node.scale = Vector2(DIVINE_WING_RAIDER_BODY_SIZE.x / sprite_node.texture.get_width(), DIVINE_WING_RAIDER_BODY_SIZE.y / sprite_node.texture.get_height())
+	sprite_node.scale = Vector2(DIVINE_WING_RAIDER_BODY_SIZE.x / phantom_texture.get_width(), DIVINE_WING_RAIDER_BODY_SIZE.y / phantom_texture.get_height())
 	sprite_node.rotation = DESIGNED_ENEMY_SPRITE_ROTATION_OFFSET
 	sprite_node.modulate = Color(0.55, 0.82, 1.25, 0.8)
 	sprite_node.z_index = z_index - 1
@@ -5331,7 +5401,7 @@ func _create_cloud(pos: Vector2, radius: float, duration: float) -> void:
 	cloud.size = Vector2(radius * 2, radius * 2)
 	cloud.position = pos - cloud.size * 0.5
 	cloud.z_index = 20
-	get_tree().current_scene.add_child(cloud)
+	_get_effect_parent().add_child(cloud)
 	var tw := cloud.create_tween()
 	tw.tween_property(cloud, "modulate:a", 0.0, duration)
 	tw.finished.connect(cloud.queue_free)
@@ -5343,7 +5413,7 @@ func _create_afterimage(pos: Vector2) -> void:
 	img.size = body_size
 	img.position = pos - body_size * 0.5
 	img.z_index = -5
-	get_tree().current_scene.add_child(img)
+	_get_effect_parent().add_child(img)
 	var tw := img.create_tween()
 	tw.tween_property(img, "modulate:a", 0.0, 0.8)
 	tw.finished.connect(img.queue_free)

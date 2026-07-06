@@ -9,12 +9,28 @@ extends Area2D
 @export var movement_bounds: Rect2 = Rect2(Vector2.ZERO, Vector2.ZERO)
 @export var blocked_by_space_rocks: bool = false
 
+const SUPPORT_DRONE_SCENE := preload("res://scenes/entities/support/SupportDrone.tscn")
+
 var screen_size: Vector2
 var fire_cooldown: float = 0.0
 var current_velocity: Vector2 = Vector2.ZERO
 var collision_radius: float = 27.0
 var _run_bullet_count: int = 1
 var _run_spread_degrees: float = 0.0
+var _run_bullet_speed_mult: float = 1.0
+var _run_bullet_split_count: int = 0
+var _run_bullet_split_spread_degrees: float = 0.0
+var _run_bullet_split_damage_mult: float = 0.0
+var _run_homing_strength: float = 0.0
+var _run_homing_range: float = 0.0
+var _run_gravity_pull_strength: float = 0.0
+var _run_gravity_pull_radius: float = 0.0
+var _run_dash_distance_mult: float = 1.0
+var _run_dash_speed_mult: float = 1.0
+var _run_dash_damage_mult: float = 1.0
+var _run_dash_aftershock_radius: float = 0.0
+var _run_dash_aftershock_damage_mult: float = 0.0
+var _run_drone_slots: int = 0
 var _speed_slow_mult: float = 1.0
 var _speed_slow_timer: float = 0.0
 var _external_damage_accumulator: float = 0.0
@@ -288,7 +304,23 @@ func _spawn_player_bullet(direction: Vector2) -> void:
 	var bullet = bullet_scene.instantiate()
 	var forward := direction.normalized()
 	bullet.direction = forward
-	bullet.atk = atk
+	bullet.atk = maxi(1, int(round(float(atk) * GameManager.get_outgoing_damage_multiplier())))
+	if bullet.get("speed") != null:
+		bullet.speed = float(bullet.speed) * _run_bullet_speed_mult
+	if bullet.get("split_count") != null:
+		bullet.split_count = _run_bullet_split_count
+	if bullet.get("split_spread_degrees") != null:
+		bullet.split_spread_degrees = _run_bullet_split_spread_degrees
+	if bullet.get("split_damage_mult") != null:
+		bullet.split_damage_mult = _run_bullet_split_damage_mult
+	if bullet.get("homing_strength") != null:
+		bullet.homing_strength = _run_homing_strength
+	if bullet.get("homing_range") != null:
+		bullet.homing_range = _run_homing_range
+	if bullet.get("gravity_pull_strength") != null:
+		bullet.gravity_pull_strength = _run_gravity_pull_strength
+	if bullet.get("gravity_pull_radius") != null:
+		bullet.gravity_pull_radius = _run_gravity_pull_radius
 	if movement_bounds.size != screen_size:
 		bullet.world_bounds = movement_bounds
 	bullet.position = global_position + 50 * forward
@@ -306,6 +338,21 @@ func _apply_run_equipment() -> void:
 	speed *= float(stats.get("speed_mult", 1.0))
 	_run_bullet_count = maxi(1, int(stats.get("bullet_count", 1)))
 	_run_spread_degrees = maxf(0.0, float(stats.get("spread_degrees", 0.0)))
+	_run_bullet_speed_mult = maxf(0.1, float(stats.get("bullet_speed_mult", 1.0)))
+	_run_bullet_split_count = maxi(0, int(stats.get("bullet_split_count", 0)))
+	_run_bullet_split_spread_degrees = maxf(0.0, float(stats.get("bullet_split_spread_degrees", 0.0)))
+	_run_bullet_split_damage_mult = maxf(0.0, float(stats.get("bullet_split_damage_mult", 0.0)))
+	_run_homing_strength = maxf(0.0, float(stats.get("homing_strength", 0.0)))
+	_run_homing_range = maxf(0.0, float(stats.get("homing_range", 0.0)))
+	_run_gravity_pull_strength = maxf(0.0, float(stats.get("gravity_pull_strength", 0.0)))
+	_run_gravity_pull_radius = maxf(0.0, float(stats.get("gravity_pull_radius", 0.0)))
+	_run_dash_distance_mult = maxf(0.1, float(stats.get("dash_distance_mult", 1.0)))
+	_run_dash_speed_mult = maxf(0.1, float(stats.get("dash_speed_mult", 1.0)))
+	_run_dash_damage_mult = maxf(0.0, float(stats.get("dash_damage_mult", 1.0)))
+	_run_dash_aftershock_radius = maxf(0.0, float(stats.get("dash_aftershock_radius", 0.0)))
+	_run_dash_aftershock_damage_mult = maxf(0.0, float(stats.get("dash_aftershock_damage_mult", 0.0)))
+	_run_drone_slots = maxi(0, int(stats.get("drone_slots", 0)))
+	_ensure_support_drones(stats)
 
 
 func _get_current_shoot_direction() -> Vector2:
@@ -1299,8 +1346,8 @@ func _start_dash(input_dir: Vector2) -> void:
 	if dir == Vector2.ZERO:
 		dir = Vector2.DOWN
 	_dash_active = true
-	_dash_velocity = dir.normalized() * DASH_SPEED
-	_dash_remaining_distance = DASH_DISTANCE
+	_dash_velocity = dir.normalized() * DASH_SPEED * _run_dash_speed_mult
+	_dash_remaining_distance = DASH_DISTANCE * _run_dash_distance_mult
 	_dash_distance_traveled = 0.0
 	_dash_cooldown_timer = DASH_COOLDOWN
 	_dash_afterimage_timer = 0.0
@@ -1314,7 +1361,7 @@ func _start_dash(input_dir: Vector2) -> void:
 	monitoring = false
 	monitorable = false
 	invincible = true
-	invincible_timer = maxf(invincible_timer, DASH_DISTANCE / DASH_SPEED + 0.05)
+	invincible_timer = maxf(invincible_timer, _dash_remaining_distance / maxf(_dash_velocity.length(), 1.0) + 0.05)
 	current_velocity = _dash_velocity
 	_spawn_dash_afterimage()
 
@@ -1359,19 +1406,19 @@ func _dash_move_and_reflect(delta_pos: Vector2) -> bool:
 	var start_pos := global_position
 	var end_pos := global_position + delta_pos
 	var hit_normal := Vector2.ZERO
-	var hit_node := _get_dash_enemy_hit(end_pos)
+	var hit_node := _get_dash_enemy_hit(start_pos, end_pos)
 	if hit_node != null:
 		hit_normal = (end_pos - _get_node_world_position(hit_node)).normalized()
 		_apply_dash_impact_damage(hit_node)
 	else:
-		hit_node = _get_dash_obstacle_hit(end_pos)
+		hit_node = _get_dash_obstacle_hit(start_pos, end_pos)
 		if hit_node != null:
 			hit_normal = (end_pos - _get_node_world_position(hit_node)).normalized()
 	if hit_normal == Vector2.ZERO:
 		hit_normal = -_dash_velocity.normalized()
 	if hit_node != null:
 		global_position = start_pos
-		_dash_velocity = _dash_velocity.bounce(hit_normal).normalized() * DASH_SPEED
+		_dash_velocity = _dash_velocity.bounce(hit_normal).normalized() * DASH_SPEED * _run_dash_speed_mult
 		_dash_remaining_distance *= 0.72
 		return true
 	global_position = end_pos
@@ -1383,13 +1430,13 @@ func _dash_move_and_reflect(delta_pos: Vector2) -> bool:
 		if global_position.y <= movement_bounds.position.y or global_position.y >= movement_bounds.position.y + movement_bounds.size.y:
 			normal.y = -signf(_dash_velocity.y)
 		if normal != Vector2.ZERO:
-			_dash_velocity = _dash_velocity.bounce(normal.normalized()).normalized() * DASH_SPEED
+			_dash_velocity = _dash_velocity.bounce(normal.normalized()).normalized() * DASH_SPEED * _run_dash_speed_mult
 			_dash_remaining_distance *= 0.72
 			return true
 	return false
 
 
-func _get_dash_enemy_hit(point: Vector2) -> Node:
+func _get_dash_enemy_hit(start_point: Vector2, end_point: Vector2) -> Node:
 	var best: Node = null
 	var best_dist := INF
 	for group_name in [&"enemies", &"boss", &"defense_turrets"]:
@@ -1402,14 +1449,16 @@ func _get_dash_enemy_hit(point: Vector2) -> Node:
 			if group_name == &"boss":
 				radius = DASH_BOSS_HIT_RADIUS
 			var center := _get_node_world_position(node)
-			var dist := center.distance_to(point)
-			if dist <= radius + collision_radius and dist < best_dist:
+			var hit_radius := radius + collision_radius
+			var start_dist := center.distance_to(start_point)
+			var end_dist := center.distance_to(end_point)
+			if _dash_is_entering_overlap(start_dist, end_dist, hit_radius) and end_dist < best_dist:
 				best = node
-				best_dist = dist
+				best_dist = end_dist
 	return best
 
 
-func _get_dash_obstacle_hit(point: Vector2) -> Node:
+func _get_dash_obstacle_hit(start_point: Vector2, end_point: Vector2) -> Node:
 	if _dash_distance_traveled < DASH_START_CLEARANCE_DISTANCE:
 		return null
 	for obstacle in _get_blocking_obstacles():
@@ -1417,39 +1466,100 @@ func _get_dash_obstacle_hit(point: Vector2) -> Node:
 			continue
 		if obstacle is CanvasItem and not (obstacle as CanvasItem).visible:
 			continue
-		if _dash_obstacle_contains_point(obstacle, point):
+		var start_depth := _dash_obstacle_overlap_depth(obstacle, start_point)
+		var end_depth := _dash_obstacle_overlap_depth(obstacle, end_point)
+		if _dash_is_entering_overlap_depth(start_depth, end_depth):
 			return obstacle
 	return null
 
 
 func _dash_obstacle_contains_point(obstacle: Node, point: Vector2) -> bool:
+	return _dash_obstacle_overlap_depth(obstacle, point) > 0.0
+
+
+func _dash_obstacle_overlap_depth(obstacle: Node, point: Vector2) -> float:
 	var margin := collision_radius + DASH_OBSTACLE_EXTRA_MARGIN
 	if obstacle.has_method("get_collision_query_radius"):
 		var center := _obstacle_query_center(obstacle)
 		var radius := float(obstacle.call("get_collision_query_radius")) + margin
-		return center.distance_squared_to(point) <= radius * radius
+		return radius - center.distance_to(point)
 	if obstacle.has_method("get_map_start") and obstacle.has_method("get_map_end"):
 		var start: Vector2 = obstacle.call("get_map_start")
 		var end: Vector2 = obstacle.call("get_map_end")
 		var width := margin
 		if obstacle.has_method("get_map_width"):
 			width += float(obstacle.call("get_map_width")) * 0.5
-		return _distance_point_to_segment(point, start, end) <= width
+		return width - _distance_point_to_segment(point, start, end)
 	var fallback_center := _obstacle_query_center(obstacle)
-	return fallback_center.distance_squared_to(point) <= margin * margin
+	return margin - fallback_center.distance_to(point)
+
+
+func _dash_is_entering_overlap(start_dist: float, end_dist: float, hit_radius: float) -> bool:
+	if end_dist > hit_radius:
+		return false
+	if start_dist > hit_radius:
+		return true
+	return end_dist < start_dist - 0.5
+
+
+func _dash_is_entering_overlap_depth(start_depth: float, end_depth: float) -> bool:
+	if end_depth <= 0.0:
+		return false
+	if start_depth <= 0.0:
+		return true
+	return end_depth > start_depth + 0.5
 
 
 func _apply_dash_impact_damage(target: Node) -> void:
-	var amount := atk * DASH_REFLECT_DAMAGE_MULT
+	var amount := maxi(1, int(round(float(atk * DASH_REFLECT_DAMAGE_MULT) * _run_dash_damage_mult)))
 	if _dash_hit_targets.has(target):
 		return
 	_dash_hit_targets.append(target)
+	_apply_damage_to_dash_target(target, amount)
+	_apply_dash_aftershock(target, amount)
+
+
+func _apply_damage_to_dash_target(target: Node, amount: int) -> void:
 	if target.has_method("take_damage"):
 		target.call("take_damage", amount, self)
 	elif target.has_method("take_boss_damage"):
 		target.call("take_boss_damage", amount)
 	elif target.has_method("apply_damage"):
 		target.call("apply_damage", amount)
+
+
+func _apply_dash_aftershock(source_target: Node, impact_amount: int) -> void:
+	if _run_dash_aftershock_radius <= 0.0 or _run_dash_aftershock_damage_mult <= 0.0:
+		return
+	var center := _get_node_world_position(source_target)
+	var amount := maxi(1, int(round(float(impact_amount) * _run_dash_aftershock_damage_mult)))
+	for group_name in [&"enemies", &"boss", &"defense_turrets"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if not is_instance_valid(node) or node == source_target or node == self or node.is_queued_for_deletion():
+				continue
+			if node is CanvasItem and not (node as CanvasItem).visible:
+				continue
+			if center.distance_to(_get_node_world_position(node)) > _run_dash_aftershock_radius:
+				continue
+			_apply_damage_to_dash_target(node, amount)
+
+
+func _ensure_support_drones(stats: Dictionary) -> void:
+	if _run_drone_slots <= 0 or not is_inside_tree():
+		return
+	var existing := 0
+	for node in get_tree().get_nodes_in_group(&"player_support_drones"):
+		if is_instance_valid(node) and node.get_meta(&"owner_player", null) == self:
+			existing += 1
+	while existing < _run_drone_slots:
+		var drone = SUPPORT_DRONE_SCENE.instantiate()
+		drone.set_meta(&"owner_player", self)
+		drone.set_meta(&"effect_id", "drone_seed")
+		if drone.has_method("setup"):
+			drone.call("setup", self, existing, _run_drone_slots, stats)
+		drone.global_position = global_position + Vector2(42.0, 0.0).rotated(TAU * float(existing) / maxf(float(_run_drone_slots), 1.0))
+		add_child(drone)
+		existing += 1
 
 
 func _get_node_world_position(node: Node) -> Vector2:
