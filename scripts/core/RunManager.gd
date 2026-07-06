@@ -2188,6 +2188,8 @@ func resolve_event_choice(node_id: int, choice_id: String, seed: int = -1) -> Di
 	pending_room_loot = _empty_loot()
 	var rng := _make_rng(seed)
 	var result := _apply_event_profile(node, profile, rng)
+	# "强制下一个事件"只生效一次：事件结算即清除，否则会永久污染之后每个事件节点的选项
+	force_next_event_id = ""
 	var pending_contract: Dictionary = result.get("pending_event_contract", {})
 	var completion := _complete_current_node(true)
 	for key in completion.keys():
@@ -2286,6 +2288,15 @@ func start_explore_node(node_id: int) -> bool:
 	_apply_loading_context_to_room_config(room_config, node)
 	var latest_node := get_map_node(node_id)
 	_apply_ore_source_bias_to_room_config(room_config, latest_node if not latest_node.is_empty() else node)
+	# 词缀/局势写的是裸键，GameManager 白名单只认 battle_ 前缀，这里统一转换（取更强值）
+	if room_config.has("patrol_path_min_count"):
+		room_config["battle_patrol_path_min_count"] = maxi(
+			int(room_config.get("battle_patrol_path_min_count", 0)), int(room_config["patrol_path_min_count"]))
+		room_config.erase("patrol_path_min_count")
+	if room_config.has("patrol_path_max_count"):
+		room_config["battle_patrol_path_max_count"] = maxi(
+			int(room_config.get("battle_patrol_path_max_count", 0)), int(room_config["patrol_path_max_count"]))
+		room_config.erase("patrol_path_max_count")
 	# 进房后 GameManager 的配置会被 consume 清空，倍率必须在这里缓存供拾取时读取
 	current_room_mineral_mult = maxf(0.0, float(room_config.get("reward_mineral_mult", 1.0)))
 	GameManager.set_next_explore_room_config(room_config)
@@ -2314,9 +2325,11 @@ func record_reward_broken(reward_type: int) -> void:
 		if not reward_cache_family.is_empty():
 			preferred_family = reward_cache_family
 		var loot_owned_ids: Array = equipment_inventory + pending_room_loot.get("equipment", [])
-		var item_id := EquipmentCatalogScript.get_random_loot_item_id(loot_owned_ids, crisis_level, preferred_family)
+		var item_id: String
 		if not reward_cache_family.is_empty():
 			item_id = EquipmentCatalogScript.get_random_family_loot_item_id(loot_owned_ids, crisis_level, reward_cache_family)
+		else:
+			item_id = EquipmentCatalogScript.get_random_loot_item_id(loot_owned_ids, crisis_level, preferred_family)
 		var equipment: Array = pending_room_loot.get("equipment", [])
 		equipment.append(item_id)
 		pending_room_loot["equipment"] = equipment
@@ -2379,7 +2392,7 @@ func handle_boss_victory() -> bool:
 	var boss_completion_summary := _make_boss_completion_summary(threshold)
 	for key in boss_aftershock.keys():
 		boss_completion_summary[key] = boss_aftershock[key]
-	if threshold >= 21:
+	if threshold >= CRISIS_THRESHOLDS.back():
 		last_boss_completion_summary.clear()
 		finish_run(true)
 		get_tree().change_scene_to_file(GAME_OVER_SCENE)
@@ -4259,7 +4272,7 @@ func _select_run_conditions() -> void:
 	var categories := {}
 	for condition in pool:
 		var category := String(condition.get("category", ""))
-		if categories.has(category) and active_run_conditions.size() < RUN_CONDITION_PROFILES.size():
+		if categories.has(category):
 			continue
 		active_run_conditions.append(condition.duplicate(true))
 		categories[category] = true
@@ -5595,17 +5608,20 @@ func _roll_event_heal(profile: Dictionary, rng: RandomNumberGenerator) -> int:
 
 
 func _activate_event_special_bonus(family_bias: String) -> String:
-	var fallback := "colossus_charge_beacon"
+	# 优先激活同族中尚未激活的信标（每族有多枚，跳过已激活的才能拿到第二枚）；
+	# 同族全部已激活或无同族时，退而激活任意未激活的信标
+	var fallback := ""
 	for profile in SPECIAL_BONUS_PROFILES:
 		var bonus_id := String(profile.get("bonus_id", ""))
-		if bonus_id.is_empty():
+		if bonus_id.is_empty() or active_special_bonus_ids.has(bonus_id):
 			continue
 		if String(profile.get("family_bias", "")) == family_bias:
-			if not active_special_bonus_ids.has(bonus_id):
-				active_special_bonus_ids.append(bonus_id)
+			active_special_bonus_ids.append(bonus_id)
 			return bonus_id
 		if fallback.is_empty():
 			fallback = bonus_id
+	if fallback.is_empty():
+		fallback = "colossus_charge_beacon"
 	if not active_special_bonus_ids.has(fallback):
 		active_special_bonus_ids.append(fallback)
 	return fallback

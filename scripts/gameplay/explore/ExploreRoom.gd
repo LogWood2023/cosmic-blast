@@ -1238,7 +1238,9 @@ func _build_small_space_rocks_for_parent(large_rock: Node2D) -> Array[Node2D]:
 func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
 	if large_rocks.size() < 2:
 		return
-	var target_count = 0 if trap_count >= 0 else randi_range(ELECTRIC_ISOLATION_BAND_MIN_COUNT, ELECTRIC_ISOLATION_BAND_MAX_COUNT)
+	# 只有显式配置 trap_count=0（无陷阱房）才禁用电击带；
+	# 此前任何带 battle_trap_pressure 的配置都会把电击带清零，高压力房反而没有电击陷阱
+	var target_count = 0 if trap_count == 0 else randi_range(ELECTRIC_ISOLATION_BAND_MIN_COUNT, ELECTRIC_ISOLATION_BAND_MAX_COUNT)
 	print("[电击隔离带] 目标生成数量: %d" % target_count)
 	var connected: Array[String] = []
 	for _i in range(target_count):
@@ -1567,17 +1569,20 @@ func _spawn_isolation_bands_async(large_rocks: Array[Node2D]) -> void:
 			return
 		if large_rocks.size() < 2:
 			return
-		if _try_spawn_one_isolation_band(large_rocks, connected, bands_by_key):
-			pass
-		else:
-			removed_by_pathfinding += 0
+		if _try_spawn_one_isolation_band(large_rocks, connected, bands_by_key) == BAND_SPAWN_REMOVED_BY_PATHFINDING:
+			removed_by_pathfinding += 1
 		var p := float(i + 1) / float(maxi(1, target_count))
 		_set_loading_progress(lerpf(LOAD_STAGE_SMALL_ROCKS, LOAD_STAGE_ISOLATION_BANDS, p), "正在生成隔离带...")
 		await get_tree().process_frame
 	print("[隔离带] 实际生成数量: %d, 因寻路验证删除: %d" % [connected.size(), removed_by_pathfinding])
 
 
-func _try_spawn_one_isolation_band(large_rocks: Array[Node2D], connected: Array[String], bands_by_key: Dictionary) -> bool:
+const BAND_SPAWN_OK: int = 1
+const BAND_SPAWN_SKIPPED: int = 0
+const BAND_SPAWN_REMOVED_BY_PATHFINDING: int = -1
+
+
+func _try_spawn_one_isolation_band(large_rocks: Array[Node2D], connected: Array[String], bands_by_key: Dictionary) -> int:
 	var a_index = randi_range(0, large_rocks.size() - 1)
 	var a = large_rocks[a_index]
 	var candidates: Array[int] = []
@@ -1588,26 +1593,27 @@ func _try_spawn_one_isolation_band(large_rocks: Array[Node2D], connected: Array[
 		if a.get_base_position().distance_to(b.get_base_position()) <= ISOLATION_BAND_MAX_DISTANCE:
 			candidates.append(b_index)
 	if candidates.is_empty():
-		return false
+		return BAND_SPAWN_SKIPPED
 	var b_index = candidates.pick_random()
 	var key = _band_key(a_index, b_index)
 	if connected.has(key):
-		return false
+		return BAND_SPAWN_SKIPPED
 	var b = large_rocks[b_index]
 	if _is_band_blocked(a, b, large_rocks):
-		return false
+		return BAND_SPAWN_SKIPPED
 	var start = a.get_base_position()
 	var end = b.get_base_position()
-	_destroy_small_space_rocks_on_band_path(start, end)
 	var band = _create_isolation_band(start, end)
 	var band_w: float = band.get_collision_width() if band.has_method("get_collision_width") else ISOLATION_BAND_WIDTH
 	if not _can_traverse_between_band_sides(start, end, band_w):
 		band.queue_free()
-		return false
+		return BAND_SPAWN_REMOVED_BY_PATHFINDING
+	# 验证通过后才炸掉路径上的小太空石，验证失败不再白白损失石头
+	_destroy_small_space_rocks_on_band_path(start, end)
 	connected.append(key)
 	bands_by_key[key] = band
 	_sync_connected_sway_component(a_index, large_rocks, connected, bands_by_key)
-	return true
+	return BAND_SPAWN_OK
 
 
 func _band_key(a: int, b: int) -> String:

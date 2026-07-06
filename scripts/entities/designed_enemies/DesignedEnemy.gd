@@ -203,6 +203,8 @@ var _explore_patrol_returning: bool = false
 var _explore_room_idle_enabled: bool = false
 var _explore_pool_enabled: bool = false
 var _explore_pool_active: bool = false
+# 每次回收进池递增，供 await 型延时技能识别"本体已被复用"
+var _explore_pool_generation: int = 0
 var _explore_pool_releasing: bool = false
 var _explore_pool_owner: Node
 var _explore_pool_key: int = -1
@@ -807,13 +809,14 @@ func _clear_runtime_visual_effects_for_pool() -> void:
 func _release_explore_pooled_enemy() -> void:
 	if not _explore_pool_enabled or not _explore_pool_active:
 		return
+	_explore_pool_generation += 1
 	_clear_runtime_visual_effects_for_pool()
 	if behavior == Behavior.WARPED_MICRO_CORE or behavior == Behavior.WARPED_COLLAPSE_BEACON:
 		GameManager.suction_active = false
 		GameManager.suction_center = Vector2.ZERO
 	if behavior == Behavior.HELLEYE_INVERTED_MOTH or behavior == Behavior.HELLEYE_INVERT_PRIEST:
 		GameManager.controls_inverted = false
-	if behavior == Behavior.COLOSSUS_CORE_DEVOURER:
+	if behavior == Behavior.COLOSSUS_CORE_DEVOURER and not _has_other_active_core_devourer():
 		_clear_core_devourer_gravity_claw_pool()
 	_explore_pool_active = false
 	_ai_alert = false
@@ -1083,10 +1086,12 @@ func _draw_hell_eye_black_link() -> void:
 
 
 func _exit_tree() -> void:
-	if behavior == Behavior.COLOSSUS_CORE_DEVOURER:
-		_clear_core_devourer_gravity_claw_pool()
 	if _explore_pool_releasing:
 		return
+	# 钩爪池是全类共享的 static，只在最后一只核心吞噬者退场时清理，
+	# 否则一只死亡会摧毁其他吞噬者预热好的池
+	if behavior == Behavior.COLOSSUS_CORE_DEVOURER and not _has_other_active_core_devourer():
+		_clear_core_devourer_gravity_claw_pool()
 	if _gravity_claw_core_summoned:
 		_release_gravity_claw_grapple_if_needed()
 	if is_instance_valid(_alert_notice_node):
@@ -2582,6 +2587,18 @@ static func _release_core_devourer_gravity_claw_to_pool(claw: Node2D) -> void:
 	_core_devourer_gravity_claw_pool.append(claw)
 
 
+func _has_other_active_core_devourer() -> bool:
+	if not is_inside_tree():
+		return false
+	for node in get_tree().get_nodes_in_group(&"enemies"):
+		if node == self or not is_instance_valid(node) or node.is_queued_for_deletion():
+			continue
+		var other_behavior = node.get("behavior")
+		if other_behavior != null and int(other_behavior) == Behavior.COLOSSUS_CORE_DEVOURER:
+			return true
+	return false
+
+
 static func _clear_core_devourer_gravity_claw_pool() -> void:
 	for claw in _core_devourer_gravity_claw_pool:
 		if is_instance_valid(claw):
@@ -3874,8 +3891,14 @@ func _update_warped_collapse_beacon(delta: float) -> void:
 
 
 func _fire_warped_collapse_followup() -> void:
+	var generation := _explore_pool_generation
 	await get_tree().create_timer(0.5).timeout
-	if is_instance_valid(self) and _ai_alert and player:
+	# await 期间本体可能被回收进池并复用为其他敌人，必须校验行为与池代际未变
+	if not is_instance_valid(self) or behavior != Behavior.WARPED_COLLAPSE_BEACON:
+		return
+	if _explore_pool_generation != generation:
+		return
+	if _ai_alert and player:
 		_fire_warped_collapse_shotgun()
 
 
@@ -4003,7 +4026,9 @@ func _find_divine_oracle_phantom_start() -> Vector2:
 	for i in range(24):
 		var angle := randf_range(0.0, TAU)
 		var candidate := _clamped_point(center + Vector2.RIGHT.rotated(angle) * randf_range(radius * 0.45, radius))
-		return candidate
+		var pushed := _push_out_from_obstacles(candidate)
+		if pushed.distance_to(candidate) < 2.0 and not _path_blocked_by_obstacle(candidate, center):
+			return candidate
 	return _clamped_point(center + Vector2.RIGHT.rotated(randf_range(0.0, TAU)) * radius)
 
 

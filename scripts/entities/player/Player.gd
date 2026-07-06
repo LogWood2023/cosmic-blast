@@ -117,6 +117,7 @@ var _warped_lightning_glitch_layer: CanvasLayer
 var _warped_lightning_glitch_rect: ColorRect
 var _warped_lightning_glitch_material: ShaderMaterial
 var _hell_eye_blind_source_dps: Dictionary = {}
+var _hell_eye_blind_source_timers: Dictionary = {}
 var _hell_eye_blind_damage_accumulator: float = 0.0
 var _hell_eye_misalignment_source_timers: Dictionary = {}
 var _hell_eye_misalignment_progress: float = 0.0
@@ -370,6 +371,23 @@ func _get_current_shoot_direction() -> Vector2:
 #  受击（由敌方调用）
 # ══════════════════════════════════════════════
 
+var _death_triggered: bool = false
+
+
+## HP 归零的统一出口；防止 DoT/钩爪等多来源伤害同帧重复结算和重复切场景
+func _check_player_death() -> bool:
+	if GameManager.player_hp > 0:
+		return false
+	GameManager.player_hp = 0
+	if _death_triggered:
+		return true
+	_death_triggered = true
+	if RunManager.is_formal_run_active():
+		RunManager.finish_run(false)
+	get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	return true
+
+
 ## 被敌方子弹 / 撞击机 / 炸弹 等攻击时调用
 func take_damage_from(area: Area2D) -> void:
 	if invincible or _dash_active:
@@ -384,11 +402,7 @@ func take_damage_from(area: Area2D) -> void:
 	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
 
-	if GameManager.player_hp <= 0:
-		GameManager.player_hp = 0
-		if RunManager.is_formal_run_active():
-			RunManager.finish_run(false)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	if _check_player_death():
 		return
 
 	invincible = true
@@ -403,11 +417,7 @@ func take_damage_from_boss(dmg: int) -> void:
 	_play_sfx(HURT_SOUND)
 	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
-	if GameManager.player_hp <= 0:
-		GameManager.player_hp = 0
-		if RunManager.is_formal_run_active():
-			RunManager.finish_run(false)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	if _check_player_death():
 		return
 	invincible = true
 	invincible_timer = INVINCIBLE_DURATION
@@ -440,14 +450,17 @@ func apply_warped_lightning_effect(duration: float = WARPED_LIGHTNING_EFFECT_REF
 	_ensure_warped_lightning_glitch_overlay()
 
 
-func apply_hell_eye_blind_link(source: Node, damage_per_second: float, delta: float) -> void:
+func apply_hell_eye_blind_link(source: Node, damage_per_second: float, _delta: float) -> void:
 	if not is_instance_valid(source):
 		return
 	_hell_eye_blind_source_dps[source] = maxf(0.0, damage_per_second)
+	# 与错位链接同款的刷新超时：敌人停止调用后链接自动过期，不再永久挂 DoT
+	_hell_eye_blind_source_timers[source] = HELL_EYE_LINK_REFRESH
 
 
 func release_hell_eye_blind_link(source: Node) -> void:
 	_hell_eye_blind_source_dps.erase(source)
+	_hell_eye_blind_source_timers.erase(source)
 
 
 func refresh_hell_eye_misalignment_link(source: Node, _delta: float, upgrade_to_inverted: bool = false) -> void:
@@ -514,9 +527,19 @@ func _update_hell_eye_effects(delta: float) -> void:
 
 
 func _prune_hell_eye_sources(delta: float) -> void:
+	var blind_expired: Array = []
 	for source in _hell_eye_blind_source_dps.keys():
 		if not is_instance_valid(source):
-			_hell_eye_blind_source_dps.erase(source)
+			blind_expired.append(source)
+			continue
+		var blind_remaining := float(_hell_eye_blind_source_timers.get(source, HELL_EYE_LINK_REFRESH)) - delta
+		if blind_remaining <= 0.0:
+			blind_expired.append(source)
+		else:
+			_hell_eye_blind_source_timers[source] = blind_remaining
+	for source in blind_expired:
+		_hell_eye_blind_source_dps.erase(source)
+		_hell_eye_blind_source_timers.erase(source)
 	var expired: Array[Node] = []
 	for source in _hell_eye_misalignment_source_timers.keys():
 		if not is_instance_valid(source):
@@ -552,11 +575,7 @@ func _apply_external_direct_damage(dmg: int) -> void:
 	_play_sfx(HURT_SOUND)
 	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
-	if GameManager.player_hp <= 0:
-		GameManager.player_hp = 0
-		if RunManager.is_formal_run_active():
-			RunManager.finish_run(false)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	if _check_player_death():
 		return
 
 
@@ -572,11 +591,7 @@ func take_knockback_damage(dmg: int, spd: float, dur: float, dir: Vector2 = Vect
 	_play_sfx(HURT_SOUND)
 	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
-	if GameManager.player_hp <= 0:
-		GameManager.player_hp = 0
-		if RunManager.is_formal_run_active():
-			RunManager.finish_run(false)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	if _check_player_death():
 		return
 	is_knocked_back = true
 	knockback_speed = spd
@@ -1216,11 +1231,7 @@ func _apply_gravity_claw_damage(dmg: int, bypass_invincible: bool = false) -> vo
 	_play_sfx(HURT_SOUND)
 	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
-	if GameManager.player_hp <= 0:
-		GameManager.player_hp = 0
-		if RunManager.is_formal_run_active():
-			RunManager.finish_run(false)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	if _check_player_death():
 		return
 	if not bypass_invincible:
 		invincible = true
@@ -1340,11 +1351,8 @@ func _start_dash(input_dir: Vector2) -> void:
 		return
 	var dir := input_dir.normalized()
 	if dir == Vector2.ZERO:
+		# 无移动输入时向机头反方向后撤闪避（旋转后的单位向量恒非零，无需再兜底）
 		dir = -Vector2(0, -1).rotated(rotation).normalized()
-	if dir == Vector2.ZERO:
-		dir = -_last_input_dir
-	if dir == Vector2.ZERO:
-		dir = Vector2.DOWN
 	_dash_active = true
 	_dash_velocity = dir.normalized() * DASH_SPEED * _run_dash_speed_mult
 	_dash_remaining_distance = DASH_DISTANCE * _run_dash_distance_mult
