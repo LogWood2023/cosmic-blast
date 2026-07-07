@@ -50,6 +50,7 @@ const PLAYER_SPAWN_MARGIN: float = 120.0
 const PLAYER_SPAWN_CLEARANCE: float = 120.0
 const PATROL_PATH_MIN_COUNT: int = 2
 const PATROL_PATH_MAX_COUNT: int = 4
+const PATROL_PATH_REQUIRED_MIN: int = 3  # 每个房间至少保证的巡逻路线数（不足则用兜底直线补齐）
 const PATROL_PATH_GRID_SIZE: float = 340.0
 const PATROL_PATH_CLEARANCE: float = 180.0
 const PATROL_PATH_POINT_OFFSET: float = 100.0
@@ -1848,56 +1849,114 @@ func _generate_patrol_paths_async() -> void:
 	if map_ui and map_ui.has_method("set_static_enemy_icons"):
 		map_ui.set_static_enemy_icons(_static_enemy_map_icons)
 	var reward_candidates = _get_patrol_reward_candidates()
-	if reward_candidates.is_empty():
-		print("[巡逻路径] 未找到宝箱或矿脉，跳过生成")
-		if map_ui and map_ui.has_method("set_patrol_paths"):
-			map_ui.set_patrol_paths(_patrol_path_points)
-		return
 	GameManager.stutter_context = "ExploreRoom.patrol_paths:grid"
 	var grid = await _build_patrol_path_grid_async()
 	if _is_room_setup_cancelled():
 		return
-	var target_count = randi_range(patrol_path_min_count, maxi(patrol_path_min_count, patrol_path_max_count))
+	var required = maxi(PATROL_PATH_REQUIRED_MIN, patrol_path_min_count)
+	var target_count = maxi(required, randi_range(patrol_path_min_count, maxi(patrol_path_min_count, patrol_path_max_count)))
 	var generated_count = 0
-	for path_index in range(target_count):
-		if _is_room_setup_cancelled():
-			return
-		GameManager.stutter_context = "ExploreRoom.patrol_paths:path_%d" % path_index
-		var points = PackedVector2Array()
-		var shuffled_rewards = reward_candidates.duplicate()
-		shuffled_rewards.shuffle()
-		for reward in shuffled_rewards:
-			points = _try_build_patrol_path(grid, reward)
+	# 第一阶段：A* 生成绕奖励的高质量路径；失败即重试（不再固定跑 target 次后放弃），
+	# 直到攒够 target_count 或总尝试次数用尽
+	if not reward_candidates.is_empty():
+		var attempts = 0
+		var max_total_attempts = target_count * 4
+		while generated_count < target_count and attempts < max_total_attempts:
+			if _is_room_setup_cancelled():
+				return
+			attempts += 1
+			GameManager.stutter_context = "ExploreRoom.patrol_paths:path_%d" % generated_count
+			var points = PackedVector2Array()
+			var shuffled_rewards = reward_candidates.duplicate()
+			shuffled_rewards.shuffle()
+			for reward in shuffled_rewards:
+				points = _try_build_patrol_path(grid, reward)
+				if points.size() >= 2:
+					break
+				if GameManager.should_defer_work("ExploreRoom.patrol_paths.reward_attempt"):
+					await get_tree().process_frame
+					if _is_room_setup_cancelled():
+						return
 			if points.size() >= 2:
-				break
-			if GameManager.should_defer_work("ExploreRoom.patrol_paths.reward_attempt"):
-				await get_tree().process_frame
-				if _is_room_setup_cancelled():
-					return
-		if points.size() < 2:
-			print("[巡逻路径] 生成失败")
-			_set_loading_progress(lerpf(LOAD_STAGE_SPAWN_POINTS, LOAD_STAGE_PATROL_PATHS, float(path_index + 1) / float(maxi(1, target_count))), "正在生成巡逻路径...")
+				_commit_patrol_path(points)
+				generated_count += 1
+			_set_loading_progress(lerpf(LOAD_STAGE_SPAWN_POINTS, LOAD_STAGE_PATROL_PATHS, float(generated_count) / float(maxi(1, target_count))), "正在生成巡逻路径...")
 			await get_tree().process_frame
 			if _is_room_setup_cancelled():
 				return
-			continue
-		var family = _pick_patrol_enemy_family()
-		points = _adjust_patrol_path_for_enemy_spawn(points)
-		if SHOW_PATROL_PATH_DEBUG_LINES:
-			_draw_patrol_path(points)
-		_patrol_path_points.append(points)
-		_patrol_path_families.append(family)
-		generated_count += 1
-		_set_loading_progress(lerpf(LOAD_STAGE_SPAWN_POINTS, LOAD_STAGE_PATROL_PATHS, float(path_index + 1) / float(maxi(1, target_count))), "正在生成巡逻路径...")
+	# 第二阶段：兜底——A* 失败或无奖励导致不足 required 条时，用不依赖 A* 的
+	# 直线穿越路径补齐（巡逻敌人自身有避障寻路，轻微穿障可接受）
+	var fallback_guard = 0
+	while generated_count < required and fallback_guard < required * 3:
+		if _is_room_setup_cancelled():
+			return
+		fallback_guard += 1
+		var anchor = _pick_patrol_fallback_anchor(reward_candidates, generated_count)
+		var fallback_points = _build_fallback_patrol_path(anchor)
+		if fallback_points.size() >= 2:
+			_commit_patrol_path(fallback_points)
+			generated_count += 1
 		await get_tree().process_frame
 		if _is_room_setup_cancelled():
 			return
-		print("[巡逻路径] 已生成，家族: %s, 路径点数量: %d" % [family, points.size()])
-	print("[巡逻路径] 目标生成数量: %d, 实际生成数量: %d" % [target_count, generated_count])
+	print("[巡逻路径] 目标: %d（下限 %d）, 实际生成: %d" % [target_count, required, generated_count])
 	_queue_patrol_enemy_pool_prewarm()
 	_enemy_spawn_timer = enemy_spawn_interval
 	if map_ui and map_ui.has_method("set_patrol_paths"):
 		map_ui.set_patrol_paths(_patrol_path_points)
+
+
+func _commit_patrol_path(points: PackedVector2Array) -> void:
+	var family = _pick_patrol_enemy_family()
+	points = _adjust_patrol_path_for_enemy_spawn(points)
+	if SHOW_PATROL_PATH_DEBUG_LINES:
+		_draw_patrol_path(points)
+	_patrol_path_points.append(points)
+	_patrol_path_families.append(family)
+
+
+func _pick_patrol_fallback_anchor(reward_candidates: Array[Node2D], index: int) -> Vector2:
+	# 优先拿奖励点当锚点，让兜底路径也穿过有意义的区域；无奖励则用房间内随机点
+	for offset in range(reward_candidates.size()):
+		var candidate = reward_candidates[(index + offset) % reward_candidates.size()]
+		if is_instance_valid(candidate):
+			return candidate.get_base_position() if candidate.has_method("get_base_position") else candidate.global_position
+	return Vector2(
+		randf_range(ROOM_SIZE.x * 0.25, ROOM_SIZE.x * 0.75),
+		randf_range(ROOM_SIZE.y * 0.25, ROOM_SIZE.y * 0.75)
+	)
+
+
+func _build_fallback_patrol_path(anchor: Vector2) -> PackedVector2Array:
+	# 过锚点选一条随机主轴，两端投影到房间外，构成 [外A, 锚点, 外B] 的简单穿越路径
+	anchor = _clamp_patrol_point_to_room(anchor)
+	var dir = Vector2.RIGHT.rotated(randf_range(0.0, TAU))
+	var start = _project_patrol_point_to_room_edge(anchor, -dir)
+	var end = _project_patrol_point_to_room_edge(anchor, dir)
+	if start.distance_to(end) < PATROL_PATH_POINT_OFFSET:
+		return PackedVector2Array()
+	return PackedVector2Array([start, anchor, end])
+
+
+func _project_patrol_point_to_room_edge(from: Vector2, dir: Vector2) -> Vector2:
+	# 从 from 沿 dir 射线找与"房间外扩边界"的最近交点
+	if dir.length_squared() < 0.0001:
+		return from
+	var m = PATROL_PATH_OUTSIDE_MARGIN
+	var lo = Vector2(-m, -m)
+	var hi = ROOM_SIZE + Vector2(m, m)
+	var t = INF
+	if dir.x > 0.0001:
+		t = minf(t, (hi.x - from.x) / dir.x)
+	elif dir.x < -0.0001:
+		t = minf(t, (lo.x - from.x) / dir.x)
+	if dir.y > 0.0001:
+		t = minf(t, (hi.y - from.y) / dir.y)
+	elif dir.y < -0.0001:
+		t = minf(t, (lo.y - from.y) / dir.y)
+	if t == INF or t <= 0.0:
+		return from
+	return from + dir * t
 
 
 
