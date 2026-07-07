@@ -296,15 +296,8 @@ const AUXILIARIES: Dictionary = {
 		"rarity": "boss",
 		"boss_drop": true,
 		"effect_id": "dash_impact_mirror",
+		"dash_shield_duration": 0.9,
 		"atk_bonus": 2,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.12,
-		"mineral_bonus": 0.0,
-		"dash_distance_mult": 1.28,
-		"dash_speed_mult": 1.1,
-		"dash_damage_mult": 1.35,
-		"dash_aftershock_radius": 90.0,
-		"dash_aftershock_damage_mult": 0.28,
 		"description": "星间巨构掉落的冲刺组件，强化近身撞击和机动突进。",
 	},
 	"paradise_cover_matrix": {
@@ -390,15 +383,9 @@ const AUXILIARIES: Dictionary = {
 		"boss_drop": true,
 		"boss_drop_stage": 2,
 		"effect_id": "dash_aftershock_keel",
+		"dash_aftershock_radius": 150.0,
+		"dash_aftershock_damage_mult": 0.5,
 		"atk_bonus": 3,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.08,
-		"mineral_bonus": 0.0,
-		"dash_distance_mult": 1.18,
-		"dash_speed_mult": 1.18,
-		"dash_damage_mult": 1.55,
-		"dash_aftershock_radius": 130.0,
-		"dash_aftershock_damage_mult": 0.42,
 		"description": "龙骨把冲锋余震压回机体，折返后的撞击仍然沉重。",
 	},
 	"colossus_singularity_ram": {
@@ -411,15 +398,8 @@ const AUXILIARIES: Dictionary = {
 		"boss_drop": true,
 		"boss_drop_stage": 3,
 		"effect_id": "singularity_ram",
-		"atk_bonus": 5,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.16,
-		"mineral_bonus": 0.0,
-		"dash_distance_mult": 1.42,
-		"dash_speed_mult": 1.24,
-		"dash_damage_mult": 1.8,
-		"dash_aftershock_radius": 180.0,
-		"dash_aftershock_damage_mult": 0.58,
+		"dash_chain": 3,
+		"dash_damage_mult": 1.4,
 		"description": "撞锤内部封着一枚微型坍缩核，冲锋会像重炮一样撕开航线。",
 	},
 	"paradise_sunburst_rack": {
@@ -583,10 +563,6 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 2,
 		"family": FAMILY_COLOSSUS,
 		"rarity": "common",
-		"atk_bonus": 1,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.04,
-		"mineral_bonus": 0.0,
 		"dash_damage_mult": 1.2,
 		"description": "冲刺撞击造成更高伤害，是巨构流派的入门组件。",
 	},
@@ -597,12 +573,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 3,
 		"family": FAMILY_COLOSSUS,
 		"rarity": "common",
-		"atk_bonus": 0,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"dash_distance_mult": 1.18,
-		"dash_speed_mult": 1.04,
+		"dash_mining": 1.0,
 		"description": "延长冲刺航线，让机体主动撞入敌群深处。",
 	},
 	"kinetic_reflector": {
@@ -612,12 +583,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 4,
 		"family": FAMILY_COLOSSUS,
 		"rarity": "rare",
-		"atk_bonus": 2,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.06,
-		"mineral_bonus": 0.0,
-		"dash_damage_mult": 1.32,
-		"dash_speed_mult": 1.08,
+		"dash_chain": 2,
 		"description": "强化反弹后的动能保留，连续穿梭不再失速。",
 	},
 	"scatter_regulator": {
@@ -897,12 +863,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 3,
 		"family": FAMILY_COLOSSUS,
 		"rarity": "rare",
-		"atk_bonus": 1,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.08,
-		"mineral_bonus": 0.0,
-		"dash_distance_mult": 1.12,
-		"dash_damage_mult": 1.12,
+		"dash_rebound_bonus": 0.28,
 		"description": "相位脉冲先一步点亮航线，冲刺距离与撞击余威同时拉高。",
 	},
 	"cache_diviner": {
@@ -921,18 +882,18 @@ const AUXILIARIES: Dictionary = {
 }
 
 const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
-	{"id": "colossus_impact_coil", "name": "巨构冲击线圈", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 68, "compute_cost": 2, "description": "短促脉冲灌入撞角，冲锋落点会炸出更硬的火花。", "stats": {"atk_bonus": 1, "dash_damage_mult": 1.14}},
-	{"id": "colossus_ramming_keel", "name": "巨构撞击龙骨", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 74, "compute_cost": 3, "description": "加长舰首受力线，反弹时机体仍能稳住航向。", "stats": {"dash_distance_mult": 1.16, "dash_speed_mult": 1.04}},
-	{"id": "colossus_phase_anchor", "name": "巨构相位锚", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 118, "compute_cost": 5, "description": "厚重相位锚锁住冲锋瞬间，让无伤窗口拖得更长。", "stats": {"speed_mult": 0.98, "dash_distance_mult": 1.24, "dash_damage_mult": 1.22}},
-	{"id": "colossus_afterburner_vane", "name": "巨构尾焰导叶", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 86, "compute_cost": 3, "description": "尾焰导叶切开撤出角，冲锋后立刻接上下一段机动。", "stats": {"speed_mult": 1.05, "dash_speed_mult": 1.12}},
-	{"id": "colossus_kinetic_battery", "name": "巨构动能电池", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 126, "compute_cost": 5, "description": "撞击余波被封进电池，下一次突进会更沉。", "stats": {"atk_bonus": 2, "dash_damage_mult": 1.3}},
-	{"id": "colossus_rebound_gyros", "name": "巨构折返陀螺", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 82, "compute_cost": 3, "description": "陀螺仪校准镜面反弹，擦过墙体与敌甲后依旧利落。", "stats": {"dash_speed_mult": 1.08, "dash_damage_mult": 1.1}},
-	{"id": "colossus_crash_recorder", "name": "巨构撞击记录仪", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 135, "compute_cost": 4, "description": "记录仪复写最近的碰撞矢量，下一条冲锋线更凶。", "stats": {"atk_bonus": 1, "speed_mult": 1.04, "dash_distance_mult": 1.18}},
-	{"id": "colossus_titan_piston", "name": "巨构泰坦活塞", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 168, "compute_cost": 6, "description": "巨型活塞在机腹下咆哮，正面撞击像落锤砸穿护甲。", "stats": {"atk_bonus": 3, "dash_damage_mult": 1.42, "dash_speed_mult": 1.04}},
+	{"id": "colossus_impact_coil", "name": "巨构冲击线圈", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 68, "compute_cost": 2, "description": "短促脉冲灌入撞角，冲锋落点会炸出更硬的火花。", "stats": {"dash_damage_mult": 1.14}},
+	{"id": "colossus_ramming_keel", "name": "巨构撞击龙骨", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 74, "compute_cost": 3, "description": "加长舰首受力线，反弹时机体仍能稳住航向。", "stats": {"dash_rebound_bonus": 0.2}},
+	{"id": "colossus_phase_anchor", "name": "巨构相位锚", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 118, "compute_cost": 5, "description": "厚重相位锚锁住冲锋瞬间，让无伤窗口拖得更长。", "stats": {"dash_trail_damage_mult": 0.35}},
+	{"id": "colossus_afterburner_vane", "name": "巨构尾焰导叶", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 86, "compute_cost": 3, "description": "尾焰导叶切开撤出角，冲锋后立刻接上下一段机动。", "stats": {"dash_shield_duration": 0.4}},
+	{"id": "colossus_kinetic_battery", "name": "巨构动能电池", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 126, "compute_cost": 5, "description": "撞击余波被封进电池，下一次突进会更沉。", "stats": {"dash_aftershock_radius": 110.0, "dash_aftershock_damage_mult": 0.35}},
+	{"id": "colossus_rebound_gyros", "name": "巨构折返陀螺", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 82, "compute_cost": 3, "description": "陀螺仪校准镜面反弹，擦过墙体与敌甲后依旧利落。", "stats": {"dash_aftershock_radius": 85.0, "dash_aftershock_damage_mult": 0.25}},
+	{"id": "colossus_crash_recorder", "name": "巨构撞击记录仪", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 135, "compute_cost": 4, "description": "记录仪复写最近的碰撞矢量，下一条冲锋线更凶。", "stats": {"dash_chain": 1, "dash_damage_mult": 1.15}},
+	{"id": "colossus_titan_piston", "name": "巨构泰坦活塞", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 168, "compute_cost": 6, "description": "巨型活塞在机腹下咆哮，正面撞击像落锤砸穿护甲。", "stats": {"dash_trail_damage_mult": 0.5, "atk_bonus": 3}},
 	{"id": "colossus_vector_plow", "name": "巨构矢量犁", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 70, "compute_cost": 2, "description": "低耗鼻阵撬开短程冲锋，让每一次贴脸都更痛。", "stats": {"dash_damage_mult": 1.18}},
-	{"id": "colossus_guarded_charge", "name": "巨构护航冲锋核", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 142, "compute_cost": 5, "description": "护航算法压低偏航，速度、距离与撞击稳定性一并抬升。", "stats": {"speed_mult": 1.03, "dash_distance_mult": 1.16, "dash_damage_mult": 1.2}},
-	{"id": "colossus_shear_boots", "name": "巨构剪切推进靴", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 78, "compute_cost": 3, "description": "推进靴从敌阵侧翼刮过，留下又快又锐的切线。", "stats": {"speed_mult": 1.06, "dash_speed_mult": 1.06}},
-	{"id": "colossus_momentum_vault", "name": "巨构动量库", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 182, "compute_cost": 7, "description": "庞大动量舱持续蓄压，整架机体像一枚迟来的攻城弹。", "stats": {"atk_bonus": 2, "dash_distance_mult": 1.3, "dash_damage_mult": 1.34}},
+	{"id": "colossus_guarded_charge", "name": "巨构护航冲锋核", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 142, "compute_cost": 5, "description": "护航算法压低偏航，速度、距离与撞击稳定性一并抬升。", "stats": {"dash_rebound_bonus": 0.4}},
+	{"id": "colossus_shear_boots", "name": "巨构剪切推进靴", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 78, "compute_cost": 3, "description": "推进靴从敌阵侧翼刮过，留下又快又锐的切线。", "stats": {"dash_trail_damage_mult": 0.22}},
+	{"id": "colossus_momentum_vault", "name": "巨构动量库", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 182, "compute_cost": 7, "description": "庞大动量舱持续蓄压，整架机体像一枚迟来的攻城弹。", "stats": {"dash_shield_duration": 0.6}},
 
 	{"id": "paradise_splitter_board", "name": "天堂分流板", "family": FAMILY_PARADISE, "rarity": "common", "price": 76, "compute_cost": 2, "description": "分流板把主炮拆成更多弹线，前方空域被迅速填满。", "stats": {"bullet_count_bonus": 1, "spread_degrees_bonus": 6.0}},
 	{"id": "paradise_rapid_breech", "name": "天堂速射炮闩", "family": FAMILY_PARADISE, "rarity": "common", "price": 82, "compute_cost": 3, "description": "炮闩压缩循环，覆盖火力一轮接着一轮落下。", "stats": {"fire_rate_mult": 0.9}},
@@ -991,8 +952,8 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "general_stability_chip", "name": "稳定芯片", "family": FAMILY_GENERAL, "rarity": "common", "price": 78, "compute_cost": 2, "description": "朴素芯片压住系统噪声，武器与引擎都多了一点余量。", "stats": {"atk_bonus": 1, "speed_mult": 1.03}},
 	{"id": "general_salvage_ledger", "name": "回收账本", "family": FAMILY_GENERAL, "rarity": "rare", "price": 118, "compute_cost": 4, "description": "账本记下每条航线的损耗，撤离时总能多带回一些星髓。", "stats": {"atk_bonus": 1, "mineral_bonus": 0.16}},
 	{"id": "general_microfoundry", "name": "微型铸炉", "family": FAMILY_GENERAL, "rarity": "rare", "price": 126, "compute_cost": 4, "description": "随舰铸炉吞下碎矿与废热，转而喂给武器回路。", "stats": {"atk_bonus": 2, "fire_rate_mult": 0.98, "mineral_bonus": 0.08}},
-	{"id": "colossus_quarry_mandrel", "name": "巨构采场心轴", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 156, "compute_cost": 5, "description": "心轴把矿脉震成细亮裂纹，冲锋撞击会带出更厚的星髓。", "stats": {"mineral_bonus": 0.12, "dash_damage_mult": 1.24, "atk_bonus": 1}},
-	{"id": "colossus_orebreaker_keel", "name": "巨构碎矿龙骨", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 206, "compute_cost": 7, "description": "重型龙骨专为硬矿和装甲而生，长距离冲锋会把航路犁开。", "stats": {"mineral_bonus": 0.16, "dash_distance_mult": 1.28, "dash_speed_mult": 1.06, "dash_damage_mult": 1.18}},
+	{"id": "colossus_quarry_mandrel", "name": "巨构采场心轴", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 156, "compute_cost": 5, "description": "心轴把矿脉震成细亮裂纹，冲锋撞击会带出更厚的星髓。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.12}},
+	{"id": "colossus_orebreaker_keel", "name": "巨构碎矿龙骨", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 206, "compute_cost": 7, "description": "重型龙骨专为硬矿和装甲而生，长距离冲锋会把航路犁开。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.16}},
 	{"id": "paradise_mining_barrage", "name": "天堂采矿弹幕", "family": FAMILY_PARADISE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "密集弹幕像蓝白雨线落下，矿壳和敌阵一起被剥开。", "stats": {"mineral_bonus": 0.1, "bullet_count_bonus": 1, "spread_degrees_bonus": 8.0}},
 	{"id": "paradise_lumen_belt", "name": "天堂辉流弹带", "family": FAMILY_PARADISE, "rarity": "epic", "price": 198, "compute_cost": 6, "description": "辉流弹带穿过矿尘仍不失速，明亮弹线把回收点逐一照亮。", "stats": {"mineral_bonus": 0.14, "bullet_speed_mult": 1.18, "fire_rate_mult": 0.92}},
 	{"id": "warped_quarry_lens", "name": "扭曲采场透镜", "family": FAMILY_WARPED, "rarity": "rare", "price": 158, "compute_cost": 5, "description": "透镜折弯矿尘的质量影，松散碎矿会被拖回弹道中心。", "stats": {"mineral_bonus": 0.12, "gravity_pull_strength": 480.0, "gravity_pull_radius": 230.0}},
@@ -1385,6 +1346,11 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		"dash_damage_mult": 1.0,
 		"dash_aftershock_radius": float(weapon.get("dash_aftershock_radius", 0.0)),
 		"dash_aftershock_damage_mult": float(weapon.get("dash_aftershock_damage_mult", 0.0)),
+		"dash_chain": int(weapon.get("dash_chain", 0)),
+		"dash_trail_damage_mult": float(weapon.get("dash_trail_damage_mult", 0.0)),
+		"dash_rebound_bonus": float(weapon.get("dash_rebound_bonus", 0.0)),
+		"dash_mining": float(weapon.get("dash_mining", 0.0)),
+		"dash_shield_duration": float(weapon.get("dash_shield_duration", 0.0)),
 		"bullet_speed_mult": float(weapon.get("bullet_speed_mult", 1.0)),
 		"homing_strength": float(weapon.get("homing_strength", 0.0)),
 		"homing_range": float(weapon.get("homing_range", 0.0)),
@@ -1420,6 +1386,11 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		stats["dash_damage_mult"] = float(stats["dash_damage_mult"]) * float(aux.get("dash_damage_mult", 1.0))
 		stats["dash_aftershock_radius"] = float(stats["dash_aftershock_radius"]) + float(aux.get("dash_aftershock_radius", 0.0))
 		stats["dash_aftershock_damage_mult"] = float(stats["dash_aftershock_damage_mult"]) + float(aux.get("dash_aftershock_damage_mult", 0.0))
+		stats["dash_chain"] = int(stats["dash_chain"]) + int(aux.get("dash_chain", 0))
+		stats["dash_trail_damage_mult"] = maxf(float(stats["dash_trail_damage_mult"]), float(aux.get("dash_trail_damage_mult", 0.0)))
+		stats["dash_rebound_bonus"] = float(stats["dash_rebound_bonus"]) + float(aux.get("dash_rebound_bonus", 0.0))
+		stats["dash_mining"] = maxf(float(stats["dash_mining"]), float(aux.get("dash_mining", 0.0)))
+		stats["dash_shield_duration"] = maxf(float(stats["dash_shield_duration"]), float(aux.get("dash_shield_duration", 0.0)))
 		stats["bullet_speed_mult"] = float(stats["bullet_speed_mult"]) * float(aux.get("bullet_speed_mult", 1.0))
 		stats["homing_strength"] = float(stats["homing_strength"]) + float(aux.get("homing_strength", 0.0))
 		stats["homing_range"] = maxf(float(stats["homing_range"]), float(aux.get("homing_range", 0.0)))
@@ -1443,6 +1414,8 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 	stats["dash_aftershock_radius"] = minf(float(stats["dash_aftershock_radius"]), 260.0)
 	stats["dash_aftershock_damage_mult"] = minf(float(stats["dash_aftershock_damage_mult"]), 0.9)
 	stats["bullet_split_damage_mult"] = minf(float(stats["bullet_split_damage_mult"]), 0.75)
+	stats["dash_chain"] = mini(int(stats["dash_chain"]), 6)
+	stats["dash_rebound_bonus"] = minf(float(stats["dash_rebound_bonus"]), 1.0)
 	return stats
 
 
@@ -1544,6 +1517,11 @@ static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
 		"drone_shield_radius",
 		"drone_blast_damage_mult",
 		"drone_heal_amount",
+		"dash_chain",
+		"dash_trail_damage_mult",
+		"dash_rebound_bonus",
+		"dash_mining",
+		"dash_shield_duration",
 	]:
 		if stats.has(key):
 			item[key] = stats[key]

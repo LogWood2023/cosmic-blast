@@ -6,11 +6,11 @@ const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd"
 const REQUIRED_ITEMS: Dictionary = {
 	"colossus_quarry_mandrel": {
 		"family": EquipmentCatalogScript.FAMILY_COLOSSUS,
-		"stat_keys": ["mineral_bonus", "dash_damage_mult"],
+		"stat_keys": ["mineral_bonus", "dash_mining"],
 	},
 	"colossus_orebreaker_keel": {
 		"family": EquipmentCatalogScript.FAMILY_COLOSSUS,
-		"stat_keys": ["mineral_bonus", "dash_distance_mult"],
+		"stat_keys": ["mineral_bonus", "dash_mining"],
 	},
 	"paradise_mining_barrage": {
 		"family": EquipmentCatalogScript.FAMILY_PARADISE,
@@ -76,8 +76,8 @@ func _run() -> void:
 	if float(stats.get("mineral_bonus", 0.0)) < 1.0:
 		_fail("Economy synergy auxiliaries should materially improve mineral income.")
 		return
-	if float(stats.get("dash_damage_mult", 1.0)) <= 1.0:
-		_fail("Colossus economy auxiliaries should keep dash collision growth.")
+	if float(stats.get("dash_mining", 0.0)) <= 0.0:
+		_fail("Colossus economy auxiliaries should keep dash mining growth.")
 		return
 	if int(stats.get("bullet_count", 1)) <= 1:
 		_fail("Paradise economy auxiliaries should keep bullet coverage growth.")

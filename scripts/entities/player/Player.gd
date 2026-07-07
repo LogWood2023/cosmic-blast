@@ -30,6 +30,14 @@ var _run_dash_speed_mult: float = 1.0
 var _run_dash_damage_mult: float = 1.0
 var _run_dash_aftershock_radius: float = 0.0
 var _run_dash_aftershock_damage_mult: float = 0.0
+var _run_dash_chain: int = 0
+var _run_dash_trail_damage_mult: float = 0.0
+var _run_dash_rebound_bonus: float = 0.0
+var _run_dash_mining: float = 0.0
+var _run_dash_shield_duration: float = 0.0
+var _dash_chain_left: int = 0
+var _dash_rebound_stacks: int = 0
+var _dash_trail_timer: float = 0.0
 var _run_drone_slots: int = 0
 var _drone_loadout: Array = []
 var _speed_slow_mult: float = 1.0
@@ -63,6 +71,8 @@ const DASH_AFTERIMAGE_INTERVAL: float = 0.035
 const DASH_AFTERIMAGE_LIFETIME: float = 0.22
 const DASH_ENEMY_HIT_RADIUS: float = 52.0
 const DASH_BOSS_HIT_RADIUS: float = 120.0
+const DASH_CHAIN_RANGE: float = 720.0   # 智能导向：转向下一敌人的搜索范围
+const DASH_TRAIL_RADIUS: float = 96.0   # 能量尾迹：沿途伤害半径
 
 # 无敌帧
 var invincible: bool = false
@@ -353,6 +363,11 @@ func _apply_run_equipment() -> void:
 	_run_dash_damage_mult = maxf(0.0, float(stats.get("dash_damage_mult", 1.0)))
 	_run_dash_aftershock_radius = maxf(0.0, float(stats.get("dash_aftershock_radius", 0.0)))
 	_run_dash_aftershock_damage_mult = maxf(0.0, float(stats.get("dash_aftershock_damage_mult", 0.0)))
+	_run_dash_chain = maxi(0, int(stats.get("dash_chain", 0)))
+	_run_dash_trail_damage_mult = maxf(0.0, float(stats.get("dash_trail_damage_mult", 0.0)))
+	_run_dash_rebound_bonus = maxf(0.0, float(stats.get("dash_rebound_bonus", 0.0)))
+	_run_dash_mining = maxf(0.0, float(stats.get("dash_mining", 0.0)))
+	_run_dash_shield_duration = maxf(0.0, float(stats.get("dash_shield_duration", 0.0)))
 	_run_drone_slots = maxi(0, int(stats.get("drone_slots", 0)))
 	_drone_loadout = RunManager.get_drone_loadout()
 	_ensure_support_drones()
@@ -1362,6 +1377,9 @@ func _start_dash(input_dir: Vector2) -> void:
 	_dash_cooldown_timer = DASH_COOLDOWN
 	_dash_afterimage_timer = 0.0
 	_dash_hit_targets.clear()
+	_dash_chain_left = _run_dash_chain
+	_dash_rebound_stacks = 0
+	_dash_trail_timer = 0.0
 	_pre_dash_collision_layer = collision_layer
 	_pre_dash_collision_mask = collision_mask
 	_pre_dash_monitoring = monitoring
@@ -1390,6 +1408,12 @@ func _update_dash(delta: float) -> void:
 		_dash_remaining_distance -= step
 		_dash_distance_traveled += step
 		travel_left -= step
+	# 能量尾迹：冲刺途中对沿途敌人持续造成伤害
+	if _run_dash_trail_damage_mult > 0.0:
+		_dash_trail_timer -= delta
+		if _dash_trail_timer <= 0.0:
+			_dash_trail_timer = 0.06
+			_apply_dash_trail_damage()
 	_dash_afterimage_timer -= delta
 	if _dash_afterimage_timer <= 0.0:
 		_spawn_dash_afterimage()
@@ -1415,21 +1439,33 @@ func _end_dash() -> void:
 func _dash_move_and_reflect(delta_pos: Vector2) -> bool:
 	var start_pos := global_position
 	var end_pos := global_position + delta_pos
-	var hit_normal := Vector2.ZERO
-	var hit_node := _get_dash_enemy_hit(start_pos, end_pos)
-	if hit_node != null:
-		hit_normal = (end_pos - _get_node_world_position(hit_node)).normalized()
-		_apply_dash_impact_damage(hit_node)
-	else:
-		hit_node = _get_dash_obstacle_hit(start_pos, end_pos)
-		if hit_node != null:
-			hit_normal = (end_pos - _get_node_world_position(hit_node)).normalized()
-	if hit_normal == Vector2.ZERO:
-		hit_normal = -_dash_velocity.normalized()
-	if hit_node != null:
+	# 撞到敌人
+	var enemy_hit := _get_dash_enemy_hit(start_pos, end_pos)
+	if enemy_hit != null:
+		_apply_dash_impact_damage(enemy_hit)
+		# 智能导向：撞到后自动转向下一个敌人继续冲，形成连锁
+		if _dash_chain_left > 0:
+			var next := _find_dash_chain_target(enemy_hit)
+			if next != null:
+				_dash_chain_left -= 1
+				global_position = start_pos
+				var to_next := _get_node_world_position(next) - start_pos
+				if to_next.length() > 1.0:
+					_dash_velocity = to_next.normalized() * DASH_SPEED * _run_dash_speed_mult
+					_dash_remaining_distance = maxf(_dash_remaining_distance, DASH_DISTANCE * 0.5 * _run_dash_distance_mult)
+					return true
 		global_position = start_pos
-		_dash_velocity = _dash_velocity.bounce(hit_normal).normalized() * DASH_SPEED * _run_dash_speed_mult
-		_dash_remaining_distance *= 0.72
+		_dash_reflect_off(enemy_hit)
+		return true
+	# 撞到障碍
+	var obstacle_hit := _get_dash_obstacle_hit(start_pos, end_pos)
+	if obstacle_hit != null:
+		# 破障采矿：可破坏物直接撞碎穿过（它自身触发掉矿），不反弹
+		if _run_dash_mining > 0.0 and _try_dash_break_obstacle(obstacle_hit):
+			global_position = end_pos
+			return false
+		global_position = start_pos
+		_dash_reflect_off(obstacle_hit)
 		return true
 	global_position = end_pos
 	_clamp_to_movement_bounds()
@@ -1442,6 +1478,7 @@ func _dash_move_and_reflect(delta_pos: Vector2) -> bool:
 		if normal != Vector2.ZERO:
 			_dash_velocity = _dash_velocity.bounce(normal.normalized()).normalized() * DASH_SPEED * _run_dash_speed_mult
 			_dash_remaining_distance *= 0.72
+			_dash_rebound_stacks += 1
 			return true
 	return false
 
@@ -1521,12 +1558,67 @@ func _dash_is_entering_overlap_depth(start_depth: float, end_depth: float) -> bo
 
 
 func _apply_dash_impact_damage(target: Node) -> void:
-	var amount := maxi(1, int(round(float(atk * DASH_REFLECT_DAMAGE_MULT) * _run_dash_damage_mult)))
 	if _dash_hit_targets.has(target):
 		return
+	# 折返强化：每次反弹提升本次撞击伤害
+	var mult := _run_dash_damage_mult * (1.0 + _run_dash_rebound_bonus * float(_dash_rebound_stacks))
+	var amount := maxi(1, int(round(float(atk * DASH_REFLECT_DAMAGE_MULT) * mult)))
 	_dash_hit_targets.append(target)
 	_apply_damage_to_dash_target(target, amount)
 	_apply_dash_aftershock(target, amount)
+	# 撞击护盾：命中敌人后获得短暂无敌
+	if _run_dash_shield_duration > 0.0:
+		invincible = true
+		invincible_timer = maxf(invincible_timer, _run_dash_shield_duration)
+
+
+func _dash_reflect_off(hit_node: Node) -> void:
+	var hit_normal := (global_position - _get_node_world_position(hit_node)).normalized()
+	if hit_normal == Vector2.ZERO:
+		hit_normal = -_dash_velocity.normalized()
+	_dash_velocity = _dash_velocity.bounce(hit_normal).normalized() * DASH_SPEED * _run_dash_speed_mult
+	_dash_remaining_distance *= 0.72
+	_dash_rebound_stacks += 1
+
+
+func _find_dash_chain_target(exclude: Node) -> Node:
+	var best: Node = null
+	var best_dist := DASH_CHAIN_RANGE
+	for group_name in [&"enemies", &"boss", &"defense_turrets"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if not is_instance_valid(node) or node == self or node == exclude or node.is_queued_for_deletion():
+				continue
+			if _dash_hit_targets.has(node):
+				continue
+			if node is CanvasItem and not (node as CanvasItem).visible:
+				continue
+			var d := global_position.distance_to(_get_node_world_position(node))
+			if d < best_dist:
+				best_dist = d
+				best = node
+	return best
+
+
+func _try_dash_break_obstacle(obstacle: Node) -> bool:
+	if obstacle == null or not is_instance_valid(obstacle):
+		return false
+	if obstacle.is_in_group(&"space_clutter") or obstacle.is_in_group(&"explore_rewards"):
+		if obstacle.has_method("take_damage"):
+			obstacle.take_damage(9999)
+			return true
+	return false
+
+
+func _apply_dash_trail_damage() -> void:
+	var dmg := maxi(1, int(round(float(atk) * _run_dash_trail_damage_mult)))
+	for group_name in [&"enemies", &"boss", &"defense_turrets"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if not is_instance_valid(node) or node == self or node.is_queued_for_deletion():
+				continue
+			if node is CanvasItem and not (node as CanvasItem).visible:
+				continue
+			if global_position.distance_to(_get_node_world_position(node)) <= DASH_TRAIL_RADIUS:
+				_apply_damage_to_dash_target(node, dmg)
 
 
 func _apply_damage_to_dash_target(target: Node, amount: int) -> void:

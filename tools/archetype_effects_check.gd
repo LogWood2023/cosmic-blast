@@ -15,8 +15,8 @@ func _run() -> void:
 	_equip_all_boss_drops()
 
 	var stats := RunManager.get_player_stats()
-	_expect_float_gt(stats, "dash_distance_mult", 1.0)
-	_expect_float_gt(stats, "dash_speed_mult", 1.0)
+	_expect_int_gte(stats, "dash_chain", 1)
+	_expect_float_gt(stats, "dash_shield_duration", 0.0)
 	_expect_float_gt(stats, "dash_damage_mult", 1.0)
 	_expect_float_gt(stats, "dash_aftershock_radius", 0.0)
 	_expect_float_gt(stats, "dash_aftershock_damage_mult", 0.0)
@@ -46,8 +46,8 @@ func _run() -> void:
 	player.global_position = Vector2(500, 500)
 	add_child(player)
 
-	if float(player.get("_run_dash_distance_mult")) <= 1.0:
-		_fail("Player should apply boss-drop dash distance multiplier.")
+	if int(player.get("_run_dash_chain")) < 1:
+		_fail("Player should apply colossus dash chain from boss drop.")
 		return
 	if float(player.get("_run_dash_damage_mult")) <= 1.0:
 		_fail("Player should apply boss-drop dash damage multiplier.")
@@ -113,6 +113,8 @@ func _equip_all_boss_drops() -> void:
 	RunManager.equipment_inventory = [
 		"pulse_cannon",
 		"colossus_impact_mirror",
+		"colossus_aftershock_keel",
+		"colossus_singularity_ram",
 		"paradise_cover_matrix",
 		"warped_gravity_lens",
 		"hell_eye_frenzy_iris",
@@ -121,6 +123,8 @@ func _equip_all_boss_drops() -> void:
 	RunManager.equipped_weapon = "pulse_cannon"
 	RunManager.equipped_auxiliaries = [
 		"colossus_impact_mirror",
+		"colossus_aftershock_keel",
+		"colossus_singularity_ram",
 		"paradise_cover_matrix",
 		"warped_gravity_lens",
 		"hell_eye_frenzy_iris",
