@@ -12,12 +12,15 @@ extends Node2D
 @export var homing_strength: float = 2.0
 @export var homing_range: float = 460.0
 
+var mining_radius: float = 0.0  # >0 时僚机会顺手吸拢附近矿物（采矿型僚机）
+
 var owner_player: Node2D
 var orbit_index: int = 0
 var orbit_count: int = 1
 
 var _fire_timer: float = 0.0
 var _orbit_phase: float = 0.0
+var _mine_timer: float = 0.0
 
 
 func setup(owner: Node2D, index: int, count: int, stats: Dictionary = {}) -> void:
@@ -27,10 +30,17 @@ func setup(owner: Node2D, index: int, count: int, stats: Dictionary = {}) -> voi
 	bullet_damage = maxi(1, bullet_damage + int(stats.get("atk_bonus", 0)) / 2)
 	bullet_damage = maxi(1, int(round(float(bullet_damage) * float(stats.get("drone_damage_mult", 1.0)))))
 	fire_interval = maxf(0.08, fire_interval * float(stats.get("drone_fire_interval_mult", 1.0)))
+	# 僚机行为原型参数（狙击/连射/采矿由装备提供）
+	var range_mult := maxf(0.2, float(stats.get("drone_range_mult", 1.0)))
+	attack_range *= range_mult
 	orbit_radius += float(orbit_index % 3) * 12.0 + maxf(0.0, float(orbit_count - 1)) * 3.0
+	orbit_radius *= 1.0 + (range_mult - 1.0) * 0.35
 	orbit_speed *= 1.0 + float(orbit_index) * 0.08
-	homing_strength = maxf(homing_strength, float(stats.get("homing_strength", 0.0)) * 0.5)
+	bullet_speed *= maxf(0.2, float(stats.get("drone_bullet_speed_mult", 1.0)))
+	var drone_homing := float(stats.get("drone_homing_strength", 0.0))
+	homing_strength = maxf(homing_strength, maxf(drone_homing, float(stats.get("homing_strength", 0.0)) * 0.5))
 	homing_range = maxf(homing_range, float(stats.get("homing_range", 0.0)))
+	mining_radius = maxf(0.0, float(stats.get("drone_mining_radius", 0.0)))
 	if bullet_scene == null and owner != null and owner.get("bullet_scene") != null:
 		bullet_scene = owner.get("bullet_scene")
 
@@ -48,6 +58,8 @@ func _process(delta: float) -> void:
 		return
 	_update_orbit(delta)
 	_update_fire(delta)
+	if mining_radius > 0.0:
+		_update_mining(delta)
 
 
 func _update_orbit(delta: float) -> void:
@@ -65,6 +77,20 @@ func _update_fire(delta: float) -> void:
 		return
 	_fire_timer = fire_interval
 	_fire_at(target)
+
+
+func _update_mining(delta: float) -> void:
+	_mine_timer -= delta
+	if _mine_timer > 0.0:
+		return
+	_mine_timer = 0.2  # 节流，避免每帧全场扫描
+	var r2 := mining_radius * mining_radius
+	for pickup in get_tree().get_nodes_in_group(&"mineral_pickups"):
+		if not is_instance_valid(pickup) or not pickup is Node2D:
+			continue
+		if global_position.distance_squared_to((pickup as Node2D).global_position) <= r2:
+			if pickup.has_method("trigger_attract"):
+				pickup.trigger_attract()
 
 
 func _find_target() -> Node:

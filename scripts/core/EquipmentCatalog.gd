@@ -569,6 +569,7 @@ const AUXILIARIES: Dictionary = {
 		"drone_slots": 2,
 		"drone_fire_interval_mult": 0.82,
 		"drone_damage_mult": 1.25,
+		"drone_range_mult": 1.12,
 		"description": "链路让第二组僚机听见同一段圣歌，护航火线随之展开。",
 	},
 	"divine_oracle_swarm_core": {
@@ -777,6 +778,7 @@ const AUXILIARIES: Dictionary = {
 		"speed_mult": 1.0,
 		"mineral_bonus": 0.0,
 		"drone_slots": 1,
+		"drone_fire_interval_mult": 0.8,
 		"description": "折叠舱门在战斗中展开，额外僚机接入护航队列。",
 	},
 	"oracle_sync_chip": {
@@ -804,6 +806,7 @@ const AUXILIARIES: Dictionary = {
 		"fire_rate_mult": 0.97,
 		"speed_mult": 1.02,
 		"mineral_bonus": 0.0,
+		"drone_slots": 1,
 		"description": "协议校准主机与僚机节拍，护航火线更稳。",
 	},
 	"mineral_sieve": {
@@ -994,17 +997,17 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "hell_eye_last_stand_logic", "name": "地狱背水逻辑", "family": FAMILY_HELL_EYE, "rarity": "epic", "price": 196, "compute_cost": 7, "description": "背水逻辑接管临界状态，越逼近失控越能压出火力。", "stats": {"atk_bonus": 2, "frenzy_gain_mult": 1.24, "frenzy_fire_rate_mult": 0.86, "frenzy_damage_taken_mult": 0.86}},
 
 	{"id": "divine_wingman_bus", "name": "神使僚机总线", "family": FAMILY_DIVINE, "rarity": "common", "price": 86, "compute_cost": 3, "description": "总线拓宽指令带宽，第一架僚机会更快回应呼唤。", "stats": {"speed_mult": 1.02, "drone_slots": 1}},
-	{"id": "divine_swarm_router", "name": "神使蜂群路由器", "family": FAMILY_DIVINE, "rarity": "rare", "price": 138, "compute_cost": 5, "description": "路由器把僚机指令散入战场边缘，友军火线覆盖得更远。", "stats": {"fire_rate_mult": 0.98, "drone_slots": 1}},
-	{"id": "divine_oracle_port", "name": "神使神谕端口", "family": FAMILY_DIVINE, "rarity": "common", "price": 80, "compute_cost": 2, "description": "低耗端口点亮神谕回路，护航火力从此接入主机。", "stats": {"atk_bonus": 1, "speed_mult": 1.02}},
-	{"id": "divine_repair_familiar", "name": "神使修复使魔", "family": FAMILY_DIVINE, "rarity": "rare", "price": 132, "compute_cost": 4, "description": "修复使魔盘旋在侧，矿石回收与僚机链路一同稳定下来。", "stats": {"mineral_bonus": 0.08, "drone_slots": 1}},
+	{"id": "divine_swarm_router", "name": "神使蜂群路由器", "family": FAMILY_DIVINE, "rarity": "rare", "price": 138, "compute_cost": 5, "description": "路由器把僚机指令散入战场边缘，友军火线覆盖得更远。", "stats": {"drone_fire_interval_mult": 0.82, "fire_rate_mult": 0.98, "drone_slots": 1}},
+	{"id": "divine_oracle_port", "name": "神使神谕端口", "family": FAMILY_DIVINE, "rarity": "common", "price": 80, "compute_cost": 2, "description": "低耗端口点亮神谕回路，护航火力从此接入主机。", "stats": {"drone_range_mult": 1.1, "drone_slots": 1, "atk_bonus": 1, "speed_mult": 1.02}},
+	{"id": "divine_repair_familiar", "name": "神使修复使魔", "family": FAMILY_DIVINE, "rarity": "rare", "price": 132, "compute_cost": 4, "description": "修复使魔盘旋在侧，矿石回收与僚机链路一同稳定下来。", "stats": {"drone_mining_radius": 280.0, "mineral_bonus": 0.08, "drone_slots": 1}},
 	{"id": "divine_lantern_node", "name": "神使灯塔节点", "family": FAMILY_DIVINE, "rarity": "common", "price": 92, "compute_cost": 3, "description": "灯塔节点牵住僚机方位，急转闪避时队形仍不散。", "stats": {"speed_mult": 1.04, "drone_slots": 1}},
 	{"id": "divine_auto_hangar", "name": "神使自动机库", "family": FAMILY_DIVINE, "rarity": "epic", "price": 184, "compute_cost": 7, "description": "沉重机库自行开闸，更多僚机从冷光里滑出。", "stats": {"atk_bonus": 1, "drone_slots": 2}},
-	{"id": "divine_choir_protocol", "name": "神使圣歌协议", "family": FAMILY_DIVINE, "rarity": "rare", "price": 146, "compute_cost": 5, "description": "圣歌协议同步主炮与僚机节拍，火线像合唱一样落下。", "stats": {"fire_rate_mult": 0.94, "drone_slots": 1}},
-	{"id": "divine_remote_gunner", "name": "神使遥控炮手", "family": FAMILY_DIVINE, "rarity": "common", "price": 96, "compute_cost": 3, "description": "遥控炮手守住侧翼，护航火力变得更直接。", "stats": {"atk_bonus": 2, "drone_slots": 1}},
-	{"id": "divine_seed_vault", "name": "神使种子舱", "family": FAMILY_DIVINE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "种子舱保留额外僚机胚核，漫长航线也不会失去护卫。", "stats": {"mineral_bonus": 0.1, "drone_slots": 1}},
-	{"id": "divine_tactical_nest", "name": "神使战术巢", "family": FAMILY_DIVINE, "rarity": "epic", "price": 172, "compute_cost": 6, "description": "战术巢在机体外侧展开，友军火力覆盖成环。", "stats": {"atk_bonus": 1, "fire_rate_mult": 0.96, "drone_slots": 1}},
-	{"id": "divine_pulse_familiar", "name": "神使脉冲使魔", "family": FAMILY_DIVINE, "rarity": "common", "price": 84, "compute_cost": 2, "description": "轻型使魔信号跟随机体脉冲，移动时也能稳住护航节拍。", "stats": {"speed_mult": 1.05}},
-	{"id": "divine_companion_kernel", "name": "神使伴星核心", "family": FAMILY_DIVINE, "rarity": "rare", "price": 158, "compute_cost": 5, "description": "伴星核心放大友军火力，僚机群的回应更有分量。", "stats": {"atk_bonus": 2, "drone_slots": 1}},
+	{"id": "divine_choir_protocol", "name": "神使圣歌协议", "family": FAMILY_DIVINE, "rarity": "rare", "price": 146, "compute_cost": 5, "description": "圣歌协议同步主炮与僚机节拍，火线像合唱一样落下。", "stats": {"drone_fire_interval_mult": 0.9, "fire_rate_mult": 0.94, "drone_slots": 1}},
+	{"id": "divine_remote_gunner", "name": "神使遥控炮手", "family": FAMILY_DIVINE, "rarity": "common", "price": 96, "compute_cost": 3, "description": "遥控炮手守住侧翼，护航火力变得更直接。", "stats": {"drone_range_mult": 1.15, "atk_bonus": 2, "drone_slots": 1}},
+	{"id": "divine_seed_vault", "name": "神使种子舱", "family": FAMILY_DIVINE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "种子舱保留额外僚机胚核，漫长航线也不会失去护卫。", "stats": {"drone_mining_radius": 300.0, "mineral_bonus": 0.1, "drone_slots": 1}},
+	{"id": "divine_tactical_nest", "name": "神使战术巢", "family": FAMILY_DIVINE, "rarity": "epic", "price": 172, "compute_cost": 6, "description": "战术巢在机体外侧展开，友军火力覆盖成环。", "stats": {"drone_damage_mult": 1.2, "drone_homing_strength": 4.0, "drone_range_mult": 1.3, "atk_bonus": 1, "fire_rate_mult": 0.96, "drone_slots": 1}},
+	{"id": "divine_pulse_familiar", "name": "神使脉冲使魔", "family": FAMILY_DIVINE, "rarity": "common", "price": 84, "compute_cost": 2, "description": "轻型使魔信号跟随机体脉冲，移动时也能稳住护航节拍。", "stats": {"drone_fire_interval_mult": 0.85, "drone_slots": 1, "speed_mult": 1.05}},
+	{"id": "divine_companion_kernel", "name": "神使伴星核心", "family": FAMILY_DIVINE, "rarity": "rare", "price": 158, "compute_cost": 5, "description": "伴星核心放大友军火力，僚机群的回应更有分量。", "stats": {"drone_bullet_speed_mult": 1.2, "drone_homing_strength": 3.0, "drone_range_mult": 1.25, "atk_bonus": 2, "drone_slots": 1}},
 
 	{"id": "general_contract_scanner", "name": "契约扫描仪", "family": FAMILY_GENERAL, "rarity": "common", "price": 72, "compute_cost": 2, "description": "扫描仪提前读出航路契约，回收价值浮现在暗区边缘。", "stats": {"mineral_bonus": 0.12}},
 	{"id": "general_supply_predictor", "name": "补给预报器", "family": FAMILY_GENERAL, "rarity": "common", "price": 84, "compute_cost": 3, "description": "预报器标出下一段补给潮，机动与回收都更从容。", "stats": {"speed_mult": 1.04, "mineral_bonus": 0.1}},
@@ -1019,8 +1022,8 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "warped_treasure_orbit", "name": "扭曲珍藏轨环", "family": FAMILY_WARPED, "rarity": "epic", "price": 212, "compute_cost": 7, "description": "轨环绕着高价值目标低声旋转，追踪火力会替你咬住暗处矿光。", "stats": {"mineral_bonus": 0.15, "homing_strength": 4.2, "homing_range": 580.0, "bullet_speed_mult": 1.1}},
 	{"id": "hell_eye_molten_ledger", "name": "地狱熔账", "family": FAMILY_HELL_EYE, "rarity": "rare", "price": 152, "compute_cost": 5, "description": "熔账吞下每一次伤痛和收获，狂热升温时回收链也烧得更亮。", "stats": {"mineral_bonus": 0.1, "frenzy_gain_mult": 1.2, "frenzy_damage_taken_mult": 0.94}},
 	{"id": "hell_eye_redline_collector", "name": "地狱红线收集器", "family": FAMILY_HELL_EYE, "rarity": "epic", "price": 204, "compute_cost": 6, "description": "红线越过安全刻度，狂热火力会把矿尘熔成可带走的星髓。", "stats": {"mineral_bonus": 0.14, "frenzy_damage_mult": 1.18, "frenzy_fire_rate_mult": 0.9}},
-	{"id": "divine_salvage_squadron", "name": "神使回收中队", "family": FAMILY_DIVINE, "rarity": "rare", "price": 164, "compute_cost": 5, "description": "小队在主机身侧展开，护航火线会顺手标定散落矿光。", "stats": {"mineral_bonus": 0.11, "drone_slots": 1, "drone_damage_mult": 1.08}},
-	{"id": "divine_foundry_companion", "name": "神使铸炉伴星", "family": FAMILY_DIVINE, "rarity": "epic", "price": 218, "compute_cost": 7, "description": "伴星拖着细小铸炉巡航，友军射击间隔被压低，碎矿也被及时收拢。", "stats": {"mineral_bonus": 0.16, "drone_fire_interval_mult": 0.86, "drone_damage_mult": 1.16, "drone_slots": 1}},
+	{"id": "divine_salvage_squadron", "name": "神使回收中队", "family": FAMILY_DIVINE, "rarity": "rare", "price": 164, "compute_cost": 5, "description": "小队在主机身侧展开，护航火线会顺手标定散落矿光。", "stats": {"drone_mining_radius": 340.0, "mineral_bonus": 0.11, "drone_slots": 1, "drone_damage_mult": 1.08}},
+	{"id": "divine_foundry_companion", "name": "神使铸炉伴星", "family": FAMILY_DIVINE, "rarity": "epic", "price": 218, "compute_cost": 7, "description": "伴星拖着细小铸炉巡航，友军射击间隔被压低，碎矿也被及时收拢。", "stats": {"drone_mining_radius": 380.0, "mineral_bonus": 0.16, "drone_fire_interval_mult": 0.86, "drone_damage_mult": 1.16, "drone_slots": 1}},
 	{"id": "general_ore_beacon_array", "name": "矿脉信标阵列", "family": FAMILY_GENERAL, "rarity": "rare", "price": 136, "compute_cost": 4, "description": "信标阵列在暗区边缘点亮矿脉回声，撤离航线因此更轻快。", "stats": {"mineral_bonus": 0.18, "speed_mult": 1.05}},
 	{"id": "general_extraction_cradle", "name": "撤离摇篮", "family": FAMILY_GENERAL, "rarity": "epic", "price": 188, "compute_cost": 6, "description": "摇篮稳住货舱与主炮供能，带着满仓星髓离场时仍能开火。", "stats": {"mineral_bonus": 0.2, "atk_bonus": 2, "speed_mult": 1.02}},
 ]
@@ -1345,6 +1348,14 @@ static func get_effect_summary_text(id: String) -> String:
 	var drone_damage_mult := float(item.get("drone_damage_mult", 1.0))
 	if drone_damage_mult > 1.0:
 		parts.append("僚机火力 +%d%%" % int(round((drone_damage_mult - 1.0) * 100.0)))
+	if float(item.get("drone_range_mult", 1.0)) > 1.0:
+		parts.append("僚机射程 +%d%%" % int(round((float(item.get("drone_range_mult", 1.0)) - 1.0) * 100.0)))
+	if float(item.get("drone_bullet_speed_mult", 1.0)) > 1.0:
+		parts.append("僚机弹速 +%d%%" % int(round((float(item.get("drone_bullet_speed_mult", 1.0)) - 1.0) * 100.0)))
+	if float(item.get("drone_homing_strength", 0.0)) > 0.0:
+		parts.append("僚机追踪")
+	if float(item.get("drone_mining_radius", 0.0)) > 0.0:
+		parts.append("僚机采矿")
 	if parts.is_empty():
 		return "基础回路稳定"
 	if parts.size() > 3:
@@ -1405,6 +1416,10 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		"drone_slots": int(weapon.get("drone_slots", 0)),
 		"drone_fire_interval_mult": float(weapon.get("drone_fire_interval_mult", 1.0)),
 		"drone_damage_mult": float(weapon.get("drone_damage_mult", 1.0)),
+		"drone_range_mult": float(weapon.get("drone_range_mult", 1.0)),
+		"drone_bullet_speed_mult": float(weapon.get("drone_bullet_speed_mult", 1.0)),
+		"drone_homing_strength": float(weapon.get("drone_homing_strength", 0.0)),
+		"drone_mining_radius": float(weapon.get("drone_mining_radius", 0.0)),
 	}
 	for aux_id in aux_ids:
 		var aux := get_item(aux_id)
@@ -1436,7 +1451,12 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		stats["drone_slots"] = int(stats["drone_slots"]) + int(aux.get("drone_slots", 0))
 		stats["drone_fire_interval_mult"] = float(stats["drone_fire_interval_mult"]) * float(aux.get("drone_fire_interval_mult", 1.0))
 		stats["drone_damage_mult"] = float(stats["drone_damage_mult"]) * float(aux.get("drone_damage_mult", 1.0))
+		stats["drone_range_mult"] = float(stats["drone_range_mult"]) * float(aux.get("drone_range_mult", 1.0))
+		stats["drone_bullet_speed_mult"] = float(stats["drone_bullet_speed_mult"]) * float(aux.get("drone_bullet_speed_mult", 1.0))
+		stats["drone_homing_strength"] = float(stats["drone_homing_strength"]) + float(aux.get("drone_homing_strength", 0.0))
+		stats["drone_mining_radius"] = maxf(float(stats["drone_mining_radius"]), float(aux.get("drone_mining_radius", 0.0)))
 	# 机制强度多件累加，但设软上限防止叠满后失控（数值可在流派平衡时调整）
+	stats["drone_homing_strength"] = minf(float(stats["drone_homing_strength"]), 8.0)
 	stats["homing_strength"] = minf(float(stats["homing_strength"]), 18.0)
 	stats["gravity_pull_strength"] = minf(float(stats["gravity_pull_strength"]), 820.0)
 	stats["dash_aftershock_radius"] = minf(float(stats["dash_aftershock_radius"]), 260.0)
@@ -1505,6 +1525,10 @@ static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
 		"drone_slots",
 		"drone_fire_interval_mult",
 		"drone_damage_mult",
+		"drone_range_mult",
+		"drone_bullet_speed_mult",
+		"drone_homing_strength",
+		"drone_mining_radius",
 	]:
 		if stats.has(key):
 			item[key] = stats[key]

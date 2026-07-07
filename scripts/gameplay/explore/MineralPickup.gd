@@ -104,6 +104,12 @@ func _get_target() -> Node2D:
 	return null
 
 
+## 采矿僚机调用：让附近矿物立即开始吸附（跳过初始延迟）
+func trigger_attract() -> void:
+	if not _collected:
+		_attract_timer = 0.0
+
+
 func _collect() -> void:
 	if _collected:
 		return
