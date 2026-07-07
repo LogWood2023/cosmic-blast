@@ -1,7 +1,8 @@
 extends Control
 
 const VIEW_SIZE: Vector2 = Vector2(1920, 1080)
-const MAP_SIZE: Vector2 = Vector2(1536, 864)
+# 房间是正方形，地图显示区也用正方形，使内容与边框完全重合、整图一屏显示（无需纵向滚动）
+const MAP_SIZE: Vector2 = Vector2(864, 864)
 const ROOM_SIZE: Vector2 = Vector2(10800, 10800)
 const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 const FOG_CELL_WORLD_SIZE: float = 240.0
@@ -216,7 +217,7 @@ func _draw_map_overlay(rect: Rect2) -> void:
 	draw_rect(title_rect, Color(0.027, 0.063, 0.094, 0.9), true)
 	draw_rect(title_rect, Color(COMMAND_CYAN.r, COMMAND_CYAN.g, COMMAND_CYAN.b, 0.36), false, 1.0)
 	draw_string(font, title_pos + Vector2(18.0, 25.0), "深空战术地图", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 24, TEXT_MAIN)
-	draw_string(font, title_pos + Vector2(rect.size.x - 390.0, 25.0), "拖拽纵向扫描 · 已探索区域高亮", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, TEXT_MUTED)
+	draw_string(font, title_pos + Vector2(rect.size.x - 200.0, 25.0), "已探索区域高亮", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, TEXT_MUTED)
 
 	var legend_pos := rect.position + Vector2(0.0, rect.size.y + 18.0)
 	var legend_rect := Rect2(legend_pos, Vector2(rect.size.x, 34.0))
