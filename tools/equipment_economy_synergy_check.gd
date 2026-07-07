@@ -14,11 +14,11 @@ const REQUIRED_ITEMS: Dictionary = {
 	},
 	"paradise_mining_barrage": {
 		"family": EquipmentCatalogScript.FAMILY_PARADISE,
-		"stat_keys": ["mineral_bonus", "bullet_count_bonus"],
+		"stat_keys": ["mineral_bonus", "bullet_dot_damage_mult"],
 	},
 	"paradise_lumen_belt": {
 		"family": EquipmentCatalogScript.FAMILY_PARADISE,
-		"stat_keys": ["mineral_bonus", "bullet_speed_mult"],
+		"stat_keys": ["mineral_bonus", "bullet_dot_damage_mult"],
 	},
 	"warped_quarry_lens": {
 		"family": EquipmentCatalogScript.FAMILY_WARPED,
@@ -79,8 +79,8 @@ func _run() -> void:
 	if float(stats.get("dash_mining", 0.0)) <= 0.0:
 		_fail("Colossus economy auxiliaries should keep dash mining growth.")
 		return
-	if int(stats.get("bullet_count", 1)) <= 1:
-		_fail("Paradise economy auxiliaries should keep bullet coverage growth.")
+	if float(stats.get("bullet_dot_damage_mult", 0.0)) <= 0.0:
+		_fail("Paradise economy auxiliaries should keep bullet DoT growth.")
 		return
 	if float(stats.get("gravity_pull_strength", 0.0)) <= 0.0:
 		_fail("Warped economy auxiliaries should keep gravity control growth.")

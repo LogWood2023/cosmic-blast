@@ -13,6 +13,11 @@ var homing_strength: float = 0.0
 var homing_range: float = 0.0
 var gravity_pull_strength: float = 0.0
 var gravity_pull_radius: float = 0.0
+var pierce_left: int = 0            # 穿透：命中敌人后剩余可穿透次数
+var chain_left: int = 0             # 跳弹：命中后剩余可转向次数
+var dot_damage_mult: float = 0.0    # DoT：命中后按 atk 比例施加灼烧
+const DOT_SCRIPT := preload("res://scripts/fx/DamageOverTime.gd")
+const CHAIN_RANGE: float = 620.0
 const FORCE_FIELD_BLEND: float = 10.0
 const BulletBurstScript := preload("res://scripts/fx/BulletBurst.gd")
 const DESTROY_BURST_COLOR := Color(0.25, 0.75, 1.0, 1.0)
@@ -24,6 +29,7 @@ const ANIM_FPS: float = 28.0
 
 var _destroy_burst_spawned: bool = false
 var _anim_time: float = 0.0
+var _hit_enemies: Array[Node] = []
 var _homing_target: Node = null
 var _homing_retarget_timer: float = 0.0
 const HOMING_RETARGET_INTERVAL: float = 0.2
@@ -66,9 +72,7 @@ func _active_bounds() -> Rect2:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"enemies"):
-		if area.has_method("take_damage"):
-			area.take_damage(atk, self)
-		destroy()
+		_hit_enemy(area)
 	elif area.is_in_group(&"explore_rewards"):
 		if area.has_method("take_damage"):
 			area.take_damage(1)
@@ -82,6 +86,56 @@ func _on_area_entered(area: Area2D) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group(&"space_rocks") or (body.get_parent() and body.get_parent().is_in_group(&"isolation_bands")):
 		destroy()
+
+
+func _hit_enemy(enemy: Node) -> void:
+	if _hit_enemies.has(enemy):
+		return
+	_hit_enemies.append(enemy)
+	if enemy.has_method("take_damage"):
+		enemy.take_damage(atk, self)
+	_apply_bullet_dot(enemy)
+	# 穿透优先（继续直飞）；否则跳弹（转向下一敌）；都没有则销毁
+	if pierce_left > 0:
+		pierce_left -= 1
+		return
+	if chain_left > 0:
+		var next := _find_chain_target(enemy)
+		if next != null:
+			chain_left -= 1
+			var to_next: Vector2 = (_get_node_world_position(next) - global_position)
+			if to_next.length() > 1.0:
+				direction = to_next.normalized()
+				rotation = direction.angle()
+				return
+	destroy()
+
+
+func _apply_bullet_dot(enemy: Node) -> void:
+	if dot_damage_mult <= 0.0:
+		return
+	var dot = DOT_SCRIPT.new()
+	dot.setup(enemy, maxi(1, int(round(float(atk) * dot_damage_mult))))
+	var scene := get_tree().current_scene
+	if scene != null and scene.is_inside_tree():
+		scene.add_child(dot)
+
+
+func _find_chain_target(exclude: Node) -> Node:
+	var best: Node = null
+	var best_dist := CHAIN_RANGE
+	for node in get_tree().get_nodes_in_group(&"enemies"):
+		if not is_instance_valid(node) or node == exclude or node.is_queued_for_deletion():
+			continue
+		if _hit_enemies.has(node):
+			continue
+		if node is CanvasItem and not (node as CanvasItem).visible:
+			continue
+		var d := global_position.distance_to(_get_node_world_position(node))
+		if d < best_dist:
+			best_dist = d
+			best = node
+	return best
 
 
 func is_player_bullet() -> bool:

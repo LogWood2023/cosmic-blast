@@ -21,6 +21,12 @@ var _run_bullet_speed_mult: float = 1.0
 var _run_bullet_split_count: int = 0
 var _run_bullet_split_spread_degrees: float = 0.0
 var _run_bullet_split_damage_mult: float = 0.0
+var _run_bullet_chain: int = 0
+var _run_bullet_pierce: int = 0
+var _run_bullet_dot_damage_mult: float = 0.0
+var _run_bullet_charge: float = 0.0
+var _run_bullet_ring_count: int = 0
+var _charge_time: float = 0.0
 var _run_homing_strength: float = 0.0
 var _run_homing_range: float = 0.0
 var _run_gravity_pull_strength: float = 0.0
@@ -73,6 +79,7 @@ const DASH_ENEMY_HIT_RADIUS: float = 52.0
 const DASH_BOSS_HIT_RADIUS: float = 120.0
 const DASH_CHAIN_RANGE: float = 720.0   # 智能导向：转向下一敌人的搜索范围
 const DASH_TRAIL_RADIUS: float = 96.0   # 能量尾迹：沿途伤害半径
+const CHARGE_MAX_TIME: float = 1.2      # 按住蓄力：满蓄所需时长
 
 # 无敌帧
 var invincible: bool = false
@@ -293,7 +300,14 @@ func _process(delta: float) -> void:
 
 	# ── 射击 ──
 	fire_cooldown -= delta
-	if is_shooting and not _dash_active and fire_cooldown <= 0.0:
+	if _run_bullet_charge > 0.0:
+		# 蓄力模式：按住蓄力，松开爆发一大轮
+		if is_shooting and not _dash_active:
+			_charge_time = minf(_charge_time + delta, CHARGE_MAX_TIME)
+		elif _charge_time > 0.0:
+			_release_charge_burst()
+			_charge_time = 0.0
+	elif is_shooting and not _dash_active and fire_cooldown <= 0.0:
 		_shoot()
 		fire_cooldown = _get_effective_fire_rate()
 
@@ -309,7 +323,27 @@ func _shoot() -> void:
 		if count > 1:
 			offset = lerpf(-spread_rad * 0.5, spread_rad * 0.5, float(i) / float(count - 1))
 		_spawn_player_bullet(forward.rotated(offset))
+	# 环射：向环绕方向额外补弹，形成全向火力网
+	for r in range(_run_bullet_ring_count):
+		var ring_angle := TAU * float(r + 1) / float(_run_bullet_ring_count + 1)
+		_spawn_player_bullet(forward.rotated(ring_angle))
 	_play_sfx(SHOOT_SOUND)
+
+
+func _release_charge_burst() -> void:
+	if not bullet_scene:
+		return
+	var ratio := clampf(_charge_time / CHARGE_MAX_TIME, 0.0, 1.0)
+	var burst := maxi(1, int(round(ratio * _run_bullet_charge)))
+	var forward := _get_current_shoot_direction()
+	var spread := deg_to_rad(28.0 + _run_spread_degrees)
+	for i in range(burst):
+		var off := 0.0
+		if burst > 1:
+			off = lerpf(-spread * 0.5, spread * 0.5, float(i) / float(burst - 1))
+		_spawn_player_bullet(forward.rotated(off))
+	_play_sfx(SHOOT_SOUND)
+	fire_cooldown = _get_effective_fire_rate()
 
 
 func _spawn_player_bullet(direction: Vector2) -> void:
@@ -325,6 +359,12 @@ func _spawn_player_bullet(direction: Vector2) -> void:
 		bullet.split_spread_degrees = _run_bullet_split_spread_degrees
 	if bullet.get("split_damage_mult") != null:
 		bullet.split_damage_mult = _run_bullet_split_damage_mult
+	if bullet.get("pierce_left") != null:
+		bullet.pierce_left = _run_bullet_pierce
+	if bullet.get("chain_left") != null:
+		bullet.chain_left = _run_bullet_chain
+	if bullet.get("dot_damage_mult") != null:
+		bullet.dot_damage_mult = _run_bullet_dot_damage_mult
 	if bullet.get("homing_strength") != null:
 		bullet.homing_strength = _run_homing_strength
 	if bullet.get("homing_range") != null:
@@ -354,6 +394,11 @@ func _apply_run_equipment() -> void:
 	_run_bullet_split_count = maxi(0, int(stats.get("bullet_split_count", 0)))
 	_run_bullet_split_spread_degrees = maxf(0.0, float(stats.get("bullet_split_spread_degrees", 0.0)))
 	_run_bullet_split_damage_mult = maxf(0.0, float(stats.get("bullet_split_damage_mult", 0.0)))
+	_run_bullet_chain = maxi(0, int(stats.get("bullet_chain", 0)))
+	_run_bullet_pierce = maxi(0, int(stats.get("bullet_pierce", 0)))
+	_run_bullet_dot_damage_mult = maxf(0.0, float(stats.get("bullet_dot_damage_mult", 0.0)))
+	_run_bullet_charge = maxf(0.0, float(stats.get("bullet_charge", 0.0)))
+	_run_bullet_ring_count = maxi(0, int(stats.get("bullet_ring_count", 0)))
 	_run_homing_strength = maxf(0.0, float(stats.get("homing_strength", 0.0)))
 	_run_homing_range = maxf(0.0, float(stats.get("homing_range", 0.0)))
 	_run_gravity_pull_strength = maxf(0.0, float(stats.get("gravity_pull_strength", 0.0)))

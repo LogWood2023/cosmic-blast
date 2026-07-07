@@ -309,16 +309,7 @@ const AUXILIARIES: Dictionary = {
 		"rarity": "boss",
 		"boss_drop": true,
 		"effect_id": "cover_fire_matrix",
-		"atk_bonus": 1,
-		"fire_rate_mult": 0.78,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"bullet_count_bonus": 1,
-		"spread_degrees_bonus": 10.0,
-		"bullet_speed_mult": 1.18,
-		"bullet_split_count": 2,
-		"bullet_split_spread_degrees": 18.0,
-		"bullet_split_damage_mult": 0.32,
+		"bullet_charge": 14.0,
 		"description": "天堂号掉落的弹幕矩阵，显著加快射击循环。",
 	},
 	"warped_gravity_lens": {
@@ -412,16 +403,8 @@ const AUXILIARIES: Dictionary = {
 		"boss_drop": true,
 		"boss_drop_stage": 2,
 		"effect_id": "sunburst_rack",
+		"bullet_chain": 3,
 		"atk_bonus": 2,
-		"fire_rate_mult": 0.74,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"bullet_count_bonus": 1,
-		"spread_degrees_bonus": 16.0,
-		"bullet_speed_mult": 1.26,
-		"bullet_split_count": 3,
-		"bullet_split_spread_degrees": 26.0,
-		"bullet_split_damage_mult": 0.42,
 		"description": "日冕弹架会把每轮射击铺成更亮的扇面，压住整条前线。",
 	},
 	"paradise_heavenfall_array": {
@@ -434,16 +417,10 @@ const AUXILIARIES: Dictionary = {
 		"boss_drop": true,
 		"boss_drop_stage": 3,
 		"effect_id": "heavenfall_array",
-		"atk_bonus": 3,
-		"fire_rate_mult": 0.68,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"bullet_count_bonus": 2,
-		"spread_degrees_bonus": 18.0,
-		"bullet_speed_mult": 1.35,
 		"bullet_split_count": 4,
 		"bullet_split_spread_degrees": 34.0,
-		"bullet_split_damage_mult": 0.52,
+		"bullet_split_damage_mult": 0.5,
+		"atk_bonus": 3,
 		"description": "阵列仍在执行天堂号最后的齐射指令，弹幕像光雨一样落下。",
 	},
 	"warped_event_horizon_spool": {
@@ -593,12 +570,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 2,
 		"family": FAMILY_PARADISE,
 		"rarity": "common",
-		"atk_bonus": 0,
-		"fire_rate_mult": 0.94,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
 		"bullet_count_bonus": 1,
-		"spread_degrees_bonus": 8.0,
 		"description": "增加弹道数量并扩大散射角。",
 	},
 	"coil_accelerator": {
@@ -608,11 +580,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 2,
 		"family": FAMILY_PARADISE,
 		"rarity": "common",
-		"atk_bonus": 1,
-		"fire_rate_mult": 0.96,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"bullet_speed_mult": 1.18,
+		"bullet_ring_count": 1,
 		"description": "提升弹速，让覆盖火力更快抵达目标。",
 	},
 	"barrage_clock": {
@@ -622,11 +590,8 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 4,
 		"family": FAMILY_PARADISE,
 		"rarity": "rare",
-		"atk_bonus": 1,
-		"fire_rate_mult": 0.82,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"bullet_count_bonus": 1,
+		"bullet_split_count": 2,
+		"bullet_split_damage_mult": 0.35,
 		"description": "压缩开火循环，并额外增加一条弹道。",
 	},
 	"gravity_threader": {
@@ -895,18 +860,18 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "colossus_shear_boots", "name": "巨构剪切推进靴", "family": FAMILY_COLOSSUS, "rarity": "common", "price": 78, "compute_cost": 3, "description": "推进靴从敌阵侧翼刮过，留下又快又锐的切线。", "stats": {"dash_trail_damage_mult": 0.22}},
 	{"id": "colossus_momentum_vault", "name": "巨构动量库", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 182, "compute_cost": 7, "description": "庞大动量舱持续蓄压，整架机体像一枚迟来的攻城弹。", "stats": {"dash_shield_duration": 0.6}},
 
-	{"id": "paradise_splitter_board", "name": "天堂分流板", "family": FAMILY_PARADISE, "rarity": "common", "price": 76, "compute_cost": 2, "description": "分流板把主炮拆成更多弹线，前方空域被迅速填满。", "stats": {"bullet_count_bonus": 1, "spread_degrees_bonus": 6.0}},
+	{"id": "paradise_splitter_board", "name": "天堂分流板", "family": FAMILY_PARADISE, "rarity": "common", "price": 76, "compute_cost": 2, "description": "分流板把主炮拆成更多弹线，前方空域被迅速填满。", "stats": {"bullet_split_count": 1}},
 	{"id": "paradise_rapid_breech", "name": "天堂速射炮闩", "family": FAMILY_PARADISE, "rarity": "common", "price": 82, "compute_cost": 3, "description": "炮闩压缩循环，覆盖火力一轮接着一轮落下。", "stats": {"fire_rate_mult": 0.9}},
-	{"id": "paradise_tracer_fan", "name": "天堂曳光扇", "family": FAMILY_PARADISE, "rarity": "common", "price": 88, "compute_cost": 3, "description": "曳光扇张开更宽弹幕，弹速仍保持干净利落。", "stats": {"spread_degrees_bonus": 12.0, "bullet_speed_mult": 1.08}},
-	{"id": "paradise_pressure_chamber", "name": "天堂增压膛", "family": FAMILY_PARADISE, "rarity": "rare", "price": 124, "compute_cost": 4, "description": "膛压被抬高，齐射更硬，弹流更快。", "stats": {"atk_bonus": 2, "bullet_speed_mult": 1.16}},
-	{"id": "paradise_salvo_kernel", "name": "天堂齐射核心", "family": FAMILY_PARADISE, "rarity": "rare", "price": 138, "compute_cost": 5, "description": "核心支撑更大的弹幕帷幕，开火节奏也被重新拉紧。", "stats": {"bullet_count_bonus": 1, "fire_rate_mult": 0.94, "spread_degrees_bonus": 10.0}},
-	{"id": "paradise_skyline_magazine", "name": "天堂天际弹仓", "family": FAMILY_PARADISE, "rarity": "common", "price": 92, "compute_cost": 3, "description": "弹仓沿天际线铺弹，整片屏幕被干净火线切开。", "stats": {"bullet_speed_mult": 1.12, "fire_rate_mult": 0.96}},
-	{"id": "paradise_cascade_nozzle", "name": "天堂瀑流喷口", "family": FAMILY_PARADISE, "rarity": "rare", "price": 146, "compute_cost": 5, "description": "持续射击会扩成瀑流，弹幕一层压过一层。", "stats": {"bullet_count_bonus": 1, "spread_degrees_bonus": 16.0}},
-	{"id": "paradise_starfall_clock", "name": "天堂坠星钟", "family": FAMILY_PARADISE, "rarity": "epic", "price": 174, "compute_cost": 6, "description": "坠星钟校准齐射时序，密集弹雨像准点落下的审判。", "stats": {"fire_rate_mult": 0.82, "bullet_speed_mult": 1.1, "spread_degrees_bonus": 8.0}},
-	{"id": "paradise_halo_lattice", "name": "天堂光环晶格", "family": FAMILY_PARADISE, "rarity": "common", "price": 78, "compute_cost": 2, "description": "轻型晶格微调火线，低耗也能铺出明亮弹幕。", "stats": {"fire_rate_mult": 0.95, "spread_degrees_bonus": 4.0}},
-	{"id": "paradise_orbital_rake", "name": "天堂轨道耙", "family": FAMILY_PARADISE, "rarity": "rare", "price": 132, "compute_cost": 4, "description": "轨道耙扫过前弧，弹扇按规整间距掠过敌群。", "stats": {"bullet_count_bonus": 1, "fire_rate_mult": 0.98}},
-	{"id": "paradise_plasma_conductor", "name": "天堂等离子导体", "family": FAMILY_PARADISE, "rarity": "common", "price": 84, "compute_cost": 3, "description": "导体加快等离子输送，原本的武器手感依旧清晰。", "stats": {"atk_bonus": 1, "bullet_speed_mult": 1.14}},
-	{"id": "paradise_burst_synchronizer", "name": "天堂爆发同步器", "family": FAMILY_PARADISE, "rarity": "epic", "price": 188, "compute_cost": 7, "description": "同步器把爆发火力拧成一束，重型弹幕瞬间倾泻。", "stats": {"bullet_count_bonus": 1, "fire_rate_mult": 0.86, "bullet_speed_mult": 1.18}},
+	{"id": "paradise_tracer_fan", "name": "天堂曳光扇", "family": FAMILY_PARADISE, "rarity": "common", "price": 88, "compute_cost": 3, "description": "曳光扇张开更宽弹幕，弹速仍保持干净利落。", "stats": {"bullet_chain": 1}},
+	{"id": "paradise_pressure_chamber", "name": "天堂增压膛", "family": FAMILY_PARADISE, "rarity": "rare", "price": 124, "compute_cost": 4, "description": "膛压被抬高，齐射更硬，弹流更快。", "stats": {"bullet_ring_count": 1, "atk_bonus": 2}},
+	{"id": "paradise_salvo_kernel", "name": "天堂齐射核心", "family": FAMILY_PARADISE, "rarity": "rare", "price": 138, "compute_cost": 5, "description": "核心支撑更大的弹幕帷幕，开火节奏也被重新拉紧。", "stats": {"bullet_chain": 2}},
+	{"id": "paradise_skyline_magazine", "name": "天堂天际弹仓", "family": FAMILY_PARADISE, "rarity": "common", "price": 92, "compute_cost": 3, "description": "弹仓沿天际线铺弹，整片屏幕被干净火线切开。", "stats": {"bullet_charge": 6.0}},
+	{"id": "paradise_cascade_nozzle", "name": "天堂瀑流喷口", "family": FAMILY_PARADISE, "rarity": "rare", "price": 146, "compute_cost": 5, "description": "持续射击会扩成瀑流，弹幕一层压过一层。", "stats": {"bullet_ring_count": 2}},
+	{"id": "paradise_starfall_clock", "name": "天堂坠星钟", "family": FAMILY_PARADISE, "rarity": "epic", "price": 174, "compute_cost": 6, "description": "坠星钟校准齐射时序，密集弹雨像准点落下的审判。", "stats": {"bullet_pierce": 3}},
+	{"id": "paradise_halo_lattice", "name": "天堂光环晶格", "family": FAMILY_PARADISE, "rarity": "common", "price": 78, "compute_cost": 2, "description": "轻型晶格微调火线，低耗也能铺出明亮弹幕。", "stats": {"bullet_pierce": 1}},
+	{"id": "paradise_orbital_rake", "name": "天堂轨道耙", "family": FAMILY_PARADISE, "rarity": "rare", "price": 132, "compute_cost": 4, "description": "轨道耙扫过前弧，弹扇按规整间距掠过敌群。", "stats": {"bullet_pierce": 2}},
+	{"id": "paradise_plasma_conductor", "name": "天堂等离子导体", "family": FAMILY_PARADISE, "rarity": "common", "price": 84, "compute_cost": 3, "description": "导体加快等离子输送，原本的武器手感依旧清晰。", "stats": {"bullet_speed_mult": 1.14}},
+	{"id": "paradise_burst_synchronizer", "name": "天堂爆发同步器", "family": FAMILY_PARADISE, "rarity": "epic", "price": 188, "compute_cost": 7, "description": "同步器把爆发火力拧成一束，重型弹幕瞬间倾泻。", "stats": {"bullet_charge": 10.0}},
 
 	{"id": "warped_seek_processor", "name": "扭曲索敌处理器", "family": FAMILY_WARPED, "rarity": "common", "price": 78, "compute_cost": 2, "description": "处理器提前读出目标偏转，弯曲弹道开始寻找猎物。", "stats": {"homing_strength": 1.8, "homing_range": 320.0}},
 	{"id": "warped_orbit_compass", "name": "扭曲轨道罗盘", "family": FAMILY_WARPED, "rarity": "common", "price": 86, "compute_cost": 3, "description": "轨道罗盘贴着闪避航线旋转，追踪弹不会轻易丢失目标。", "stats": {"speed_mult": 1.03, "homing_strength": 2.0, "homing_range": 360.0}},
@@ -954,8 +919,8 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "general_microfoundry", "name": "微型铸炉", "family": FAMILY_GENERAL, "rarity": "rare", "price": 126, "compute_cost": 4, "description": "随舰铸炉吞下碎矿与废热，转而喂给武器回路。", "stats": {"atk_bonus": 2, "fire_rate_mult": 0.98, "mineral_bonus": 0.08}},
 	{"id": "colossus_quarry_mandrel", "name": "巨构采场心轴", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 156, "compute_cost": 5, "description": "心轴把矿脉震成细亮裂纹，冲锋撞击会带出更厚的星髓。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.12}},
 	{"id": "colossus_orebreaker_keel", "name": "巨构碎矿龙骨", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 206, "compute_cost": 7, "description": "重型龙骨专为硬矿和装甲而生，长距离冲锋会把航路犁开。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.16}},
-	{"id": "paradise_mining_barrage", "name": "天堂采矿弹幕", "family": FAMILY_PARADISE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "密集弹幕像蓝白雨线落下，矿壳和敌阵一起被剥开。", "stats": {"mineral_bonus": 0.1, "bullet_count_bonus": 1, "spread_degrees_bonus": 8.0}},
-	{"id": "paradise_lumen_belt", "name": "天堂辉流弹带", "family": FAMILY_PARADISE, "rarity": "epic", "price": 198, "compute_cost": 6, "description": "辉流弹带穿过矿尘仍不失速，明亮弹线把回收点逐一照亮。", "stats": {"mineral_bonus": 0.14, "bullet_speed_mult": 1.18, "fire_rate_mult": 0.92}},
+	{"id": "paradise_mining_barrage", "name": "天堂采矿弹幕", "family": FAMILY_PARADISE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "密集弹幕像蓝白雨线落下，矿壳和敌阵一起被剥开。", "stats": {"bullet_dot_damage_mult": 0.3, "mineral_bonus": 0.1}},
+	{"id": "paradise_lumen_belt", "name": "天堂辉流弹带", "family": FAMILY_PARADISE, "rarity": "epic", "price": 198, "compute_cost": 6, "description": "辉流弹带穿过矿尘仍不失速，明亮弹线把回收点逐一照亮。", "stats": {"bullet_dot_damage_mult": 0.4, "mineral_bonus": 0.14}},
 	{"id": "warped_quarry_lens", "name": "扭曲采场透镜", "family": FAMILY_WARPED, "rarity": "rare", "price": 158, "compute_cost": 5, "description": "透镜折弯矿尘的质量影，松散碎矿会被拖回弹道中心。", "stats": {"mineral_bonus": 0.12, "gravity_pull_strength": 480.0, "gravity_pull_radius": 230.0}},
 	{"id": "warped_treasure_orbit", "name": "扭曲珍藏轨环", "family": FAMILY_WARPED, "rarity": "epic", "price": 212, "compute_cost": 7, "description": "轨环绕着高价值目标低声旋转，追踪火力会替你咬住暗处矿光。", "stats": {"mineral_bonus": 0.15, "homing_strength": 4.2, "homing_range": 580.0, "bullet_speed_mult": 1.1}},
 	{"id": "hell_eye_molten_ledger", "name": "地狱熔账", "family": FAMILY_HELL_EYE, "rarity": "rare", "price": 152, "compute_cost": 5, "description": "熔账吞下每一次伤痛和收获，狂热升温时回收链也烧得更亮。", "stats": {"mineral_bonus": 0.1, "frenzy_gain_mult": 1.2, "frenzy_damage_taken_mult": 0.94}},
@@ -1253,6 +1218,26 @@ static func get_effect_summary_text(id: String) -> String:
 	var dash_aftershock_damage_mult := float(item.get("dash_aftershock_damage_mult", 0.0))
 	if dash_aftershock_damage_mult > 0.0:
 		parts.append("余震伤害 %d%%" % int(round(dash_aftershock_damage_mult * 100.0)))
+	if int(item.get("bullet_chain", 0)) > 0:
+		parts.append("跳弹 +%d" % int(item.get("bullet_chain", 0)))
+	if int(item.get("bullet_pierce", 0)) > 0:
+		parts.append("穿透 +%d" % int(item.get("bullet_pierce", 0)))
+	if float(item.get("bullet_dot_damage_mult", 0.0)) > 0.0:
+		parts.append("灼烧弹")
+	if float(item.get("bullet_charge", 0.0)) > 0.0:
+		parts.append("蓄力爆发")
+	if int(item.get("bullet_ring_count", 0)) > 0:
+		parts.append("环射 +%d" % int(item.get("bullet_ring_count", 0)))
+	if int(item.get("dash_chain", 0)) > 0:
+		parts.append("冲刺连锁 +%d" % int(item.get("dash_chain", 0)))
+	if float(item.get("dash_trail_damage_mult", 0.0)) > 0.0:
+		parts.append("冲刺尾迹")
+	if float(item.get("dash_rebound_bonus", 0.0)) > 0.0:
+		parts.append("折返强化 +%d%%" % int(round(float(item.get("dash_rebound_bonus", 0.0)) * 100.0)))
+	if float(item.get("dash_mining", 0.0)) > 0.0:
+		parts.append("破障采矿")
+	if float(item.get("dash_shield_duration", 0.0)) > 0.0:
+		parts.append("撞击护盾")
 	var homing_strength := float(item.get("homing_strength", 0.0))
 	if homing_strength > 0.0:
 		parts.append("追踪强度 %.1f" % homing_strength)
@@ -1351,6 +1336,11 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		"dash_rebound_bonus": float(weapon.get("dash_rebound_bonus", 0.0)),
 		"dash_mining": float(weapon.get("dash_mining", 0.0)),
 		"dash_shield_duration": float(weapon.get("dash_shield_duration", 0.0)),
+		"bullet_chain": int(weapon.get("bullet_chain", 0)),
+		"bullet_pierce": int(weapon.get("bullet_pierce", 0)),
+		"bullet_dot_damage_mult": float(weapon.get("bullet_dot_damage_mult", 0.0)),
+		"bullet_charge": float(weapon.get("bullet_charge", 0.0)),
+		"bullet_ring_count": int(weapon.get("bullet_ring_count", 0)),
 		"bullet_speed_mult": float(weapon.get("bullet_speed_mult", 1.0)),
 		"homing_strength": float(weapon.get("homing_strength", 0.0)),
 		"homing_range": float(weapon.get("homing_range", 0.0)),
@@ -1391,6 +1381,11 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		stats["dash_rebound_bonus"] = float(stats["dash_rebound_bonus"]) + float(aux.get("dash_rebound_bonus", 0.0))
 		stats["dash_mining"] = maxf(float(stats["dash_mining"]), float(aux.get("dash_mining", 0.0)))
 		stats["dash_shield_duration"] = maxf(float(stats["dash_shield_duration"]), float(aux.get("dash_shield_duration", 0.0)))
+		stats["bullet_chain"] = int(stats["bullet_chain"]) + int(aux.get("bullet_chain", 0))
+		stats["bullet_pierce"] = int(stats["bullet_pierce"]) + int(aux.get("bullet_pierce", 0))
+		stats["bullet_dot_damage_mult"] = maxf(float(stats["bullet_dot_damage_mult"]), float(aux.get("bullet_dot_damage_mult", 0.0)))
+		stats["bullet_charge"] = maxf(float(stats["bullet_charge"]), float(aux.get("bullet_charge", 0.0)))
+		stats["bullet_ring_count"] = int(stats["bullet_ring_count"]) + int(aux.get("bullet_ring_count", 0))
 		stats["bullet_speed_mult"] = float(stats["bullet_speed_mult"]) * float(aux.get("bullet_speed_mult", 1.0))
 		stats["homing_strength"] = float(stats["homing_strength"]) + float(aux.get("homing_strength", 0.0))
 		stats["homing_range"] = maxf(float(stats["homing_range"]), float(aux.get("homing_range", 0.0)))
@@ -1416,6 +1411,9 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 	stats["bullet_split_damage_mult"] = minf(float(stats["bullet_split_damage_mult"]), 0.75)
 	stats["dash_chain"] = mini(int(stats["dash_chain"]), 6)
 	stats["dash_rebound_bonus"] = minf(float(stats["dash_rebound_bonus"]), 1.0)
+	stats["bullet_chain"] = mini(int(stats["bullet_chain"]), 5)
+	stats["bullet_pierce"] = mini(int(stats["bullet_pierce"]), 5)
+	stats["bullet_ring_count"] = mini(int(stats["bullet_ring_count"]), 6)
 	return stats
 
 
@@ -1522,6 +1520,11 @@ static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
 		"dash_rebound_bonus",
 		"dash_mining",
 		"dash_shield_duration",
+		"bullet_chain",
+		"bullet_pierce",
+		"bullet_dot_damage_mult",
+		"bullet_charge",
+		"bullet_ring_count",
 	]:
 		if stats.has(key):
 			item[key] = stats[key]

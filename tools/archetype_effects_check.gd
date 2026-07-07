@@ -20,8 +20,8 @@ func _run() -> void:
 	_expect_float_gt(stats, "dash_damage_mult", 1.0)
 	_expect_float_gt(stats, "dash_aftershock_radius", 0.0)
 	_expect_float_gt(stats, "dash_aftershock_damage_mult", 0.0)
-	_expect_int_gte(stats, "bullet_count", 2)
-	_expect_float_gt(stats, "bullet_speed_mult", 1.0)
+	_expect_int_gte(stats, "bullet_chain", 1)
+	_expect_float_gt(stats, "bullet_charge", 0.0)
 	_expect_int_gte(stats, "bullet_split_count", 1)
 	_expect_float_gt(stats, "bullet_split_spread_degrees", 0.0)
 	_expect_float_gt(stats, "bullet_split_damage_mult", 0.0)
@@ -65,8 +65,8 @@ func _run() -> void:
 	if bullet == null:
 		_fail("Player should spawn a test bullet.")
 		return
-	if float(bullet.get("speed")) <= 1000.0:
-		_fail("Paradise boss drop should increase spawned bullet speed.")
+	if int(bullet.get("chain_left")) <= 0:
+		_fail("Paradise boss drop should give spawned bullets chain-bounce.")
 		return
 	if int(bullet.get("split_count")) <= 0:
 		_fail("Paradise boss drop should give spawned bullets split coverage.")
@@ -116,6 +116,8 @@ func _equip_all_boss_drops() -> void:
 		"colossus_aftershock_keel",
 		"colossus_singularity_ram",
 		"paradise_cover_matrix",
+		"paradise_heavenfall_array",
+		"paradise_sunburst_rack",
 		"warped_gravity_lens",
 		"hell_eye_frenzy_iris",
 		"divine_drone_seed",
@@ -126,6 +128,8 @@ func _equip_all_boss_drops() -> void:
 		"colossus_aftershock_keel",
 		"colossus_singularity_ram",
 		"paradise_cover_matrix",
+		"paradise_heavenfall_array",
+		"paradise_sunburst_rack",
 		"warped_gravity_lens",
 		"hell_eye_frenzy_iris",
 		"divine_drone_seed",
