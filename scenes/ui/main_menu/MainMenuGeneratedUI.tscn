@@ -236,7 +236,7 @@ theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.75)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 31
-text = "探索房间"
+text = "继续航程"
 vertical_alignment = 1
 
 [node name="ExploreIndex" type="Label" parent="MenuButtons/ExploreFrame"]

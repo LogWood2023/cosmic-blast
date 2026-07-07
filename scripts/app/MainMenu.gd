@@ -6,7 +6,7 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
 const MENU_ITEMS := [
 	{"button": "StartButton", "frame": "StartFrame", "callback": "_on_start_pressed"},
-	{"button": "ExploreButton", "frame": "ExploreFrame", "callback": "_on_explore_pressed"},
+	{"button": "ExploreButton", "frame": "ExploreFrame", "callback": "_on_continue_pressed"},
 	{"button": "BossButton", "frame": "BossFrame", "callback": "_on_boss_pressed"},
 	{"button": "SettingsButton", "frame": "SettingsFrame", "callback": "_on_settings_pressed"},
 	{"button": "QuitButton", "frame": "QuitFrame", "callback": "_on_quit_pressed"},
@@ -29,6 +29,18 @@ var _settings_popup: Control
 func _ready() -> void:
 	_setup_menu_buttons()
 	CombatUiMotion.bind_tree(ui_root)
+	_refresh_continue_button()
+
+
+# 无存档时把"继续航程"置灰不可点
+func _refresh_continue_button() -> void:
+	var has_save := RunManager.has_saved_run()
+	var button := _find_button("ExploreButton")
+	if button:
+		button.disabled = not has_save
+	var frame := _find_control("ExploreFrame")
+	if frame:
+		frame.modulate = Color(1, 1, 1, 1) if has_save else Color(1, 1, 1, 0.4)
 
 
 func _find_button(node_name: String) -> Button:
@@ -250,15 +262,17 @@ func _get_base_gap(upper_index: int, lower_index: int) -> float:
 
 
 func _on_start_pressed() -> void:
+	RunManager.clear_saved_run()  # 开新局丢弃旧存档
 	GameManager.reset_run_state()
 	RunManager.start_new_run()
 	get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
 
 
-func _on_explore_pressed() -> void:
-	RunManager.cancel_run()
-	GameManager.reset_run_state()
-	get_tree().change_scene_to_file("res://scenes/gameplay/explore/ExploreRoom.tscn")
+func _on_continue_pressed() -> void:
+	if not RunManager.load_saved_run():
+		_refresh_continue_button()  # 存档意外缺失/损坏，刷新按钮状态
+		return
+	get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
 
 
 func _on_boss_pressed() -> void:

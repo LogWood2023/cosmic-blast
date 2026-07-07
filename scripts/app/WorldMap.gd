@@ -51,6 +51,8 @@ func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
 	if not RunManager.is_formal_run_active():
 		RunManager.start_new_run()
+	# 回到世界地图即为一个干净的存档点，写盘保存本局进度
+	RunManager.save_run()
 	_consume_node_completion_feedback()
 	enter_button.pressed.connect(_on_enter_pressed)
 	shop_button.pressed.connect(_show_shop)

@@ -14,6 +14,8 @@ const NODE_REWARD: String = "reward"
 const NODE_SPECIAL: String = "special"
 
 const CRISIS_THRESHOLDS: Array[int] = [5, 12, 21]
+const SAVE_PATH := "user://run_save.dat"
+const SAVE_VERSION := 1
 const CENTER_ID: int = 0
 const MAP_CENTER: Vector2 = Vector2(700.0, 590.0)
 const FAMILY_BIASES: Array[String] = [
@@ -1943,6 +1945,120 @@ func cancel_run() -> void:
 	_reset_loadout_presets()
 
 
+# ── 存档 ────────────────────────────────────────────────
+# 存档粒度是"世界地图态"：每次回到世界地图时写盘（WorldMap._ready 调用）。
+# 探索房间/Boss 战内的实时进度不存，中途退出会回退到进节点前的地图状态。
+
+func has_saved_run() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func save_run() -> void:
+	if not run_active or run_finished:
+		return
+	var data := {
+		"version": SAVE_VERSION,
+		"map_nodes": map_nodes,
+		"crisis_level": crisis_level,
+		"compute_capacity": compute_capacity,
+		"minerals": minerals,
+		"completed_node_count": completed_node_count,
+		"current_node_id": current_node_id,
+		"current_room_mineral_mult": current_room_mineral_mult,
+		"pending_room_loot": pending_room_loot,
+		"equipment_inventory": equipment_inventory,
+		"equipped_weapon": equipped_weapon,
+		"equipped_auxiliaries": equipped_auxiliaries,
+		"cleared_crisis_thresholds": cleared_crisis_thresholds,
+		"pending_boss_threshold": pending_boss_threshold,
+		"pending_boss_scene": pending_boss_scene,
+		"last_boss_reward": last_boss_reward,
+		"active_special_bonus_ids": active_special_bonus_ids,
+		"active_event_contracts": active_event_contracts,
+		"active_route_directives": active_route_directives,
+		"retired_route_directive_ids": retired_route_directive_ids,
+		"active_route_momentum": active_route_momentum,
+		"active_run_conditions": active_run_conditions,
+		"force_next_event_id": force_next_event_id,
+		"shop_offer_ids": shop_offer_ids,
+		"shop_draft_initialized": shop_draft_initialized,
+		"shop_reroll_count": shop_reroll_count,
+		"shop_preferred_family": shop_preferred_family,
+		"shop_beacon_family": shop_beacon_family,
+		"shop_beacon_bonus_name": shop_beacon_bonus_name,
+		"shop_ore_source_focus": shop_ore_source_focus,
+		"shop_ore_source_focus_text": shop_ore_source_focus_text,
+		"loadout_presets": loadout_presets,
+		"player_hp": GameManager.player_hp,
+		"score": GameManager.score,
+	}
+	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		push_warning("存档写入失败：%s" % SAVE_PATH)
+		return
+	f.store_var(data, true)  # full_objects=true 以完整往返 map_nodes 里的 Vector2/嵌套字典
+	f.close()
+
+
+func load_saved_run() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return false
+	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if f == null:
+		return false
+	var data = f.get_var(true)
+	f.close()
+	if typeof(data) != TYPE_DICTIONARY or int(data.get("version", 0)) != SAVE_VERSION:
+		clear_saved_run()  # 版本不符的旧存档直接作废，避免反复加载失败
+		return false
+	run_active = true
+	run_finished = false
+	run_victory = false
+	# 类型化数组必须用 assign() 从读回的无类型数组恢复，直接赋值会报类型错误
+	map_nodes.assign(data.get("map_nodes", []))
+	crisis_level = int(data.get("crisis_level", 0))
+	compute_capacity = int(data.get("compute_capacity", 5))
+	minerals = int(data.get("minerals", 0))
+	completed_node_count = int(data.get("completed_node_count", 0))
+	current_node_id = int(data.get("current_node_id", -1))
+	current_room_mineral_mult = float(data.get("current_room_mineral_mult", 1.0))
+	pending_room_loot = data.get("pending_room_loot", _empty_loot())
+	equipment_inventory.assign(data.get("equipment_inventory", ["pulse_cannon"]))
+	equipped_weapon = String(data.get("equipped_weapon", "pulse_cannon"))
+	equipped_auxiliaries.assign(data.get("equipped_auxiliaries", []))
+	cleared_crisis_thresholds.assign(data.get("cleared_crisis_thresholds", []))
+	pending_boss_threshold = int(data.get("pending_boss_threshold", 0))
+	pending_boss_scene = String(data.get("pending_boss_scene", ""))
+	last_boss_reward = data.get("last_boss_reward", {})
+	last_boss_completion_summary.clear()
+	last_result_summary.clear()
+	last_node_completion_summary.clear()
+	active_special_bonus_ids.assign(data.get("active_special_bonus_ids", []))
+	active_event_contracts.assign(data.get("active_event_contracts", []))
+	active_route_directives.assign(data.get("active_route_directives", []))
+	retired_route_directive_ids.assign(data.get("retired_route_directive_ids", []))
+	active_route_momentum = data.get("active_route_momentum", {})
+	active_run_conditions.assign(data.get("active_run_conditions", []))
+	force_next_event_id = String(data.get("force_next_event_id", ""))
+	shop_offer_ids.assign(data.get("shop_offer_ids", []))
+	shop_draft_initialized = bool(data.get("shop_draft_initialized", false))
+	shop_reroll_count = int(data.get("shop_reroll_count", 0))
+	shop_preferred_family = String(data.get("shop_preferred_family", ""))
+	shop_beacon_family = String(data.get("shop_beacon_family", ""))
+	shop_beacon_bonus_name = String(data.get("shop_beacon_bonus_name", ""))
+	shop_ore_source_focus = String(data.get("shop_ore_source_focus", ""))
+	shop_ore_source_focus_text = String(data.get("shop_ore_source_focus_text", ""))
+	loadout_presets.assign(data.get("loadout_presets", []))
+	GameManager.player_hp = clampi(int(data.get("player_hp", GameManager.PLAYER_MAX_HP)), 1, GameManager.PLAYER_MAX_HP)
+	GameManager.score = int(data.get("score", 0))
+	return true
+
+
+func clear_saved_run() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+
+
 func is_formal_run_active() -> bool:
 	return run_active and not run_finished
 
@@ -2419,6 +2535,7 @@ func finish_run(victory: bool) -> void:
 		"last_boss_reward": last_boss_reward.duplicate(true),
 	}
 	abandon_current_room()
+	clear_saved_run()  # 一局结束（通关或阵亡），存档作废
 
 
 func get_shop_offer_ids() -> Array[String]:
