@@ -704,10 +704,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 2,
 		"family": FAMILY_GENERAL,
 		"rarity": "common",
-		"atk_bonus": 1,
-		"fire_rate_mult": 1.02,
-		"speed_mult": 0.96,
-		"mineral_bonus": 0.0,
+		"damage_taken_mult": 0.88,
 		"description": "牺牲少量机动，换取更扎实的输出结构。",
 	},
 	"coolant_loop": {
@@ -730,10 +727,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 1,
 		"family": FAMILY_GENERAL,
 		"rarity": "common",
-		"atk_bonus": 0,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.04,
-		"mineral_bonus": 0.1,
+		"reveal_map": 1.0,
 		"description": "激光雷达扫过碎石带，航线与矿脉信号同时变清晰。",
 	},
 	"ammo_compressor": {
@@ -782,10 +776,8 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 4,
 		"family": FAMILY_GENERAL,
 		"rarity": "rare",
-		"atk_bonus": 3,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.16,
+		"crisis_atk_scale": 1.5,
+		"mineral_bonus": 0.14,
 		"description": "账本只记录危险航线，越靠近危机，回报越沉。",
 	},
 	"phase_bootloader": {
@@ -805,9 +797,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 2,
 		"family": FAMILY_GENERAL,
 		"rarity": "common",
-		"atk_bonus": 0,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.03,
+		"reveal_map": 1.0,
 		"mineral_bonus": 0.14,
 		"description": "缓存信号在暗区提前浮现，矿脉回收更有把握。",
 	},
@@ -882,8 +872,8 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "general_contract_scanner", "name": "契约扫描仪", "family": FAMILY_GENERAL, "rarity": "common", "price": 72, "compute_cost": 2, "description": "扫描仪提前读出航路契约，回收价值浮现在暗区边缘。", "stats": {"mineral_bonus": 0.12}},
 	{"id": "general_supply_predictor", "name": "补给预报器", "family": FAMILY_GENERAL, "rarity": "common", "price": 84, "compute_cost": 3, "description": "预报器标出下一段补给潮，机动与回收都更从容。", "stats": {"speed_mult": 1.04, "mineral_bonus": 0.1}},
 	{"id": "general_stability_chip", "name": "稳定芯片", "family": FAMILY_GENERAL, "rarity": "common", "price": 78, "compute_cost": 2, "description": "朴素芯片压住系统噪声，武器与引擎都多了一点余量。", "stats": {"atk_bonus": 1, "speed_mult": 1.03}},
-	{"id": "general_salvage_ledger", "name": "回收账本", "family": FAMILY_GENERAL, "rarity": "rare", "price": 118, "compute_cost": 4, "description": "账本记下每条航线的损耗，撤离时总能多带回一些星髓。", "stats": {"atk_bonus": 1, "mineral_bonus": 0.16}},
-	{"id": "general_microfoundry", "name": "微型铸炉", "family": FAMILY_GENERAL, "rarity": "rare", "price": 126, "compute_cost": 4, "description": "随舰铸炉吞下碎矿与废热，转而喂给武器回路。", "stats": {"atk_bonus": 2, "fire_rate_mult": 0.98, "mineral_bonus": 0.08}},
+	{"id": "general_salvage_ledger", "name": "回收账本", "family": FAMILY_GENERAL, "rarity": "rare", "price": 118, "compute_cost": 4, "description": "账本记下每条航线的损耗，撤离时总能多带回一些星髓。", "stats": {"evac_mineral_bonus": 0.2, "mineral_bonus": 0.1}},
+	{"id": "general_microfoundry", "name": "微型铸炉", "family": FAMILY_GENERAL, "rarity": "rare", "price": 126, "compute_cost": 4, "description": "随舰铸炉吞下碎矿与废热，转而喂给武器回路。", "stats": {"kill_lifesteal": 2.0, "mineral_bonus": 0.08}},
 	{"id": "colossus_quarry_mandrel", "name": "巨构采场心轴", "family": FAMILY_COLOSSUS, "rarity": "rare", "price": 156, "compute_cost": 5, "description": "心轴把矿脉震成细亮裂纹，冲锋撞击会带出更厚的星髓。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.12}},
 	{"id": "colossus_orebreaker_keel", "name": "巨构碎矿龙骨", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 206, "compute_cost": 7, "description": "重型龙骨专为硬矿和装甲而生，长距离冲锋会把航路犁开。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.16}},
 	{"id": "paradise_mining_barrage", "name": "天堂采矿弹幕", "family": FAMILY_PARADISE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "密集弹幕像蓝白雨线落下，矿壳和敌阵一起被剥开。", "stats": {"bullet_dot_damage_mult": 0.3, "mineral_bonus": 0.1}},
@@ -895,7 +885,7 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "divine_salvage_squadron", "name": "神使回收中队", "family": FAMILY_DIVINE, "rarity": "rare", "price": 164, "compute_cost": 5, "description": "小队在主机身侧展开，护航火线会顺手标定散落矿光。", "stats": {"drone_behavior": "miner", "drone_slots": 1, "drone_mining_radius": 380.0, "mineral_bonus": 0.11}},
 	{"id": "divine_foundry_companion", "name": "神使铸炉伴星", "family": FAMILY_DIVINE, "rarity": "epic", "price": 218, "compute_cost": 7, "description": "伴星拖着细小铸炉巡航，友军射击间隔被压低，碎矿也被及时收拢。", "stats": {"drone_behavior": "miner", "drone_slots": 1, "mineral_bonus": 0.16, "drone_mining_radius": 400.0}},
 	{"id": "general_ore_beacon_array", "name": "矿脉信标阵列", "family": FAMILY_GENERAL, "rarity": "rare", "price": 136, "compute_cost": 4, "description": "信标阵列在暗区边缘点亮矿脉回声，撤离航线因此更轻快。", "stats": {"mineral_bonus": 0.18, "speed_mult": 1.05}},
-	{"id": "general_extraction_cradle", "name": "撤离摇篮", "family": FAMILY_GENERAL, "rarity": "epic", "price": 188, "compute_cost": 6, "description": "摇篮稳住货舱与主炮供能，带着满仓星髓离场时仍能开火。", "stats": {"mineral_bonus": 0.2, "atk_bonus": 2, "speed_mult": 1.02}},
+	{"id": "general_extraction_cradle", "name": "撤离摇篮", "family": FAMILY_GENERAL, "rarity": "epic", "price": 188, "compute_cost": 6, "description": "摇篮稳住货舱与主炮供能，带着满仓星髓离场时仍能开火。", "stats": {"evac_mineral_bonus": 0.35, "atk_bonus": 2}},
 ]
 
 
@@ -1213,6 +1203,16 @@ static func get_effect_summary_text(id: String) -> String:
 		parts.append("相位穿透 +%d" % int(item.get("bullet_phase", 0)))
 	if float(item.get("bullet_mark_bonus", 0.0)) > 0.0:
 		parts.append("质量标记 +%d%%" % int(round(float(item.get("bullet_mark_bonus", 0.0)) * 100.0)))
+	if float(item.get("crisis_atk_scale", 0.0)) > 0.0:
+		parts.append("危机增伤")
+	if float(item.get("damage_taken_mult", 1.0)) < 1.0:
+		parts.append("护甲 -%d%%" % int(round((1.0 - float(item.get("damage_taken_mult", 1.0))) * 100.0)))
+	if float(item.get("reveal_map", 0.0)) > 0.0:
+		parts.append("进房揭示")
+	if float(item.get("evac_mineral_bonus", 0.0)) > 0.0:
+		parts.append("撤离结算 +%d%%" % int(round(float(item.get("evac_mineral_bonus", 0.0)) * 100.0)))
+	if float(item.get("kill_lifesteal", 0.0)) > 0.0:
+		parts.append("击杀回血")
 	var homing_strength := float(item.get("homing_strength", 0.0))
 	if homing_strength > 0.0:
 		parts.append("追踪强度 %.1f" % homing_strength)
@@ -1320,6 +1320,11 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		"bullet_slow": float(weapon.get("bullet_slow", 0.0)),
 		"bullet_phase": int(weapon.get("bullet_phase", 0)),
 		"bullet_mark_bonus": float(weapon.get("bullet_mark_bonus", 0.0)),
+		"crisis_atk_scale": float(weapon.get("crisis_atk_scale", 0.0)),
+		"damage_taken_mult": float(weapon.get("damage_taken_mult", 1.0)),
+		"reveal_map": float(weapon.get("reveal_map", 0.0)),
+		"evac_mineral_bonus": float(weapon.get("evac_mineral_bonus", 0.0)),
+		"kill_lifesteal": float(weapon.get("kill_lifesteal", 0.0)),
 		"bullet_speed_mult": float(weapon.get("bullet_speed_mult", 1.0)),
 		"homing_strength": float(weapon.get("homing_strength", 0.0)),
 		"homing_range": float(weapon.get("homing_range", 0.0)),
@@ -1369,6 +1374,11 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		stats["bullet_slow"] = maxf(float(stats["bullet_slow"]), float(aux.get("bullet_slow", 0.0)))
 		stats["bullet_phase"] = int(stats["bullet_phase"]) + int(aux.get("bullet_phase", 0))
 		stats["bullet_mark_bonus"] = maxf(float(stats["bullet_mark_bonus"]), float(aux.get("bullet_mark_bonus", 0.0)))
+		stats["crisis_atk_scale"] = float(stats["crisis_atk_scale"]) + float(aux.get("crisis_atk_scale", 0.0))
+		stats["damage_taken_mult"] = float(stats["damage_taken_mult"]) * float(aux.get("damage_taken_mult", 1.0))
+		stats["reveal_map"] = maxf(float(stats["reveal_map"]), float(aux.get("reveal_map", 0.0)))
+		stats["evac_mineral_bonus"] = float(stats["evac_mineral_bonus"]) + float(aux.get("evac_mineral_bonus", 0.0))
+		stats["kill_lifesteal"] = float(stats["kill_lifesteal"]) + float(aux.get("kill_lifesteal", 0.0))
 		stats["bullet_speed_mult"] = float(stats["bullet_speed_mult"]) * float(aux.get("bullet_speed_mult", 1.0))
 		stats["homing_strength"] = float(stats["homing_strength"]) + float(aux.get("homing_strength", 0.0))
 		stats["homing_range"] = maxf(float(stats["homing_range"]), float(aux.get("homing_range", 0.0)))
@@ -1399,6 +1409,7 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 	stats["bullet_ring_count"] = mini(int(stats["bullet_ring_count"]), 6)
 	stats["bullet_phase"] = mini(int(stats["bullet_phase"]), 5)
 	stats["bullet_slow"] = minf(float(stats["bullet_slow"]), 0.7)
+	stats["damage_taken_mult"] = maxf(float(stats["damage_taken_mult"]), 0.35)
 	return stats
 
 
@@ -1514,6 +1525,11 @@ static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
 		"bullet_slow",
 		"bullet_phase",
 		"bullet_mark_bonus",
+		"crisis_atk_scale",
+		"damage_taken_mult",
+		"reveal_map",
+		"evac_mineral_bonus",
+		"kill_lifesteal",
 	]:
 		if stats.has(key):
 			item[key] = stats[key]

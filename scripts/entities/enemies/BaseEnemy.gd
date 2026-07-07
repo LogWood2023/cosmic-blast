@@ -288,6 +288,7 @@ func handle_player_collision(area: Area2D) -> void:
 
 func _die() -> void:
 	GameManager.add_score(100)
+	GameManager.on_enemy_killed()
 	_play_sfx(EXPLOSION_SFX)
 	if health_bar:
 		health_bar.queue_free()

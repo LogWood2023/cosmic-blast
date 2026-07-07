@@ -31,6 +31,7 @@ var _run_bullet_blackhole: float = 0.0
 var _run_bullet_slow: float = 0.0
 var _run_bullet_phase: int = 0
 var _run_bullet_mark_bonus: float = 0.0
+var _run_damage_taken_mult: float = 1.0
 var _run_homing_strength: float = 0.0
 var _run_homing_range: float = 0.0
 var _run_gravity_pull_strength: float = 0.0
@@ -415,6 +416,9 @@ func _apply_run_equipment() -> void:
 	_run_bullet_slow = maxf(0.0, float(stats.get("bullet_slow", 0.0)))
 	_run_bullet_phase = maxi(0, int(stats.get("bullet_phase", 0)))
 	_run_bullet_mark_bonus = maxf(0.0, float(stats.get("bullet_mark_bonus", 0.0)))
+	_run_damage_taken_mult = clampf(float(stats.get("damage_taken_mult", 1.0)), 0.3, 1.0)
+	GameManager.kill_lifesteal = maxf(0.0, float(stats.get("kill_lifesteal", 0.0)))
+	GameManager.reveal_map = maxf(0.0, float(stats.get("reveal_map", 0.0)))
 	_run_homing_strength = maxf(0.0, float(stats.get("homing_strength", 0.0)))
 	_run_homing_range = maxf(0.0, float(stats.get("homing_range", 0.0)))
 	_run_gravity_pull_strength = maxf(0.0, float(stats.get("gravity_pull_strength", 0.0)))
@@ -1416,7 +1420,9 @@ func _get_effective_fire_rate() -> float:
 
 
 func _apply_player_damage_taken(dmg: int) -> int:
-	return GameManager.get_incoming_damage_after_frenzy(dmg)
+	# 装甲晶格：受击减伤
+	var reduced := int(round(float(dmg) * _run_damage_taken_mult))
+	return GameManager.get_incoming_damage_after_frenzy(maxi(1, reduced))
 
 
 func _update_dash_cooldown(delta: float) -> void:

@@ -3085,6 +3085,10 @@ func get_player_stats() -> Dictionary:
 		_apply_special_bonus_to_stats(stats, bonus_id)
 	_apply_special_beacon_resonance_to_stats(stats)
 	_apply_event_contracts_to_stats(stats)
+	# 危机账本：危机等级越高，攻击越强
+	var crisis_scale := float(stats.get("crisis_atk_scale", 0.0))
+	if crisis_scale > 0.0:
+		stats["atk_bonus"] = int(stats.get("atk_bonus", 0)) + int(round(crisis_scale * float(crisis_level)))
 	return stats
 
 
@@ -3257,7 +3261,9 @@ func _commit_pending_room_loot() -> Dictionary:
 	var contract_bonus := int(contract_bonus_summary.get("minerals_added", 0))
 	var momentum_bonus_summary := _get_route_momentum_mineral_bonus(base_minerals)
 	var momentum_bonus := int(momentum_bonus_summary.get("minerals_added", 0))
-	var total_minerals := base_minerals + bonus + contract_bonus + momentum_bonus
+	# 撤离摇篮：撤离结算时额外矿物加成
+	var evac_bonus := int(floor(float(base_minerals) * float(get_player_stats().get("evac_mineral_bonus", 0.0))))
+	var total_minerals := base_minerals + bonus + contract_bonus + momentum_bonus + evac_bonus
 	minerals += total_minerals
 	for item_id in pending_room_loot.get("equipment", []):
 		if EquipmentCatalogScript.has_item(item_id) and not equipment_inventory.has(item_id):

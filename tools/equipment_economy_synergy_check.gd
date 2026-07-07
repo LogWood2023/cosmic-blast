@@ -50,7 +50,7 @@ const REQUIRED_ITEMS: Dictionary = {
 	},
 	"general_extraction_cradle": {
 		"family": EquipmentCatalogScript.FAMILY_GENERAL,
-		"stat_keys": ["mineral_bonus", "atk_bonus"],
+		"stat_keys": ["evac_mineral_bonus", "atk_bonus"],
 	},
 }
 

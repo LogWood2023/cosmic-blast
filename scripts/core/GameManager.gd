@@ -25,6 +25,10 @@ const FRAME_BUDGET_LOG_COOLDOWN_USEC: int = 300000
 const STUTTER_SINGLE_FRAME_LOG_COOLDOWN_USEC: int = 500000
 const EXPENSIVE_PATHFINDING_SLOTS_PER_FRAME: int = 1
 
+# 通用装备机制：击杀回血、进房揭示（由 Player 从装备 stats 设置）
+var kill_lifesteal: float = 0.0
+var reveal_map: float = 0.0
+
 # 吸力（技能4）
 var suction_active: bool = false
 var suction_center: Vector2 = Vector2.ZERO
@@ -232,6 +236,14 @@ func reset_run_state() -> void:
 	controls_inverted = false
 	command_console_open = false
 	test_scale_enabled = false
+	kill_lifesteal = 0.0
+	reveal_map = 0.0
+
+
+# 微型铸炉：击杀敌人回复少量生命（敌人死亡时调用）
+func on_enemy_killed() -> void:
+	if kill_lifesteal > 0.0 and player_hp > 0 and player_hp < PLAYER_MAX_HP:
+		player_hp = mini(PLAYER_MAX_HP, player_hp + int(ceil(kill_lifesteal)))
 
 
 func _start_frenzy() -> void:

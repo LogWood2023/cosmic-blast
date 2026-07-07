@@ -1101,6 +1101,7 @@ func _die() -> void:
 		return
 	if _explore_pool_enabled and _explore_pool_active:
 		GameManager.add_score(100)
+		GameManager.on_enemy_killed()
 		_play_sfx(EXPLOSION_SFX)
 		_spawn_explosion()
 		_spawn_debris()

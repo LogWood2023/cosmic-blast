@@ -1061,6 +1061,9 @@ func _load_room_async() -> void:
 	if _is_room_setup_cancelled():
 		return
 	loading_screen.visible = false
+	# 缓存占卜器/勘探激光雷达：进房揭示地图迷雾
+	if GameManager.reveal_map > 0.0 and map_ui and map_ui.has_method("clear_fog"):
+		map_ui.clear_fog()
 	GameManager.stutter_context = "ExploreRoom.ready"
 
 
