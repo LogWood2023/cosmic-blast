@@ -105,8 +105,8 @@ func _run() -> void:
 	if float(stats.get("dash_damage_mult", 1.0)) <= 1.0:
 		_fail("Expanded colossus auxiliary should affect dash damage.")
 		return
-	if float(stats.get("homing_strength", 0.0)) <= 0.0:
-		_fail("Expanded warped auxiliary should affect homing.")
+	if float(stats.get("gravity_pull_strength", 0.0)) <= 0.0:
+		_fail("Expanded warped auxiliary should affect gravity pull.")
 		return
 	if int(stats.get("drone_slots", 0)) < 1:
 		_fail("Expanded divine auxiliary should add drone slots.")

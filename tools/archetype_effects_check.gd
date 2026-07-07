@@ -25,9 +25,9 @@ func _run() -> void:
 	_expect_int_gte(stats, "bullet_split_count", 1)
 	_expect_float_gt(stats, "bullet_split_spread_degrees", 0.0)
 	_expect_float_gt(stats, "bullet_split_damage_mult", 0.0)
-	_expect_float_gt(stats, "homing_strength", 0.0)
 	_expect_float_gt(stats, "gravity_pull_strength", 0.0)
-	_expect_float_gt(stats, "gravity_pull_radius", 0.0)
+	_expect_float_gt(stats, "bullet_blackhole", 0.0)
+	_expect_float_gt(stats, "bullet_mark_bonus", 0.0)
 	_expect_float_gt(stats, "frenzy_gain_mult", 1.0)
 	_expect_float_lt(stats, "frenzy_fire_rate_mult", 1.0)
 	_expect_float_gt(stats, "frenzy_damage_mult", 1.0)
@@ -71,11 +71,11 @@ func _run() -> void:
 	if int(bullet.get("split_count")) <= 0:
 		_fail("Paradise boss drop should give spawned bullets split coverage.")
 		return
-	if float(bullet.get("homing_strength")) <= 0.0:
-		_fail("Warped boss drop should give spawned bullets homing strength.")
-		return
 	if float(bullet.get("gravity_pull_strength")) <= 0.0:
-		_fail("Warped boss drop should give spawned bullets gravity pull strength.")
+		_fail("Warped boss drop should give spawned bullets gravity repulsion.")
+		return
+	if float(bullet.get("blackhole_strength")) <= 0.0:
+		_fail("Warped boss drop should give spawned bullets blackhole pull.")
 		return
 	var normal_atk := int(bullet.get("atk"))
 	bullet.queue_free()
@@ -119,6 +119,8 @@ func _equip_all_boss_drops() -> void:
 		"paradise_heavenfall_array",
 		"paradise_sunburst_rack",
 		"warped_gravity_lens",
+		"warped_event_horizon_spool",
+		"warped_gravity_well_core",
 		"hell_eye_frenzy_iris",
 		"divine_drone_seed",
 	]
@@ -131,6 +133,8 @@ func _equip_all_boss_drops() -> void:
 		"paradise_heavenfall_array",
 		"paradise_sunburst_rack",
 		"warped_gravity_lens",
+		"warped_event_horizon_spool",
+		"warped_gravity_well_core",
 		"hell_eye_frenzy_iris",
 		"divine_drone_seed",
 	]

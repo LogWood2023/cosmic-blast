@@ -14,9 +14,9 @@ func _ready() -> void:
 func _run() -> void:
 	RunManager.start_new_run()
 	RunManager.compute_capacity = 99
-	RunManager.equipment_inventory = ["pulse_cannon", "warped_gravity_well_core"]
+	RunManager.equipment_inventory = ["pulse_cannon", "warped_gravity_lens"]
 	RunManager.equipped_weapon = "pulse_cannon"
-	RunManager.equipped_auxiliaries = ["warped_gravity_well_core"]
+	RunManager.equipped_auxiliaries = ["warped_gravity_lens"]
 
 	var stats := RunManager.get_player_stats()
 	if float(stats.get("gravity_pull_strength", 0.0)) <= 0.0:
@@ -59,8 +59,8 @@ func _run() -> void:
 	var start_y := enemy.global_position.y
 	for _i in range(16):
 		await get_tree().process_frame
-	if enemy.global_position.y >= start_y - 12.0:
-		_fail("Warped gravity projectile should pull nearby enemies toward its center.")
+	if enemy.global_position.y <= start_y + 12.0:
+		_fail("Warped repulsor projectile should push nearby enemies away from its center.")
 		return
 
 	print("Warped gravity pull check passed.")

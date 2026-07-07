@@ -55,7 +55,7 @@ func _check_catalog_summary_api() -> void:
 			_fail("UI meta should include %s, got: %s" % [expected, meta])
 			return
 	var build_summary := String(catalog.call("get_build_summary_text", "gravity_threader"))
-	for expected in ["引力", "追踪"]:
+	for expected in ["引力"]:
 		if not build_summary.contains(expected):
 			_fail("Build summary should name warped play pattern %s, got: %s" % [expected, build_summary])
 			return

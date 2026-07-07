@@ -321,14 +321,9 @@ const AUXILIARIES: Dictionary = {
 		"rarity": "boss",
 		"boss_drop": true,
 		"effect_id": "gravity_lens",
+		"gravity_pull_strength": 560.0,
+		"gravity_pull_radius": 280.0,
 		"atk_bonus": 3,
-		"fire_rate_mult": 0.95,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"homing_strength": 5.0,
-		"homing_range": 520.0,
-		"gravity_pull_strength": 240.0,
-		"gravity_pull_radius": 220.0,
 		"description": "扭曲星核剥落的引力镜片，会让弹道主动贴近猎物。",
 	},
 	"hell_eye_frenzy_iris": {
@@ -433,15 +428,8 @@ const AUXILIARIES: Dictionary = {
 		"boss_drop": true,
 		"boss_drop_stage": 2,
 		"effect_id": "event_horizon_spool",
+		"bullet_mark_bonus": 0.4,
 		"atk_bonus": 4,
-		"fire_rate_mult": 0.98,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"homing_strength": 7.0,
-		"homing_range": 620.0,
-		"bullet_speed_mult": 1.12,
-		"gravity_pull_strength": 360.0,
-		"gravity_pull_radius": 270.0,
 		"description": "线轴把弹道轻轻拽向视界边缘，猎物越远，牵引越清晰。",
 	},
 	"warped_gravity_well_core": {
@@ -454,15 +442,8 @@ const AUXILIARIES: Dictionary = {
 		"boss_drop": true,
 		"boss_drop_stage": 3,
 		"effect_id": "gravity_well_core",
+		"bullet_blackhole": 760.0,
 		"atk_bonus": 5,
-		"fire_rate_mult": 0.94,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"homing_strength": 9.0,
-		"homing_range": 760.0,
-		"bullet_speed_mult": 1.18,
-		"gravity_pull_strength": 560.0,
-		"gravity_pull_radius": 340.0,
 		"description": "重井核心会替子弹记住敌人的质量，让躲闪变成一场缓慢坠落。",
 	},
 	"hell_eye_redline_crown": {
@@ -601,12 +582,8 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 3,
 		"family": FAMILY_WARPED,
 		"rarity": "common",
-		"atk_bonus": 1,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"homing_strength": 2.2,
-		"homing_range": 360.0,
+		"gravity_pull_strength": 280.0,
+		"gravity_pull_radius": 200.0,
 		"description": "引力线穿过弹道，轻微偏转会把火力牵向目标。",
 	},
 	"singularity_spool": {
@@ -616,12 +593,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 4,
 		"family": FAMILY_WARPED,
 		"rarity": "rare",
-		"atk_bonus": 2,
-		"fire_rate_mult": 1.0,
-		"speed_mult": 1.0,
-		"mineral_bonus": 0.0,
-		"homing_strength": 3.4,
-		"homing_range": 460.0,
+		"bullet_phase": 1,
 		"description": "追踪范围被进一步拉长，高速规避时仍能锁住目标。",
 	},
 	"tidal_calculator": {
@@ -631,12 +603,7 @@ const AUXILIARIES: Dictionary = {
 		"compute_cost": 3,
 		"family": FAMILY_WARPED,
 		"rarity": "common",
-		"atk_bonus": 0,
-		"fire_rate_mult": 0.95,
-		"speed_mult": 1.04,
-		"mineral_bonus": 0.0,
-		"homing_strength": 1.6,
-		"homing_range": 420.0,
+		"bullet_slow": 0.35,
 		"description": "把机动与追踪结合，降低瞄准压力。",
 	},
 	"frenzy_injector": {
@@ -873,18 +840,18 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "paradise_plasma_conductor", "name": "天堂等离子导体", "family": FAMILY_PARADISE, "rarity": "common", "price": 84, "compute_cost": 3, "description": "导体加快等离子输送，原本的武器手感依旧清晰。", "stats": {"bullet_speed_mult": 1.14}},
 	{"id": "paradise_burst_synchronizer", "name": "天堂爆发同步器", "family": FAMILY_PARADISE, "rarity": "epic", "price": 188, "compute_cost": 7, "description": "同步器把爆发火力拧成一束，重型弹幕瞬间倾泻。", "stats": {"bullet_charge": 10.0}},
 
-	{"id": "warped_seek_processor", "name": "扭曲索敌处理器", "family": FAMILY_WARPED, "rarity": "common", "price": 78, "compute_cost": 2, "description": "处理器提前读出目标偏转，弯曲弹道开始寻找猎物。", "stats": {"homing_strength": 1.8, "homing_range": 320.0}},
-	{"id": "warped_orbit_compass", "name": "扭曲轨道罗盘", "family": FAMILY_WARPED, "rarity": "common", "price": 86, "compute_cost": 3, "description": "轨道罗盘贴着闪避航线旋转，追踪弹不会轻易丢失目标。", "stats": {"speed_mult": 1.03, "homing_strength": 2.0, "homing_range": 360.0}},
-	{"id": "warped_tide_hook", "name": "扭曲潮汐钩", "family": FAMILY_WARPED, "rarity": "rare", "price": 128, "compute_cost": 4, "description": "潮汐钩抓住中程质量影，弹道被更强的引力拖回去。", "stats": {"homing_strength": 3.0, "homing_range": 460.0}},
-	{"id": "warped_mass_marker", "name": "扭曲质量标记器", "family": FAMILY_WARPED, "rarity": "common", "price": 92, "compute_cost": 3, "description": "高质量目标被悄悄标亮，修正弹道因此更干净。", "stats": {"atk_bonus": 1, "homing_strength": 2.3, "homing_range": 390.0}},
-	{"id": "warped_echo_lens", "name": "扭曲回声透镜", "family": FAMILY_WARPED, "rarity": "rare", "price": 136, "compute_cost": 5, "description": "透镜折回目标回声，追踪与弹速一同被推高。", "stats": {"bullet_speed_mult": 1.12, "homing_strength": 3.4, "homing_range": 500.0}},
-	{"id": "warped_curve_predictor", "name": "扭曲曲线预言器", "family": FAMILY_WARPED, "rarity": "common", "price": 80, "compute_cost": 2, "description": "廉价预言器描出弧线落点，轻弹也会微微转头。", "stats": {"homing_strength": 1.6, "homing_range": 340.0}},
-	{"id": "warped_null_sleeve", "name": "扭曲虚无套筒", "family": FAMILY_WARPED, "rarity": "rare", "price": 142, "compute_cost": 5, "description": "虚无套筒稳定远端弹道，越过混乱空域仍能保持牵引。", "stats": {"bullet_speed_mult": 1.1, "homing_range": 560.0}},
-	{"id": "warped_pulse_snare", "name": "扭曲脉冲索套", "family": FAMILY_WARPED, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "脉冲索套圈住聚集敌影，连射弹流会向中心收束。", "stats": {"fire_rate_mult": 0.94, "homing_strength": 3.1, "homing_range": 470.0}},
-	{"id": "warped_magnetar_seed", "name": "扭曲磁星种子", "family": FAMILY_WARPED, "rarity": "epic", "price": 176, "compute_cost": 6, "description": "高密度种子在弹道里醒来，敌群被看不见的手拖住。", "stats": {"atk_bonus": 2, "homing_strength": 4.0, "homing_range": 540.0}},
-	{"id": "warped_lensing_core", "name": "扭曲透镜核心", "family": FAMILY_WARPED, "rarity": "common", "price": 88, "compute_cost": 3, "description": "小型核心弯折慢弹，让迟到的火力也能追上猎物。", "stats": {"homing_strength": 2.4, "homing_range": 420.0}},
-	{"id": "warped_gravity_wake", "name": "扭曲引力尾迹", "family": FAMILY_WARPED, "rarity": "rare", "price": 154, "compute_cost": 5, "description": "稳定尾迹留在航线之后，后续弹道借势继续偏转。", "stats": {"speed_mult": 1.04, "homing_strength": 3.3, "homing_range": 510.0}},
-	{"id": "warped_event_harpoon", "name": "扭曲事件鱼叉", "family": FAMILY_WARPED, "rarity": "epic", "price": 190, "compute_cost": 7, "description": "事件鱼叉刺穿概率薄层，远处目标也被强行拽进准星。", "stats": {"atk_bonus": 2, "bullet_speed_mult": 1.16, "homing_strength": 4.5, "homing_range": 620.0}},
+	{"id": "warped_seek_processor", "name": "扭曲索敌处理器", "family": FAMILY_WARPED, "rarity": "common", "price": 78, "compute_cost": 2, "description": "处理器提前读出目标偏转，弯曲弹道开始寻找猎物。", "stats": {"homing_strength": 2.5, "homing_range": 400.0}},
+	{"id": "warped_orbit_compass", "name": "扭曲轨道罗盘", "family": FAMILY_WARPED, "rarity": "common", "price": 86, "compute_cost": 3, "description": "轨道罗盘贴着闪避航线旋转，追踪弹不会轻易丢失目标。", "stats": {"homing_strength": 2.8, "homing_range": 440.0}},
+	{"id": "warped_tide_hook", "name": "扭曲潮汐钩", "family": FAMILY_WARPED, "rarity": "rare", "price": 128, "compute_cost": 4, "description": "潮汐钩抓住中程质量影，弹道被更强的引力拖回去。", "stats": {"bullet_slow": 0.5}},
+	{"id": "warped_mass_marker", "name": "扭曲质量标记器", "family": FAMILY_WARPED, "rarity": "common", "price": 92, "compute_cost": 3, "description": "高质量目标被悄悄标亮，修正弹道因此更干净。", "stats": {"bullet_mark_bonus": 0.15}},
+	{"id": "warped_echo_lens", "name": "扭曲回声透镜", "family": FAMILY_WARPED, "rarity": "rare", "price": 136, "compute_cost": 5, "description": "透镜折回目标回声，追踪与弹速一同被推高。", "stats": {"bullet_mark_bonus": 0.22}},
+	{"id": "warped_curve_predictor", "name": "扭曲曲线预言器", "family": FAMILY_WARPED, "rarity": "common", "price": 80, "compute_cost": 2, "description": "廉价预言器描出弧线落点，轻弹也会微微转头。", "stats": {"homing_strength": 2.0, "homing_range": 360.0}},
+	{"id": "warped_null_sleeve", "name": "扭曲虚无套筒", "family": FAMILY_WARPED, "rarity": "rare", "price": 142, "compute_cost": 5, "description": "虚无套筒稳定远端弹道，越过混乱空域仍能保持牵引。", "stats": {"bullet_phase": 3}},
+	{"id": "warped_pulse_snare", "name": "扭曲脉冲索套", "family": FAMILY_WARPED, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "脉冲索套圈住聚集敌影，连射弹流会向中心收束。", "stats": {"bullet_blackhole": 440.0}},
+	{"id": "warped_magnetar_seed", "name": "扭曲磁星种子", "family": FAMILY_WARPED, "rarity": "epic", "price": 176, "compute_cost": 6, "description": "高密度种子在弹道里醒来，敌群被看不见的手拖住。", "stats": {"homing_strength": 6.0, "homing_range": 620.0}},
+	{"id": "warped_lensing_core", "name": "扭曲透镜核心", "family": FAMILY_WARPED, "rarity": "common", "price": 88, "compute_cost": 3, "description": "小型核心弯折慢弹，让迟到的火力也能追上猎物。", "stats": {"bullet_slow": 0.3}},
+	{"id": "warped_gravity_wake", "name": "扭曲引力尾迹", "family": FAMILY_WARPED, "rarity": "rare", "price": 154, "compute_cost": 5, "description": "稳定尾迹留在航线之后，后续弹道借势继续偏转。", "stats": {"bullet_phase": 2}},
+	{"id": "warped_event_harpoon", "name": "扭曲事件鱼叉", "family": FAMILY_WARPED, "rarity": "epic", "price": 190, "compute_cost": 7, "description": "事件鱼叉刺穿概率薄层，远处目标也被强行拽进准星。", "stats": {"bullet_blackhole": 560.0, "atk_bonus": 2}},
 
 	{"id": "hell_eye_heat_credit", "name": "地狱热债凭证", "family": FAMILY_HELL_EYE, "rarity": "common", "price": 76, "compute_cost": 2, "description": "每一次交火都会记下一笔热债，狂热槽随之更快升温。", "stats": {"frenzy_gain_mult": 1.12}},
 	{"id": "hell_eye_adrenal_pump", "name": "地狱肾上腺泵", "family": FAMILY_HELL_EYE, "rarity": "common", "price": 84, "compute_cost": 3, "description": "泵体把灼热信号压进血线，爆发窗口来得更可靠。", "stats": {"speed_mult": 1.03, "frenzy_gain_mult": 1.16}},
@@ -921,8 +888,8 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "colossus_orebreaker_keel", "name": "巨构碎矿龙骨", "family": FAMILY_COLOSSUS, "rarity": "epic", "price": 206, "compute_cost": 7, "description": "重型龙骨专为硬矿和装甲而生，长距离冲锋会把航路犁开。", "stats": {"dash_mining": 1.0, "mineral_bonus": 0.16}},
 	{"id": "paradise_mining_barrage", "name": "天堂采矿弹幕", "family": FAMILY_PARADISE, "rarity": "rare", "price": 150, "compute_cost": 5, "description": "密集弹幕像蓝白雨线落下，矿壳和敌阵一起被剥开。", "stats": {"bullet_dot_damage_mult": 0.3, "mineral_bonus": 0.1}},
 	{"id": "paradise_lumen_belt", "name": "天堂辉流弹带", "family": FAMILY_PARADISE, "rarity": "epic", "price": 198, "compute_cost": 6, "description": "辉流弹带穿过矿尘仍不失速，明亮弹线把回收点逐一照亮。", "stats": {"bullet_dot_damage_mult": 0.4, "mineral_bonus": 0.14}},
-	{"id": "warped_quarry_lens", "name": "扭曲采场透镜", "family": FAMILY_WARPED, "rarity": "rare", "price": 158, "compute_cost": 5, "description": "透镜折弯矿尘的质量影，松散碎矿会被拖回弹道中心。", "stats": {"mineral_bonus": 0.12, "gravity_pull_strength": 480.0, "gravity_pull_radius": 230.0}},
-	{"id": "warped_treasure_orbit", "name": "扭曲珍藏轨环", "family": FAMILY_WARPED, "rarity": "epic", "price": 212, "compute_cost": 7, "description": "轨环绕着高价值目标低声旋转，追踪火力会替你咬住暗处矿光。", "stats": {"mineral_bonus": 0.15, "homing_strength": 4.2, "homing_range": 580.0, "bullet_speed_mult": 1.1}},
+	{"id": "warped_quarry_lens", "name": "扭曲采场透镜", "family": FAMILY_WARPED, "rarity": "rare", "price": 158, "compute_cost": 5, "description": "透镜折弯矿尘的质量影，松散碎矿会被拖回弹道中心。", "stats": {"gravity_pull_strength": 420.0, "gravity_pull_radius": 240.0, "mineral_bonus": 0.12}},
+	{"id": "warped_treasure_orbit", "name": "扭曲珍藏轨环", "family": FAMILY_WARPED, "rarity": "epic", "price": 212, "compute_cost": 7, "description": "轨环绕着高价值目标低声旋转，追踪火力会替你咬住暗处矿光。", "stats": {"bullet_mark_bonus": 0.3, "mineral_bonus": 0.15}},
 	{"id": "hell_eye_molten_ledger", "name": "地狱熔账", "family": FAMILY_HELL_EYE, "rarity": "rare", "price": 152, "compute_cost": 5, "description": "熔账吞下每一次伤痛和收获，狂热升温时回收链也烧得更亮。", "stats": {"mineral_bonus": 0.1, "frenzy_gain_mult": 1.2, "frenzy_damage_taken_mult": 0.94}},
 	{"id": "hell_eye_redline_collector", "name": "地狱红线收集器", "family": FAMILY_HELL_EYE, "rarity": "epic", "price": 204, "compute_cost": 6, "description": "红线越过安全刻度，狂热火力会把矿尘熔成可带走的星髓。", "stats": {"mineral_bonus": 0.14, "frenzy_damage_mult": 1.18, "frenzy_fire_rate_mult": 0.9}},
 	{"id": "divine_salvage_squadron", "name": "神使回收中队", "family": FAMILY_DIVINE, "rarity": "rare", "price": 164, "compute_cost": 5, "description": "小队在主机身侧展开，护航火线会顺手标定散落矿光。", "stats": {"drone_behavior": "miner", "drone_slots": 1, "drone_mining_radius": 380.0, "mineral_bonus": 0.11}},
@@ -1238,6 +1205,14 @@ static func get_effect_summary_text(id: String) -> String:
 		parts.append("破障采矿")
 	if float(item.get("dash_shield_duration", 0.0)) > 0.0:
 		parts.append("撞击护盾")
+	if float(item.get("bullet_blackhole", 0.0)) > 0.0:
+		parts.append("黑洞弹")
+	if float(item.get("bullet_slow", 0.0)) > 0.0:
+		parts.append("减速扭曲 %d%%" % int(round(float(item.get("bullet_slow", 0.0)) * 100.0)))
+	if int(item.get("bullet_phase", 0)) > 0:
+		parts.append("相位穿透 +%d" % int(item.get("bullet_phase", 0)))
+	if float(item.get("bullet_mark_bonus", 0.0)) > 0.0:
+		parts.append("质量标记 +%d%%" % int(round(float(item.get("bullet_mark_bonus", 0.0)) * 100.0)))
 	var homing_strength := float(item.get("homing_strength", 0.0))
 	if homing_strength > 0.0:
 		parts.append("追踪强度 %.1f" % homing_strength)
@@ -1341,6 +1316,10 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		"bullet_dot_damage_mult": float(weapon.get("bullet_dot_damage_mult", 0.0)),
 		"bullet_charge": float(weapon.get("bullet_charge", 0.0)),
 		"bullet_ring_count": int(weapon.get("bullet_ring_count", 0)),
+		"bullet_blackhole": float(weapon.get("bullet_blackhole", 0.0)),
+		"bullet_slow": float(weapon.get("bullet_slow", 0.0)),
+		"bullet_phase": int(weapon.get("bullet_phase", 0)),
+		"bullet_mark_bonus": float(weapon.get("bullet_mark_bonus", 0.0)),
 		"bullet_speed_mult": float(weapon.get("bullet_speed_mult", 1.0)),
 		"homing_strength": float(weapon.get("homing_strength", 0.0)),
 		"homing_range": float(weapon.get("homing_range", 0.0)),
@@ -1386,6 +1365,10 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		stats["bullet_dot_damage_mult"] = maxf(float(stats["bullet_dot_damage_mult"]), float(aux.get("bullet_dot_damage_mult", 0.0)))
 		stats["bullet_charge"] = maxf(float(stats["bullet_charge"]), float(aux.get("bullet_charge", 0.0)))
 		stats["bullet_ring_count"] = int(stats["bullet_ring_count"]) + int(aux.get("bullet_ring_count", 0))
+		stats["bullet_blackhole"] = maxf(float(stats["bullet_blackhole"]), float(aux.get("bullet_blackhole", 0.0)))
+		stats["bullet_slow"] = maxf(float(stats["bullet_slow"]), float(aux.get("bullet_slow", 0.0)))
+		stats["bullet_phase"] = int(stats["bullet_phase"]) + int(aux.get("bullet_phase", 0))
+		stats["bullet_mark_bonus"] = maxf(float(stats["bullet_mark_bonus"]), float(aux.get("bullet_mark_bonus", 0.0)))
 		stats["bullet_speed_mult"] = float(stats["bullet_speed_mult"]) * float(aux.get("bullet_speed_mult", 1.0))
 		stats["homing_strength"] = float(stats["homing_strength"]) + float(aux.get("homing_strength", 0.0))
 		stats["homing_range"] = maxf(float(stats["homing_range"]), float(aux.get("homing_range", 0.0)))
@@ -1414,6 +1397,8 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 	stats["bullet_chain"] = mini(int(stats["bullet_chain"]), 5)
 	stats["bullet_pierce"] = mini(int(stats["bullet_pierce"]), 5)
 	stats["bullet_ring_count"] = mini(int(stats["bullet_ring_count"]), 6)
+	stats["bullet_phase"] = mini(int(stats["bullet_phase"]), 5)
+	stats["bullet_slow"] = minf(float(stats["bullet_slow"]), 0.7)
 	return stats
 
 
@@ -1525,6 +1510,10 @@ static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
 		"bullet_dot_damage_mult",
 		"bullet_charge",
 		"bullet_ring_count",
+		"bullet_blackhole",
+		"bullet_slow",
+		"bullet_phase",
+		"bullet_mark_bonus",
 	]:
 		if stats.has(key):
 			item[key] = stats[key]

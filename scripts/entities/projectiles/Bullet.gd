@@ -16,7 +16,14 @@ var gravity_pull_radius: float = 0.0
 var pierce_left: int = 0            # 穿透：命中敌人后剩余可穿透次数
 var chain_left: int = 0             # 跳弹：命中后剩余可转向次数
 var dot_damage_mult: float = 0.0    # DoT：命中后按 atk 比例施加灼烧
+var blackhole_strength: float = 0.0 # 黑洞弹：命中处生成引力奇点的吸附力
+var slow_ratio: float = 0.0         # 减速扭曲：命中敌人的减速比例
+var phase_left: int = 0             # 相位穿透：可穿透的障碍数
+var mark_bonus: float = 0.0         # 质量标记：命中打标记，对已标记敌人增伤
 const DOT_SCRIPT := preload("res://scripts/fx/DamageOverTime.gd")
+const WARP_BLACKHOLE := preload("res://scripts/fx/WarpBlackhole.gd")
+const WARP_SLOW := preload("res://scripts/fx/WarpSlow.gd")
+const MARK_DURATION_MS: int = 4000
 const CHAIN_RANGE: float = 620.0
 const FORCE_FIELD_BLEND: float = 10.0
 const BulletBurstScript := preload("res://scripts/fx/BulletBurst.gd")
@@ -85,6 +92,10 @@ func _on_area_entered(area: Area2D) -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group(&"space_rocks") or (body.get_parent() and body.get_parent().is_in_group(&"isolation_bands")):
+		# 相位穿透：无视障碍继续飞
+		if phase_left > 0:
+			phase_left -= 1
+			return
 		destroy()
 
 
@@ -92,9 +103,14 @@ func _hit_enemy(enemy: Node) -> void:
 	if _hit_enemies.has(enemy):
 		return
 	_hit_enemies.append(enemy)
+	var dmg := atk
+	# 质量标记：对仍在标记有效期内的敌人增伤
+	if enemy.has_meta(&"warped_mark_until") and Time.get_ticks_msec() < int(enemy.get_meta(&"warped_mark_until")):
+		dmg = maxi(1, int(round(float(dmg) * (1.0 + float(enemy.get_meta(&"warped_mark_bonus", 0.0))))))
 	if enemy.has_method("take_damage"):
-		enemy.take_damage(atk, self)
+		enemy.take_damage(dmg, self)
 	_apply_bullet_dot(enemy)
+	_apply_warp_effects(enemy)
 	# 穿透优先（继续直飞）；否则跳弹（转向下一敌）；都没有则销毁
 	if pierce_left > 0:
 		pierce_left -= 1
@@ -119,6 +135,30 @@ func _apply_bullet_dot(enemy: Node) -> void:
 	var scene := get_tree().current_scene
 	if scene != null and scene.is_inside_tree():
 		scene.add_child(dot)
+
+
+func _apply_warp_effects(enemy: Node) -> void:
+	# 质量标记：给敌人打上标记（后续任意子弹对其增伤）
+	if mark_bonus > 0.0:
+		enemy.set_meta(&"warped_mark_bonus", mark_bonus)
+		enemy.set_meta(&"warped_mark_until", Time.get_ticks_msec() + MARK_DURATION_MS)
+	# 黑洞弹：命中处生成引力奇点吸附一片敌人
+	if blackhole_strength > 0.0:
+		var bh = WARP_BLACKHOLE.new()
+		bh.setup(global_position, blackhole_strength, 260.0)
+		var scene := get_tree().current_scene
+		if scene != null and scene.is_inside_tree():
+			scene.add_child(bh)
+	# 减速扭曲：每个敌人最多一个减速节点，重复命中刷新
+	if slow_ratio > 0.0 and enemy is Node:
+		var existing = enemy.get_node_or_null("WarpSlow")
+		if existing != null and existing.has_method("refresh"):
+			existing.refresh(1.5)
+		else:
+			var sl = WARP_SLOW.new()
+			sl.name = "WarpSlow"
+			enemy.add_child(sl)
+			sl.setup(slow_ratio, 1.5)
 
 
 func _find_chain_target(exclude: Node) -> Node:
@@ -220,7 +260,8 @@ func _apply_gravity_pull(delta: float) -> void:
 			continue
 		var dist := sqrt(dist_sq)
 		var falloff := 1.0 - clampf(dist / gravity_pull_radius, 0.0, 1.0)
-		target.global_position += to_center / dist * gravity_pull_strength * falloff * delta
+		# 斥力推开：敌人被推离子弹（原方向取反，与黑洞的"吸"相对）
+		target.global_position -= to_center / dist * gravity_pull_strength * falloff * delta
 
 
 func _setup_bullet_sprite() -> void:

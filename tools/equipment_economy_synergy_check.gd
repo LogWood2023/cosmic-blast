@@ -26,7 +26,7 @@ const REQUIRED_ITEMS: Dictionary = {
 	},
 	"warped_treasure_orbit": {
 		"family": EquipmentCatalogScript.FAMILY_WARPED,
-		"stat_keys": ["mineral_bonus", "homing_strength"],
+		"stat_keys": ["mineral_bonus", "bullet_mark_bonus"],
 	},
 	"hell_eye_molten_ledger": {
 		"family": EquipmentCatalogScript.FAMILY_HELL_EYE,
