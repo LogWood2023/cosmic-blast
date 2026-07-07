@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://bqx8n2spacebg01"]
+
+[ext_resource type="Shader" path="res://assets/shaders/starfield.gdshader" id="1"]
+
+[sub_resource type="ShaderMaterial" id="mat_starfield"]
+shader = ExtResource("1")
+
+[node name="SpaceBackground" type="CanvasLayer"]
+layer = -100
+
+[node name="Starfield" type="ColorRect" parent="."]
+material = SubResource("mat_starfield")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

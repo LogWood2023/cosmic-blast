@@ -266,6 +266,7 @@ func take_damage(amount: int, _source: Node = null) -> void:
 		_die()
 	else:
 		_play_sfx(HIT_SFX)
+		_play_hit_flash()
 		is_shaking = true
 		shake_elapsed = 0.0
 
@@ -333,6 +334,20 @@ func _update_shake(delta: float) -> void:
 	else:
 		sprite.position.x = sin(shake_elapsed * 50) * 4
 		sprite.position.y = cos(shake_elapsed * 47) * 4
+
+
+# 受击闪白：命中瞬间精灵混白后快速回落，配合位移抖动强化打击感
+func _play_hit_flash() -> void:
+	if sprite == null:
+		return
+	var mat := sprite.material as ShaderMaterial
+	if mat == null:
+		mat = ShaderMaterial.new()
+		mat.shader = preload("res://assets/shaders/hit_flash.gdshader")
+		sprite.material = mat
+	mat.set_shader_parameter("flash", 1.0)
+	var tw := create_tween()
+	tw.tween_property(mat, "shader_parameter/flash", 0.0, 0.09)
 
 
 func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:

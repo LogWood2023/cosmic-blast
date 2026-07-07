@@ -30,9 +30,9 @@ func _process(delta: float) -> void:
 		queue_free()
 		return
 	var t := target as Node2D
-	if not _init:
+	if not _started:
 		_last_pos = t.global_position
-		_init = true
+		_started = true
 		return
 	var moved: Vector2 = t.global_position - _last_pos
 	t.global_position -= moved * slow_ratio
