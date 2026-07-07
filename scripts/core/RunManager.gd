@@ -3088,6 +3088,10 @@ func get_player_stats() -> Dictionary:
 	return stats
 
 
+func get_drone_loadout() -> Array:
+	return EquipmentCatalogScript.get_drone_loadout(equipped_weapon, equipped_auxiliaries)
+
+
 func _apply_archetype_sync_to_stats(stats: Dictionary) -> void:
 	var sync := _make_archetype_sync_summary()
 	var level := int(sync.get("sync_level", 0))

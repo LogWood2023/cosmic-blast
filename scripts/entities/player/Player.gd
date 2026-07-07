@@ -31,6 +31,7 @@ var _run_dash_damage_mult: float = 1.0
 var _run_dash_aftershock_radius: float = 0.0
 var _run_dash_aftershock_damage_mult: float = 0.0
 var _run_drone_slots: int = 0
+var _drone_loadout: Array = []
 var _speed_slow_mult: float = 1.0
 var _speed_slow_timer: float = 0.0
 var _external_damage_accumulator: float = 0.0
@@ -353,7 +354,8 @@ func _apply_run_equipment() -> void:
 	_run_dash_aftershock_radius = maxf(0.0, float(stats.get("dash_aftershock_radius", 0.0)))
 	_run_dash_aftershock_damage_mult = maxf(0.0, float(stats.get("dash_aftershock_damage_mult", 0.0)))
 	_run_drone_slots = maxi(0, int(stats.get("drone_slots", 0)))
-	_ensure_support_drones(stats)
+	_drone_loadout = RunManager.get_drone_loadout()
+	_ensure_support_drones()
 
 
 func _get_current_shoot_direction() -> Vector2:
@@ -1552,22 +1554,21 @@ func _apply_dash_aftershock(source_target: Node, impact_amount: int) -> void:
 			_apply_damage_to_dash_target(node, amount)
 
 
-func _ensure_support_drones(stats: Dictionary) -> void:
-	if _run_drone_slots <= 0 or not is_inside_tree():
-		return
-	var existing := 0
+func _ensure_support_drones() -> void:
+	# 清除本机现有僚机后按装载清单重建（每件贡献自己类型的僚机，可混合）
 	for node in get_tree().get_nodes_in_group(&"player_support_drones"):
 		if is_instance_valid(node) and node.get_meta(&"owner_player", null) == self:
-			existing += 1
-	while existing < _run_drone_slots:
+			node.queue_free()
+	if _drone_loadout.is_empty() or not is_inside_tree():
+		return
+	var count := _drone_loadout.size()
+	for i in range(count):
 		var drone = SUPPORT_DRONE_SCENE.instantiate()
 		drone.set_meta(&"owner_player", self)
-		drone.set_meta(&"effect_id", "drone_seed")
 		if drone.has_method("setup"):
-			drone.call("setup", self, existing, _run_drone_slots, stats)
-		drone.global_position = global_position + Vector2(42.0, 0.0).rotated(TAU * float(existing) / maxf(float(_run_drone_slots), 1.0))
+			drone.call("setup", self, i, count, _drone_loadout[i])
+		drone.global_position = global_position + Vector2(42.0, 0.0).rotated(TAU * float(i) / maxf(float(count), 1.0))
 		add_child(drone)
-		existing += 1
 
 
 func _get_node_world_position(node: Node) -> Vector2:

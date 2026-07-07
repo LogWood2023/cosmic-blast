@@ -1,5 +1,5 @@
 extends Node
-
+## 僚机行为系统自检：验证 get_drone_loadout 按 behavior 分派，且射手僚机能实际射击伤敌
 
 const PLAYER_SCENE := preload("res://scenes/entities/player/player.tscn")
 const BULLET_SCENE := preload("res://scenes/entities/projectiles/bullet.tscn")
@@ -17,20 +17,40 @@ func _run() -> void:
 
 	RunManager.start_new_run()
 	RunManager.compute_capacity = 99
-	RunManager.equipment_inventory = ["pulse_cannon", "divine_oracle_swarm_core"]
-	RunManager.equipped_weapon = "pulse_cannon"
-	RunManager.equipped_auxiliaries = ["divine_oracle_swarm_core"]
 
-	var stats := RunManager.get_player_stats()
-	if int(stats.get("drone_slots", 0)) < 3:
-		_fail("High-stage divine relic should command a visible support drone swarm.")
+	# 1) 每种僚机件应装载为对应 behavior
+	var cases := {
+		"divine_drone_seed": "shooter",
+		"divine_salvage_squadron": "miner",
+		"wingman_protocol": "guardian",
+		"divine_oracle_swarm_core": "kamikaze",
+		"divine_repair_familiar": "medic",
+	}
+	for item_id in cases:
+		var lo := EquipmentCatalog.get_drone_loadout("pulse_cannon", [item_id])
+		if lo.is_empty() or String(lo[0].get("behavior", "")) != String(cases[item_id]):
+			_fail("%s 应装载为 %s 僚机。" % [item_id, cases[item_id]])
+			return
+
+	# 蜂群圣核（自爆遗物）应贡献 3 个僚机
+	var swarm := EquipmentCatalog.get_drone_loadout("pulse_cannon", ["divine_oracle_swarm_core"])
+	if swarm.size() < 3:
+		_fail("蜂群圣核应贡献至少 3 个自爆僚机，实得 %d。" % swarm.size())
 		return
-	if float(stats.get("drone_fire_interval_mult", 1.0)) >= 1.0:
-		_fail("High-stage divine relic should shorten support drone fire interval.")
+
+	# 混装应生成不同类型僚机并存
+	var mix := EquipmentCatalog.get_drone_loadout("pulse_cannon", ["divine_drone_seed", "wingman_protocol", "divine_repair_familiar"])
+	var kinds := {}
+	for d in mix:
+		kinds[String(d.get("behavior", ""))] = true
+	if not (kinds.has("shooter") and kinds.has("guardian") and kinds.has("medic")):
+		_fail("混装僚机件应生成射手/护盾/治疗并存的僚机群。")
 		return
-	if float(stats.get("drone_damage_mult", 1.0)) <= 1.0:
-		_fail("High-stage divine relic should amplify support drone damage.")
-		return
+
+	# 2) 射手僚机应实际生成并自动射击伤敌
+	RunManager.equipment_inventory = ["pulse_cannon", "divine_drone_seed"]
+	RunManager.equipped_weapon = "pulse_cannon"
+	RunManager.equipped_auxiliaries = ["divine_drone_seed"]
 
 	var player = PLAYER_SCENE.instantiate()
 	player.bullet_scene = BULLET_SCENE
@@ -40,18 +60,15 @@ func _run() -> void:
 
 	await get_tree().process_frame
 	var drones := get_tree().get_nodes_in_group(&"player_support_drones")
-	if drones.size() < 3:
-		_fail("Equipping a high-stage divine relic should spawn at least three support drones.")
+	if drones.size() < 1:
+		_fail("装配射手僚机件应生成僚机。")
 		return
 	var drone := drones[0]
 	if drone.scene_file_path != DRONE_SCENE_PATH:
 		_fail("Support drone should be instanced from %s, got %s." % [DRONE_SCENE_PATH, drone.scene_file_path])
 		return
-	if float(drone.get("fire_interval")) >= 0.55:
-		_fail("Support drone should apply divine swarm fire interval scaling.")
-		return
-	if int(drone.get("bullet_damage")) < 10:
-		_fail("Support drone should apply divine swarm damage scaling.")
+	if String(drone.get("behavior")) != "shooter":
+		_fail("无人机种子应生成射手僚机，实为 %s。" % String(drone.get("behavior")))
 		return
 
 	var enemy := _make_enemy(Vector2(760, 500))
@@ -64,7 +81,7 @@ func _run() -> void:
 			get_tree().quit(0)
 			return
 
-	_fail("Support drone should automatically damage a nearby enemy.")
+	_fail("射手僚机应自动射击伤害附近敌人。")
 
 
 func _make_enemy(pos: Vector2) -> Area2D:

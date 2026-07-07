@@ -42,7 +42,7 @@ const REQUIRED_ITEMS: Dictionary = {
 	},
 	"divine_foundry_companion": {
 		"family": EquipmentCatalogScript.FAMILY_DIVINE,
-		"stat_keys": ["mineral_bonus", "drone_fire_interval_mult"],
+		"stat_keys": ["mineral_bonus", "drone_slots"],
 	},
 	"general_ore_beacon_array": {
 		"family": EquipmentCatalogScript.FAMILY_GENERAL,

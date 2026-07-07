@@ -26,6 +26,7 @@ var _anim_time: float = 0.0
 
 func _ready() -> void:
 	add_to_group(&"force_field_projectiles")
+	add_to_group(&"enemy_bullets")  # 供护盾僚机识别并拦截
 	_setup_bullet_sprite()
 	area_entered.connect(_on_area_entered)
 	body_entered.connect(_on_body_entered)
