@@ -7,6 +7,7 @@ const FRAME_WIDTH: float = 3388.0 / 6.0   # 每帧宽 ≈ 170.7px
 const FRAME_HEIGHT: float = 2476.0
 
 const FlashScript := preload("res://scripts/fx/ExplosionFlash.gd")
+const SparksScript := preload("res://scripts/fx/ExplosionSparks.gd")
 
 var _frame: int = 0
 var _timer: float = 0.0
@@ -27,7 +28,7 @@ func _ready() -> void:
 	var punch := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	punch.tween_property(self, "scale", target, 0.14)
 
-	# 加色冲击环 + 初始亮闪核心（尺寸随爆炸缩放），独立自毁
+	# 加色冲击环 + 初始亮闪核心（尺寸随爆炸缩放）+ 全向火花，独立自毁
 	var parent := get_parent()
 	if parent:
 		var flash := FlashScript.new()
@@ -35,6 +36,11 @@ func _ready() -> void:
 		flash.z_index = z_index
 		parent.add_child(flash)
 		flash.global_position = global_position
+
+		var sparks := SparksScript.new()
+		sparks.z_index = z_index
+		parent.add_child(sparks)
+		sparks.global_position = global_position
 
 
 func _process(delta: float) -> void:
