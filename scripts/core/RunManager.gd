@@ -30,7 +30,7 @@ const ORE_SOURCE_BIAS_PROFILES: Array[Dictionary] = [
 		"id": "star_marrow",
 		"name": "星髓矿脉",
 		"label": "星髓",
-		"hint": "常规矿源，收益稳定，适合作为任何装配的补给底盘。",
+		"hint": "常规矿源，收益稳定，可作为任何装配的补给底盘。",
 		"weight": 2.6,
 		"room_effect": {"reward_mineral_mult": 0.04, "clutter_count": 4},
 		"room_effect_text": "星髓矿脉铺开稳定碎矿，回收点更多，收益略微上扬。",
@@ -39,7 +39,7 @@ const ORE_SOURCE_BIAS_PROFILES: Array[Dictionary] = [
 		"id": "gleam_crystal",
 		"name": "辉晶簇",
 		"label": "辉晶",
-		"hint": "明亮晶簇更容易结成富矿，适合在奖励航线里囤积星髓矿。",
+		"hint": "明亮晶簇更容易结成富矿，常在奖励航线里囤积更多星髓矿。",
 		"weight": 3.2,
 		"room_effect": {"reward_mineral_mult": 0.08, "chest_crystal_count": 3},
 		"room_effect_text": "辉晶簇会把矿光聚成明亮目标，矿脉数量和单次收益同时抬高。",
@@ -797,7 +797,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "wake_beacon_protocol",
 		"title": "唤醒增益信标",
-		"description": "远处协议灯还没有熄灭，接入任意信标都能让本局航线变得更像一个构筑。",
+		"description": "远处协议灯还没有熄灭，接入任意信标都能让本局航线的战术路数更加自成一体。",
 		"goal_type": "activate_special",
 		"required": 1,
 		"reward": {"minerals": 30, "compute": 1},
@@ -806,7 +806,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "trace_colossus_route",
 		"title": "追踪巨构回响",
-		"description": "厚重撞角信号沿航线敲击舱壁，清理星间巨构航线能强化冲锋构筑。",
+		"description": "厚重撞角信号沿航线敲击舱壁，清理星间巨构航线能让冲锋打法更快成形。",
 		"goal_type": "complete_family",
 		"target": "colossus",
 		"required": 2,
@@ -856,7 +856,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "align_paradise_shop",
 		"title": "点亮天堂货栈",
-		"description": "明亮弹链沿着补给轨道展开，方舟会把下一批货单推向火力覆盖构筑。",
+		"description": "明亮弹链沿着补给轨道展开，方舟会把下一批货单推向火力覆盖纹章。",
 		"goal_type": "complete_type",
 		"target": NODE_BATTLE,
 		"required": 1,
@@ -4747,7 +4747,7 @@ func _route_plan_ore_source_hint(node: Dictionary) -> String:
 func _route_plan_tactic_hint(family: String, node_type: String) -> String:
 	var suffix := "进入前优先校准同调纹章。"
 	if node_type == NODE_REWARD:
-		suffix = "奖励航线适合补强核心纹章。"
+		suffix = "奖励航线正好用来补强核心纹章。"
 	elif node_type == NODE_EVENT:
 		suffix = "事件方案会改变后续航路节奏。"
 	match family:

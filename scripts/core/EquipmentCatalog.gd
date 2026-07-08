@@ -111,7 +111,7 @@ const WEAPONS: Dictionary = {
 		"spread_degrees": 6.0,
 		"homing_strength": 1.5,
 		"homing_range": 300.0,
-		"description": "带轻微航向修正的双联弹道，服务引力流派。",
+		"description": "带轻微航向修正的双联弹道，在引力扭曲中咬得更紧。",
 	},
 	"pulse_hail": {
 		"name": "脉冲冰雹",
@@ -522,7 +522,7 @@ const AUXILIARIES: Dictionary = {
 		"family": FAMILY_COLOSSUS,
 		"rarity": "common",
 		"dash_damage_mult": 1.2,
-		"description": "冲刺撞击造成更高伤害，是巨构流派的入门组件。",
+		"description": "冲刺撞击造成更高伤害，是巨构标准列装的撞击组件。",
 	},
 	"extended_ram_plate": {
 		"name": "延展撞角板",
@@ -705,7 +705,7 @@ const AUXILIARIES: Dictionary = {
 		"family": FAMILY_GENERAL,
 		"rarity": "common",
 		"damage_taken_mult": 0.88,
-		"description": "牺牲少量机动，换取更扎实的输出结构。",
+		"description": "牺牲少量机动，换取更扎实的抗打击护甲。",
 	},
 	"coolant_loop": {
 		"name": "冷却回路",
@@ -822,7 +822,7 @@ const AUXILIARY_EXPANSION_ROWS: Array[Dictionary] = [
 	{"id": "paradise_tracer_fan", "name": "天堂曳光扇", "family": FAMILY_PARADISE, "rarity": "common", "price": 88, "compute_cost": 3, "description": "曳光扇张开更宽弹幕，弹速仍保持干净利落。", "stats": {"bullet_chain": 1}},
 	{"id": "paradise_pressure_chamber", "name": "天堂增压膛", "family": FAMILY_PARADISE, "rarity": "rare", "price": 124, "compute_cost": 4, "description": "膛压被抬高，齐射更硬，弹流更快。", "stats": {"bullet_ring_count": 1, "atk_bonus": 2}},
 	{"id": "paradise_salvo_kernel", "name": "天堂齐射核心", "family": FAMILY_PARADISE, "rarity": "rare", "price": 138, "compute_cost": 5, "description": "核心支撑更大的弹幕帷幕，开火节奏也被重新拉紧。", "stats": {"bullet_chain": 2}},
-	{"id": "paradise_skyline_magazine", "name": "天堂天际弹仓", "family": FAMILY_PARADISE, "rarity": "common", "price": 92, "compute_cost": 3, "description": "弹仓沿天际线铺弹，整片屏幕被干净火线切开。", "stats": {"bullet_charge": 6.0}},
+	{"id": "paradise_skyline_magazine", "name": "天堂天际弹仓", "family": FAMILY_PARADISE, "rarity": "common", "price": 92, "compute_cost": 3, "description": "弹仓沿天际线铺弹，整片空域被干净火线切开。", "stats": {"bullet_charge": 6.0}},
 	{"id": "paradise_cascade_nozzle", "name": "天堂瀑流喷口", "family": FAMILY_PARADISE, "rarity": "rare", "price": 146, "compute_cost": 5, "description": "持续射击会扩成瀑流，弹幕一层压过一层。", "stats": {"bullet_ring_count": 2}},
 	{"id": "paradise_starfall_clock", "name": "天堂坠星钟", "family": FAMILY_PARADISE, "rarity": "epic", "price": 174, "compute_cost": 6, "description": "坠星钟校准齐射时序，密集弹雨像准点落下的审判。", "stats": {"bullet_pierce": 3}},
 	{"id": "paradise_halo_lattice", "name": "天堂光环晶格", "family": FAMILY_PARADISE, "rarity": "common", "price": 78, "compute_cost": 2, "description": "轻型晶格微调火线，低耗也能铺出明亮弹幕。", "stats": {"bullet_pierce": 1}},

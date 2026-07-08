@@ -27,7 +27,7 @@ func setup(result: Dictionary) -> void:
 		if not category.is_empty():
 			lines.append("[b]事件类别：[/b]%s" % _category_text(category))
 		if node_tier > 0:
-			lines.append("[b]航图层级：[/b]T%d" % node_tier)
+			lines.append("[b]航图层级：[/b]第%d层" % node_tier)
 		var risk_label := String(result.get("risk_label", ""))
 		if not risk_label.is_empty():
 			lines.append("[b]风险等级：[/b]%s" % risk_label)
