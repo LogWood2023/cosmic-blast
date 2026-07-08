@@ -15,11 +15,14 @@
 [ext_resource type="PackedScene" path="res://scenes/entities/enemies/EnemyThrower.tscn" id="14"]
 [ext_resource type="Script" path="res://scripts/gameplay/normal/main.gd" id="15"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/common/SpaceBackground.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/common/LowHpVignette.tscn" id="17"]
 
 [node name="main" type="Node2D" unique_id=1133486175]
 script = ExtResource("15")
 
 [node name="SpaceBackground" parent="." instance=ExtResource("16")]
+
+[node name="LowHpVignette" parent="." instance=ExtResource("17")]
 
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1532942642]
