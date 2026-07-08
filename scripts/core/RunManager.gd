@@ -14,6 +14,25 @@ const NODE_REWARD: String = "reward"
 const NODE_SPECIAL: String = "special"
 
 const CRISIS_THRESHOLDS: Array[int] = [5, 12, 21]
+
+# 危机播报文案（对应 docs/lore/02）：引导之声 + 天穹协议双视角。
+# 每次危机 +1 抽一条 TICK；将触阈值时（4/11/20）改抽 APPROACH；触到 5/12/21 锁定时用 LOCK。
+const CRISIS_TICK_BROADCASTS: Array[String] = [
+	"节点已并入观测。危机关注度上升。",
+	"又一片被封存的空间变回了现实。协议注意到了。",
+	"校准完成。星域记住了你走过的地方——协议也是。",
+	"危机等级 +1。你越清晰，就越像协议眼里的一个错误。",
+	"一处封存被打开。判决序列前移一位。",
+]
+const CRISIS_APPROACH_BROADCASTS: Array[String] = [
+	"探测到否决前兆。再校准一片空间，中心节点将被锁定。",
+	"协议的注意力正在收拢。下一次探索之前，确认你已准备好回家迎战。",
+]
+const CRISIS_LOCK_BROADCASTS: Dictionary = {
+	5: "【危机警报 · 等级 5】\n中心节点已被锁定，所有航道暂停响应。\n一具危机执行体正朝方舟核心接近——它不是来清除你，是来确认你。\n引导之声：回来。这一次，让它看清你不是噪声。\n天穹协议：归档为可成长异常，调派第一席执行确认。",
+	12: "【危机警报 · 等级 12】\n中心节点二次锁定。这一次不是确认，是压制。\n协议研究过你怎么飞、怎么选、怎么活下来——派来的东西，是照着你的弱点造的。\n引导之声：你把太多东西变回了现实，协议开始害怕。\n天穹协议：剥夺，比清除更彻底。",
+	21: "【危机警报 · 等级 21】\n中心节点最终锁定，星域停止了对你的一切让步。\n派来的是一份判决——协议为无法归类的变量保留的那一条。\n引导之声：这是这条回声能抵达的最远处。飞过去，或者把记忆留给下一个。\n天穹协议：五席之力都无法容纳它，执行最终否决。",
+}
 const SAVE_PATH := "user://run_save.dat"
 const SAVE_VERSION := 1
 const CENTER_ID: int = 0
@@ -1862,6 +1881,7 @@ var equipped_weapon: String = "pulse_cannon"
 var equipped_auxiliaries: Array[String] = []
 var cleared_crisis_thresholds: Array[int] = []
 var pending_boss_threshold: int = 0
+var pending_crisis_broadcast: String = ""
 var pending_boss_scene: String = ""
 var last_boss_reward: Dictionary = {}
 var last_boss_completion_summary: Dictionary = {}
@@ -3288,7 +3308,24 @@ func _add_crisis_with_alert_stop(amount: int) -> int:
 		added += 1
 		if is_alert_active():
 			break
+	if added > 0:
+		_queue_crisis_broadcast()
 	return added
+
+
+func _queue_crisis_broadcast() -> void:
+	if is_alert_active():
+		pending_crisis_broadcast = String(CRISIS_LOCK_BROADCASTS.get(crisis_level, ""))
+	elif CRISIS_THRESHOLDS.has(crisis_level + 1):
+		pending_crisis_broadcast = CRISIS_APPROACH_BROADCASTS[randi() % CRISIS_APPROACH_BROADCASTS.size()]
+	else:
+		pending_crisis_broadcast = CRISIS_TICK_BROADCASTS[randi() % CRISIS_TICK_BROADCASTS.size()]
+
+
+func consume_crisis_broadcast() -> String:
+	var text := pending_crisis_broadcast
+	pending_crisis_broadcast = ""
+	return text
 
 
 func _make_event_contract_data(profile: Dictionary, node: Dictionary) -> Dictionary:

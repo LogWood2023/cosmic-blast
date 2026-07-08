@@ -73,6 +73,11 @@ func _ready() -> void:
 
 func _consume_node_completion_feedback() -> void:
 	var messages: Array[String] = []
+	# 危机播报优先（docs/lore/02）：探索归来若危机变化，先亮播报再报结算。
+	if RunManager.has_method("consume_crisis_broadcast"):
+		var crisis_broadcast := String(RunManager.call("consume_crisis_broadcast"))
+		if not crisis_broadcast.is_empty():
+			messages.append(crisis_broadcast)
 	var node_feedback := _consume_explore_completion_feedback()
 	if not node_feedback.is_empty():
 		messages.append(node_feedback)
@@ -80,7 +85,7 @@ func _consume_node_completion_feedback() -> void:
 	if not boss_feedback.is_empty():
 		messages.append(boss_feedback)
 	if not messages.is_empty():
-		_message = " ".join(messages)
+		_message = "\n".join(messages)
 
 
 func _consume_explore_completion_feedback() -> String:
