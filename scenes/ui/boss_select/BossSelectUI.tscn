@@ -93,6 +93,7 @@ offset_bottom = 150.0
 theme_override_styles/panel = SubResource("StyleBox_header")
 
 [node name="TitleLabel" type="Label" parent="HeaderPanel"]
+theme_type_variation = &"DisplayTitle"
 offset_left = 30.0
 offset_top = 16.0
 offset_right = 520.0
