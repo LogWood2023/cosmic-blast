@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bewso21tt5qg2" path="res://scripts/entities/player/Player.gd" id="1_v6fml"]
 [ext_resource type="Texture2D" uid="uid://b6c17m53w5lm1" path="res://assets/images/player/player_ship_cutout.png" id="2_g2els"]
+[ext_resource type="Script" path="res://scripts/fx/Thruster.gd" id="3_thrust"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_v6fml"]
 radius = 5.0
@@ -10,6 +11,11 @@ height = 54.0
 [node name="player" type="Area2D" unique_id=1952497223]
 script = ExtResource("1_v6fml")
 speed = 500.0
+
+[node name="Thruster" type="GPUParticles2D" parent="."]
+position = Vector2(0, 20)
+z_index = -1
+script = ExtResource("3_thrust")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1496012804]
 scale = Vector2(0.0625, 0.0625)
