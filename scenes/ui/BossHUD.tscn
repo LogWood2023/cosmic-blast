@@ -74,6 +74,7 @@ texture = ExtResource("3")
 stretch_mode = 1
 
 [node name="NameLabel" type="Label" parent="." unique_id=1783196094]
+theme_type_variation = &"DisplayTitle"
 offset_left = 1400.0
 offset_top = 72.0
 offset_right = 1840.0

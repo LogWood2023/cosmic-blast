@@ -116,6 +116,7 @@ theme_override_font_sizes/font_size = 22
 text = "方舟战备系统"
 
 [node name="TitleLabel" type="Label" parent="." unique_id=928247958]
+theme_type_variation = &"DisplayTitle"
 layout_mode = 0
 offset_left = 126.0
 offset_top = 170.0
@@ -187,6 +188,7 @@ text = "开始游戏"
 vertical_alignment = 1
 
 [node name="StartIndex" type="Label" parent="MenuButtons/StartFrame"]
+theme_type_variation = &"HudReadout"
 layout_mode = 0
 offset_left = 306.0
 offset_top = 22.0
@@ -240,6 +242,7 @@ text = "继续航程"
 vertical_alignment = 1
 
 [node name="ExploreIndex" type="Label" parent="MenuButtons/ExploreFrame"]
+theme_type_variation = &"HudReadout"
 layout_mode = 0
 offset_left = 306.0
 offset_top = 22.0
@@ -293,6 +296,7 @@ text = "执行体挑战"
 vertical_alignment = 1
 
 [node name="BossIndex" type="Label" parent="MenuButtons/BossFrame"]
+theme_type_variation = &"HudReadout"
 layout_mode = 0
 offset_left = 306.0
 offset_top = 22.0
@@ -346,6 +350,7 @@ text = "设置"
 vertical_alignment = 1
 
 [node name="SettingsIndex" type="Label" parent="MenuButtons/SettingsFrame"]
+theme_type_variation = &"HudReadout"
 layout_mode = 0
 offset_left = 306.0
 offset_top = 22.0
@@ -399,6 +404,7 @@ text = "退出游戏"
 vertical_alignment = 1
 
 [node name="QuitIndex" type="Label" parent="MenuButtons/QuitFrame"]
+theme_type_variation = &"HudReadout"
 layout_mode = 0
 offset_left = 306.0
 offset_top = 22.0
