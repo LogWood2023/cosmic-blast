@@ -71,6 +71,10 @@ dash={
 ]
 }
 
+[gui]
+
+theme/custom="res://assets/theme/main_theme.tres"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
