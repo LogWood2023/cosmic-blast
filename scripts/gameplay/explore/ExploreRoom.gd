@@ -586,6 +586,8 @@ func _execute_command(command: String) -> String:
 	if command == "/help":
 		return _get_command_help_text()
 	if command == "/工程席位":
+		if not _is_engineering_console_available():
+			return "未知指令：%s\n输入 /help 查看可用指令。" % command
 		_engineering_console_unlocked = true
 		return "工程席位已接管航图指令。"
 	if command == "/展示陷阱":
@@ -597,7 +599,7 @@ func _execute_command(command: String) -> String:
 	if command == "/清除迷雾":
 		map_ui.clear_fog()
 		return "已清除迷雾。"
-	if _is_engineering_command(command) and not _engineering_console_unlocked:
+	if _is_engineering_command(command) and not (_engineering_console_unlocked and _is_engineering_console_available()):
 		return "工程席位尚未接管，当前只开放航图辅助指令。"
 	if command == "/刷校准者":
 		return _spawn_debug_enemy_command(["/刷敌", "8", "1"])
@@ -626,6 +628,12 @@ func _get_command_help_text() -> String:
 	for entry in COMMAND_HELP_ENTRIES:
 		lines.append("%s：%s" % [entry.get("command", ""), entry.get("description", "")])
 	return "\n".join(lines)
+
+
+func _is_engineering_console_available() -> bool:
+	# 仅调试可用：发布版必须屏蔽刷怪/清怪/轮测等后门指令（它们本就不在 /help 里）。
+	# OS.is_debug_build() 在编辑器与调试导出为 true，正式发布导出为 false。
+	return OS.is_debug_build()
 
 
 func _is_engineering_command(command: String) -> bool:
@@ -1018,7 +1026,7 @@ func _load_room_async() -> void:
 	await _spawn_clutter(_large_rocks)
 	if _is_room_setup_cancelled():
 		return
-	_set_loading_progress(LOAD_STAGE_CLUTTER, "正在决定玩家出生点...")
+	_set_loading_progress(LOAD_STAGE_CLUTTER, "正在校准出生坐标...")
 	await get_tree().process_frame
 	if _is_room_setup_cancelled():
 		return
