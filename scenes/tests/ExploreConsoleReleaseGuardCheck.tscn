@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/explore_console_release_guard_check.gd" id="1_ecrg0"]
+
+[node name="ExploreConsoleReleaseGuardCheck" type="Node"]
+script = ExtResource("1_ecrg0")
