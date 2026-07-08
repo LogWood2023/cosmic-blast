@@ -242,6 +242,7 @@ func reset_run_state() -> void:
 
 # 微型铸炉：击杀敌人回复少量生命（敌人死亡时调用）
 func on_enemy_killed() -> void:
+	CameraFeedback.enemy_kill_feedback()
 	if kill_lifesteal > 0.0 and player_hp > 0 and player_hp < PLAYER_MAX_HP:
 		player_hp = mini(PLAYER_MAX_HP, player_hp + int(ceil(kill_lifesteal)))
 

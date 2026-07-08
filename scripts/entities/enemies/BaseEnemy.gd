@@ -338,16 +338,7 @@ func _update_shake(delta: float) -> void:
 
 # 受击闪白：命中瞬间精灵混白后快速回落，配合位移抖动强化打击感
 func _play_hit_flash() -> void:
-	if sprite == null:
-		return
-	var mat := sprite.material as ShaderMaterial
-	if mat == null:
-		mat = ShaderMaterial.new()
-		mat.shader = preload("res://assets/shaders/hit_flash.gdshader")
-		sprite.material = mat
-	mat.set_shader_parameter("flash", 1.0)
-	var tw := create_tween()
-	tw.tween_property(mat, "shader_parameter/flash", 0.0, 0.09)
+	HitFlashFx.flash(sprite)
 
 
 func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:

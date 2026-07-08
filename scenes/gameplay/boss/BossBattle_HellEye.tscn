@@ -5,10 +5,13 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/entities/bosses/HellEye.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/BossHUD.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/common/SpaceBackground.tscn" id="sb"]
 
 [node name="BossBattle" type="Node2D"]
 
 
+
+[node name="SpaceBackground" parent="." instance=ExtResource("sb")]
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(960, 540)
 

@@ -487,6 +487,8 @@ func take_damage_from(area: Area2D) -> void:
 	if _check_player_death():
 		return
 
+	HitFlashFx.flash(sprite)
+	CameraFeedback.player_hurt_feedback()
 	invincible = true
 	invincible_timer = INVINCIBLE_DURATION
 
@@ -501,6 +503,8 @@ func take_damage_from_boss(dmg: int) -> void:
 	GameManager.player_hp -= dmg
 	if _check_player_death():
 		return
+	HitFlashFx.flash(sprite)
+	CameraFeedback.player_hurt_feedback()
 	invincible = true
 	invincible_timer = INVINCIBLE_DURATION
 
@@ -675,6 +679,8 @@ func take_knockback_damage(dmg: int, spd: float, dur: float, dir: Vector2 = Vect
 	GameManager.player_hp -= dmg
 	if _check_player_death():
 		return
+	HitFlashFx.flash(sprite)
+	CameraFeedback.player_hurt_feedback()
 	is_knocked_back = true
 	knockback_speed = spd
 	knockback_duration = maxf(dur, 0.001)

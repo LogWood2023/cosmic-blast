@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameManager="*res://scripts/core/GameManager.gd"
 RunManager="*res://scripts/core/RunManager.gd"
 MCPRuntimeProbe="*res://addons/godot_mcp/runtime/mcp_runtime_probe.gd"
+CameraFeedback="*res://scripts/fx/CameraFeedback.gd"
 
 [display]
 

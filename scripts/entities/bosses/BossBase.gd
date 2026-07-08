@@ -19,17 +19,20 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group(&"player") and controller:
 		if area.get(&"atk") != null:
 			controller.apply_damage(area.atk * 3)
+			HitFlashFx.flash(sprite)
 		area.take_knockback_damage(20, 1000, 0.5)
 		return
 	if area.get(&"atk") != null:
 		if controller:
 			controller.apply_damage(area.atk)
+			HitFlashFx.flash(sprite)
 		_destroy_projectile(area)
 
 
 func take_boss_damage(amount: int) -> void:
 	if controller:
 		controller.apply_damage(amount)
+		HitFlashFx.flash(sprite)
 
 
 func block_player() -> bool:
