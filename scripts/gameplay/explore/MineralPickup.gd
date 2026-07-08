@@ -1,5 +1,7 @@
 extends Area2D
 
+const MineralTrailScript := preload("res://scripts/fx/MineralTrail.gd")
+
 @export var amount: int = 1
 @export var launch_duration: float = 0.22
 @export var attract_delay: float = 0.18
@@ -208,6 +210,10 @@ func _spawn_collect_trail() -> void:
 	])
 	spark.global_position = start_position
 	parent.add_child(spark)
+	# 粒子尾迹：随光点飞行撒下微光火花（不入 mineral_collect_feedback 组，不影响自检）
+	var trail_particles := MineralTrailScript.new()
+	trail_particles.self_modulate = trail.default_color
+	spark.add_child(trail_particles)
 	var tween := trail.create_tween()
 	tween.set_parallel(true)
 	tween.tween_method(_update_trail_end.bind(trail, start_position, target_position), 0.0, 1.0, 0.24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
