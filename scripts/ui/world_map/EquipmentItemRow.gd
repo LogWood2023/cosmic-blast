@@ -7,17 +7,17 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
 var _item_id: String = ""
 
-@onready var crest_slot: Panel = $InfoPanel/CrestSlot
-@onready var crest_glow: ColorRect = $InfoPanel/CrestSlot/CrestGlow
-@onready var icon_texture: TextureRect = $InfoPanel/CrestSlot/IconTexture
-@onready var family_stripe: ColorRect = $InfoPanel/CrestSlot/FamilyStripe
-@onready var family_label: Label = $InfoPanel/CrestSlot/FamilyLabel
-@onready var rarity_badge: Label = $InfoPanel/CrestSlot/RarityBadge
-@onready var crest_mark: Label = $InfoPanel/CrestSlot/CrestMark
-@onready var notch_row: HBoxContainer = $InfoPanel/CrestSlot/NotchRow
-@onready var name_label: Label = $InfoPanel/InfoBox/NameLabel
-@onready var meta_label: Label = $InfoPanel/InfoBox/MetaLabel
-@onready var description_label: Label = $InfoPanel/InfoBox/DescriptionLabel
+@onready var crest_slot: Panel = $InfoPanel/Margin/Inner/CrestSlot
+@onready var crest_glow: ColorRect = $InfoPanel/Margin/Inner/CrestSlot/CrestGlow
+@onready var icon_texture: TextureRect = $InfoPanel/Margin/Inner/CrestSlot/IconTexture
+@onready var family_stripe: ColorRect = $InfoPanel/Margin/Inner/CrestSlot/FamilyStripe
+@onready var family_label: Label = $InfoPanel/Margin/Inner/CrestSlot/FamilyLabel
+@onready var rarity_badge: Label = $InfoPanel/Margin/Inner/CrestSlot/RarityBadge
+@onready var crest_mark: Label = $InfoPanel/Margin/Inner/CrestSlot/CrestMark
+@onready var notch_row: HBoxContainer = $InfoPanel/Margin/Inner/CrestSlot/NotchRow
+@onready var name_label: Label = $InfoPanel/Margin/Inner/InfoBox/NameLabel
+@onready var meta_label: Label = $InfoPanel/Margin/Inner/InfoBox/MetaLabel
+@onready var description_label: Label = $InfoPanel/Margin/Inner/InfoBox/DescriptionLabel
 @onready var action_button: Button = $ActionButton
 
 

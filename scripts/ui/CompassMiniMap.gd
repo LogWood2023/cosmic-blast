@@ -6,7 +6,6 @@ const WORLD_VIEW_RADIUS: float = 1600.0
 const ROOM_SIZE: Vector2 = Vector2(10800, 10800)
 const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 const CIRCLE_MASK_SHADER := preload("res://assets/shaders/circle_mask.gdshader")
-const COMPASS_FRAME_TEXTURE_PATH: String = "res://assets/images/ui/compass/ui/天蓝赛博指南针实心边框/天蓝赛博指南针实心边框_00_1024x1024_3eb9.png"
 
 @export_range(120.0, 520.0, 1.0) var compass_size: float = DEFAULT_COMPASS_SIZE
 @export_range(0.1, 3.0, 0.01) var compass_frame_scale: float = 0.5
@@ -34,8 +33,6 @@ var _outline_material: ShaderMaterial
 var _mask_material: ShaderMaterial
 var _viewport: SubViewport
 var _viewport_polygon: Polygon2D
-var _frame_sprite: Sprite2D
-var _frame_texture: Texture2D
 var _drawer: CompassMiniMap
 var _debug_timer: float = 0.0
 var _debug_drawn_rocks: int = 0
@@ -100,10 +97,34 @@ func _draw() -> void:
 	_draw_clipped_world(center)
 	_draw_square_to_circle_mask(center)
 	_draw_edge_mask(center)
-	draw_arc(center, compass_radius - 2.0, 0.0, TAU, 96, Color(1.0, 1.0, 1.0, 0.85), 3.0)
-	draw_line(center + Vector2(0.0, -compass_radius + 14.0), center + Vector2(0.0, -compass_radius + 34.0), Color(1.0, 1.0, 1.0, 0.8), 3.0)
-	draw_circle(center, 6.0, Color(0.2, 0.9, 1.0, 1.0))
-	draw_circle(center, 10.0, Color(0.2, 0.9, 1.0, 0.35), false, 2.0)
+	_draw_compass_bezel(center, compass_radius)
+
+
+func _draw_compass_bezel(center: Vector2, r: float) -> void:
+	# 边缘加深环，让世界内容与外圈自然过渡
+	draw_arc(center, r - 3.5, 0.0, TAU, 128, Color(0.015, 0.04, 0.07, 0.95), 7.0)
+	# 主环（亮青）与内衬环（暗青）
+	draw_arc(center, r - 4.5, 0.0, TAU, 128, Color(0.36, 0.92, 1.0, 0.95), 2.5)
+	draw_arc(center, r - 13.0, 0.0, TAU, 96, Color(0.30, 0.78, 1.0, 0.20), 1.5)
+	# 刻度环：36 格，每 9 格为一个基准方位
+	var ticks := 36
+	for i in range(ticks):
+		var ang := TAU * float(i) / float(ticks) - PI * 0.5
+		var is_cardinal := (i % 9) == 0
+		var outer := r - 4.5
+		var inner := r - (15.0 if is_cardinal else 9.5)
+		var col := Color(0.62, 0.96, 1.0, 0.92) if is_cardinal else Color(0.40, 0.80, 1.0, 0.40)
+		var w := 2.0 if is_cardinal else 1.0
+		var dir := Vector2(cos(ang), sin(ang))
+		draw_line(center + dir * inner, center + dir * outer, col, w)
+	# 顶部方位标（暖色三角，指示世界上方）
+	var tip := center + Vector2(0.0, -(r - 5.0))
+	var base_l := center + Vector2(-7.0, -(r - 19.0))
+	var base_r := center + Vector2(7.0, -(r - 19.0))
+	draw_colored_polygon(PackedVector2Array([tip, base_l, base_r]), Color(1.0, 0.45, 0.42, 0.95))
+	# 玩家标记（居中）
+	draw_circle(center, 5.0, Color(0.32, 0.96, 1.0, 1.0))
+	draw_arc(center, 9.5, 0.0, TAU, 40, Color(0.32, 0.96, 1.0, 0.42), 1.5)
 
 
 
@@ -151,16 +172,6 @@ func _setup_masked_viewport() -> void:
 	_viewport_polygon.uv = _build_circle_uvs()
 	_viewport_polygon.position = Vector2.ZERO
 	add_child(_viewport_polygon)
-	_frame_texture = load(COMPASS_FRAME_TEXTURE_PATH) as Texture2D
-	if _frame_texture:
-		_frame_sprite = Sprite2D.new()
-		_frame_sprite.name = "CompassFrame"
-		_frame_sprite.texture = _frame_texture
-		_frame_sprite.centered = true
-		_frame_sprite.position = size * 0.5
-		_frame_sprite.z_index = 10
-		add_child(_frame_sprite)
-		_update_frame_transform()
 
 
 func _update_viewport_size() -> void:
@@ -172,8 +183,6 @@ func _update_viewport_size() -> void:
 		_viewport_polygon.polygon = _build_circle_polygon()
 		_viewport_polygon.uv = _build_circle_uvs()
 	_viewport_polygon.position = Vector2.ZERO
-	if _frame_sprite:
-		_update_frame_transform()
 	if _drawer:
 		_drawer.position = Vector2.ZERO
 		_drawer.size = size
@@ -183,17 +192,6 @@ func _update_viewport_size() -> void:
 		_debug_drawn_turrets = _drawer._debug_drawn_turrets
 		_debug_drawn_electric = _drawer._debug_drawn_electric
 		_debug_drawn_evac = _drawer._debug_drawn_evac
-
-
-func _update_frame_transform() -> void:
-	if not _frame_sprite or not _frame_texture:
-		return
-	_frame_sprite.position = size * 0.5
-	var texture_size = _frame_texture.get_size()
-	var frame_midline_diameter = texture_size.x * 0.25
-	var target_midline_diameter = minf(size.x, size.y)
-	var scale_value = target_midline_diameter / maxf(1.0, frame_midline_diameter) * compass_frame_scale
-	_frame_sprite.scale = Vector2.ONE * scale_value
 
 
 func _build_circle_polygon() -> PackedVector2Array:

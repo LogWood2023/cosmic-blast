@@ -3,16 +3,16 @@
 [ext_resource type="Script" path="res://scripts/app/GameOver.gd" id="1_y26ei"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.027451, 0.0627451, 0.0941176, 0.96)
-border_width_left = 2
+bg_color = Color(0.027451, 0.0627451, 0.0941176, 0.97)
+border_width_left = 3
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.309804, 0.415686, 0.74)
 corner_radius_top_left = 2
-corner_radius_top_right = 8
+corner_radius_top_right = 12
 corner_radius_bottom_right = 2
-corner_radius_bottom_left = 8
+corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
 bg_color = Color(0.24, 0.055, 0.045, 0.92)
@@ -51,7 +51,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.005, 0.008, 0.012, 0.82)
+color = Color(0.005, 0.008, 0.012, 0.84)
 
 [node name="Panel" type="Panel" parent="."]
 anchors_preset = 8
@@ -59,38 +59,33 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -430.0
-offset_top = -255.0
-offset_right = 430.0
-offset_bottom = 255.0
+offset_left = -450.0
+offset_top = -270.0
+offset_right = 450.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="HeaderAccent" type="ColorRect" parent="Panel"]
+[node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_left = 30.0
-offset_top = 28.0
-offset_right = -30.0
-offset_bottom = 32.0
-grow_horizontal = 2
-color = Color(1, 0.309804, 0.415686, 0.9)
-
-[node name="TitleLabel" type="Label" parent="." unique_id=898036183]
-theme_type_variation = &"DisplayTitle"
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -360.0
-offset_top = -180.0
-offset_right = 360.0
-offset_bottom = -112.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 34
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox" unique_id=898036183]
+layout_mode = 2
+theme_type_variation = &"DisplayTitle"
 theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
 theme_override_constants/shadow_offset_y = 3
@@ -99,38 +94,30 @@ text = "游戏结束"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="FinalScoreLabel" type="Label" parent="." unique_id=1071170008]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -330.0
-offset_top = -70.0
-offset_right = 330.0
-offset_bottom = 88.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="HeaderAccent" type="ColorRect" parent="Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(1, 0.309804, 0.415686, 0.9)
+
+[node name="FinalScoreLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1071170008]
+layout_mode = 2
+size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
+theme_override_constants/line_spacing = 10
 theme_override_font_sizes/font_size = 25
 text = "最终得分：0"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="RestartButton" type="Button" parent="." unique_id=1226071542]
+[node name="ButtonsRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="RestartButton" type="Button" parent="Panel/Margin/VBox/ButtonsRow" unique_id=1226071542]
 custom_minimum_size = Vector2(280, 60)
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -348.0
-offset_right = -20.0
-offset_bottom = -288.0
-grow_horizontal = 2
-grow_vertical = 0
+layout_mode = 2
 theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
 theme_override_colors/font_hover_color = Color(0.97, 0.985, 1, 1)
 theme_override_font_sizes/font_size = 23
@@ -139,19 +126,9 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
 text = "开始新航程"
 
-[node name="MenuButton" type="Button" parent="."]
+[node name="MenuButton" type="Button" parent="Panel/Margin/VBox/ButtonsRow"]
 custom_minimum_size = Vector2(280, 60)
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -348.0
-offset_right = 300.0
-offset_bottom = -288.0
-grow_horizontal = 2
-grow_vertical = 0
+layout_mode = 2
 theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
 theme_override_colors/font_hover_color = Color(0.97, 0.985, 1, 1)
 theme_override_font_sizes/font_size = 23
@@ -160,5 +137,5 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
 text = "返回主菜单"
 
-[connection signal="pressed" from="RestartButton" to="." method="_on_restart_button_pressed"]
-[connection signal="pressed" from="MenuButton" to="." method="_on_menu_button_pressed"]
+[connection signal="pressed" from="Panel/Margin/VBox/ButtonsRow/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="Panel/Margin/VBox/ButtonsRow/MenuButton" to="." method="_on_menu_button_pressed"]

@@ -3,8 +3,8 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd")
 ## 游戏结束画面
 
-@onready var title_label: Label = $TitleLabel
-@onready var final_score_label: Label = $FinalScoreLabel
+@onready var title_label: Label = $Panel/Margin/VBox/TitleLabel
+@onready var final_score_label: Label = $Panel/Margin/VBox/FinalScoreLabel
 
 
 func _ready() -> void:

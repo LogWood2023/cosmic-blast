@@ -1,50 +1,39 @@
-extends Node2D
-## 玩家 HP 血条 —— ColorRect 节点
+extends Panel
+## 玩家机体结构（HP）血条 —— 面板轨道 + ColorRect 填充（含受击残影）
 
 const FLASH_DURATION: float = 0.4
-
-var full_width: float
-var flash_hp: int = 100
-var flash_timer: float = 0.0
-var last_hp: int = 100
+const INSET: float = 3.0
 
 @onready var red_bar: ColorRect = $RedBar
 @onready var yellow_bar: ColorRect = $YellowBar
 
-
-func _ready() -> void:
-	full_width = red_bar.size.x
-	_update_red_bar()
+var _flash_hp: int = 0
+var _flash_timer: float = FLASH_DURATION
+var _last_hp: int = -1
 
 
 func _process(delta: float) -> void:
-	var hp = GameManager.player_hp
-	if hp != last_hp:
-		take_hit(hp)
-		last_hp = hp
+	var hp: int = GameManager.player_hp
+	var max_hp: int = maxi(1, GameManager.PLAYER_MAX_HP)
+	if _last_hp < 0:
+		_last_hp = hp
+	if hp != _last_hp:
+		if hp < _last_hp:
+			_flash_hp = _last_hp
+			_flash_timer = 0.0
+		_last_hp = hp
 
-	if flash_timer < FLASH_DURATION:
-		flash_timer += delta
-		_update_yellow_bar()
+	var track_w: float = maxf(0.0, size.x - INSET * 2.0)
+	var ratio: float = clampf(float(hp) / float(max_hp), 0.0, 1.0)
+	red_bar.position.x = INSET
+	red_bar.size.x = track_w * ratio
 
-
-func take_hit(_new_hp: int) -> void:
-	flash_hp = last_hp
-	flash_timer = 0.0
-	_update_red_bar()
-	_update_yellow_bar()
-
-
-func _update_red_bar() -> void:
-	red_bar.size.x = full_width * float(GameManager.player_hp) / float(GameManager.PLAYER_MAX_HP)
-
-
-func _update_yellow_bar() -> void:
-	var loss = flash_hp - GameManager.player_hp
-	if loss <= 0 or flash_timer >= FLASH_DURATION:
-		yellow_bar.size.x = 0
-		return
-	var original_w = full_width * float(loss) / float(GameManager.PLAYER_MAX_HP)
-	var progress = clampf(flash_timer / FLASH_DURATION, 0.0, 1.0)
-	yellow_bar.size.x = original_w * (1.0 - progress)
-	yellow_bar.position.x = red_bar.position.x + red_bar.size.x
+	if _flash_timer < FLASH_DURATION:
+		_flash_timer += delta
+		var loss: int = maxi(0, _flash_hp - hp)
+		var loss_w: float = track_w * float(loss) / float(max_hp)
+		var progress: float = clampf(_flash_timer / FLASH_DURATION, 0.0, 1.0)
+		yellow_bar.size.x = maxf(0.0, loss_w * (1.0 - progress))
+		yellow_bar.position.x = INSET + red_bar.size.x
+	else:
+		yellow_bar.size.x = 0.0

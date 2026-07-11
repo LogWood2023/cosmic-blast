@@ -25,9 +25,9 @@ func setup(summary: Dictionary) -> void:
 	title_label.text = "执行体肃清"
 	var lines: Array[String] = []
 	if family_name.is_empty():
-		lines.append("[b]危机残响已封存。[/b]")
+		lines.append("[color=#ffd9a0]危机残响已封存。[/color]")
 	else:
-		lines.append("[b]%s残响已封存。[/b]" % family_name)
+		lines.append("[color=#ffd9a0]%s残响已封存。[/color]" % family_name)
 	if stage > 0:
 		lines.append("肃清记录：第 %d 阶危机。"% stage)
 	lines.append("")
