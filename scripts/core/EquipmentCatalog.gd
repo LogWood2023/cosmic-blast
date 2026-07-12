@@ -1077,6 +1077,40 @@ static func get_boss_drop_for_family_stage(family: String, stage: int, owned_ids
 	return get_boss_drop_for_family(family, owned_ids)
 
 
+static func get_boss_reward_candidate_ids(family: String, stage: int, owned_ids: Array, seed: int = -1) -> Array[String]:
+	# 第一个位置始终优先保留给当前执行体家族的首领奖励；其余位置补同家族常规装备，
+	# 再依次退化为全局常规装备，保证奖励界面可稳定提供三项未拥有的选择。
+	var result: Array[String] = []
+	var boss_drop := get_boss_drop_for_family_stage(family, stage, owned_ids)
+	if not boss_drop.is_empty():
+		result.append(boss_drop)
+	var same_family: Array[String] = []
+	var general: Array[String] = []
+	for item_id in get_shop_item_ids():
+		if owned_ids.has(item_id) or result.has(item_id):
+			continue
+		if get_family(item_id) == family:
+			same_family.append(item_id)
+		else:
+			general.append(item_id)
+	_append_reward_candidates(result, same_family, seed)
+	_append_reward_candidates(result, general, seed + 17)
+	return result.slice(0, 3)
+
+
+static func _append_reward_candidates(result: Array[String], candidates: Array[String], seed: int) -> void:
+	if result.size() >= 3 or candidates.is_empty():
+		return
+	candidates.sort()
+	var start := posmod(seed, candidates.size()) if seed >= 0 else 0
+	for offset in range(candidates.size()):
+		if result.size() >= 3:
+			return
+		var item_id := candidates[(start + offset) % candidates.size()]
+		if not result.has(item_id):
+			result.append(item_id)
+
+
 static func get_build_tags(id: String) -> Array[String]:
 	var item := get_item(id)
 	if item.is_empty():

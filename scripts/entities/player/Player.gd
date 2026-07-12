@@ -291,7 +291,7 @@ func _process(delta: float) -> void:
 	_clamp_to_movement_bounds()
 
 	# ── 朝向 ──
-	var is_shooting: bool = Input.is_action_pressed("shoot") and not _is_mouse_over_map()
+	var is_shooting: bool = (Input.is_action_pressed("shoot") or SettingsManager.auto_fire) and not _is_mouse_over_map()
 	var target_angle: float
 	if is_shooting:
 		var mp = get_global_mouse_position()
@@ -1157,7 +1157,13 @@ func _ensure_hell_eye_screen_overlay() -> void:
 
 
 func _clear_hell_eye_screen_overlay() -> void:
+	if is_instance_valid(_hell_eye_effect_rect):
+		# Screen-reading shaders ignore the ColorRect alpha in their fragment output.
+		# Hide and detach the material before deferred deletion to avoid one stale frame.
+		_hell_eye_effect_rect.visible = false
+		_hell_eye_effect_rect.material = null
 	if is_instance_valid(_hell_eye_effect_layer):
+		_hell_eye_effect_layer.visible = false
 		_hell_eye_effect_layer.queue_free()
 	_hell_eye_effect_layer = null
 	_hell_eye_effect_rect = null
@@ -1197,14 +1203,9 @@ func _clear_hell_eye_progress_ui() -> void:
 
 func _world_to_hell_eye_ui_position(world_pos: Vector2) -> Vector2:
 	var viewport := get_viewport()
-	var camera := viewport.get_camera_2d()
-	if not camera:
-		return world_pos
-	var viewport_size := viewport.get_visible_rect().size
-	var camera_center := camera.global_position
-	if is_instance_valid(_hell_eye_camera) and camera == _hell_eye_camera:
-		camera_center = _hell_eye_camera_follow_position
-	return viewport_size * 0.5 + (world_pos - camera_center) * camera.zoom
+	# Use Godot's final world-to-viewport transform. This includes Camera2D limits,
+	# zoom, offset, shake and edge clamping, which the previous hand formula missed.
+	return viewport.get_canvas_transform() * world_pos
 
 
 func _cancel_hell_eye_visuals() -> void:
@@ -1415,6 +1416,7 @@ func apply_powerup_shield() -> void:
 
 func _play_sfx(stream: AudioStream) -> void:
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = stream
 	get_tree().current_scene.add_child(sfx)
 	sfx.play()

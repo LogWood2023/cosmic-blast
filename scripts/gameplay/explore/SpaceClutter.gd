@@ -223,6 +223,7 @@ func _play_sfx(stream: AudioStream) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = stream
 	var scene = get_tree().current_scene
 	if scene:
@@ -259,5 +260,4 @@ func _build_simple_collision_outline(size: float) -> PackedVector2Array:
 		Vector2(half, half),
 		Vector2(-half, half),
 	])
-
 

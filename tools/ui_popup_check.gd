@@ -4,7 +4,6 @@ const SHOP_POPUP_SCENE := preload("res://scenes/ui/world_map/ShopPopup.tscn")
 const HANGAR_POPUP_SCENE := preload("res://scenes/ui/world_map/HangarPopup.tscn")
 const EQUIPMENT_ARCHIVE_POPUP_SCENE := preload("res://scenes/ui/world_map/EquipmentArchivePopup.tscn")
 const EVENT_CHOICE_POPUP_SCENE := preload("res://scenes/ui/world_map/EventChoicePopup.tscn")
-const EVENT_RESULT_POPUP_SCENE := preload("res://scenes/ui/world_map/EventResultPopup.tscn")
 const REWARD_CACHE_CHOICE_POPUP_SCENE := preload("res://scenes/ui/world_map/RewardCacheChoicePopup.tscn")
 const BOSS_REWARD_POPUP_SCENE := preload("res://scenes/ui/world_map/BossRewardPopup.tscn")
 const SPECIAL_BONUS_POPUP_SCENE := preload("res://scenes/ui/world_map/SpecialBonusPopup.tscn")
@@ -28,7 +27,6 @@ func _run() -> void:
 	_check_hangar_popup()
 	_check_equipment_archive_popup()
 	_check_event_choice_popup()
-	_check_event_popup()
 	_check_reward_cache_choice_popup()
 	_check_boss_reward_popup()
 	_check_special_bonus_popup()
@@ -46,7 +44,7 @@ func _check_shop_popup() -> void:
 	_assert_has_node(popup, "Panel/ItemsScroll/ItemsList")
 	_assert_has_node(popup, "Panel/ControlsBar/FamilyFocusOption")
 	_assert_has_node(popup, "Panel/ControlsBar/RerollButton")
-	popup.queue_free()
+	_assert_shade_click_closes(popup)
 
 
 func _check_hangar_popup() -> void:
@@ -54,10 +52,20 @@ func _check_hangar_popup() -> void:
 	root.add_child(popup)
 	popup.call("setup")
 	_assert_has_node(popup, "Panel/ItemsScroll/ItemsList")
-	_assert_has_node(popup, "Panel/LoadoutBar/SummaryLabel")
-	_assert_has_node(popup, "Panel/LoadoutBar/Loadout1SaveButton")
-	_assert_has_node(popup, "Panel/LoadoutBar/Loadout1ApplyButton")
-	popup.queue_free()
+	_assert_has_node(popup, "Panel/TabBar/WeaponTab")
+	_assert_has_node(popup, "Panel/TabBar/AuxiliaryTab")
+	_assert_has_node(popup, "Panel/CurrentEquipment/CurrentName")
+	var equipped_frame := popup.get_node("Panel/CurrentEquipment/EquippedFrame") as Control
+	if not equipped_frame.visible:
+		push_error("Hangar equipped auxiliary frame should remain visible on the weapon tab.")
+	popup.call("_set_active_type", "aux")
+	if not equipped_frame.visible:
+		push_error("Hangar equipped auxiliary frame should remain visible on the auxiliary tab.")
+	var slots := popup.get_node("Panel/CharmBay/CharmSlots") as HBoxContainer
+	var run_manager := root.get_node("RunManager")
+	if slots.get_child_count() != int(run_manager.compute_capacity):
+		push_error("Hangar compute slots should match the live compute capacity.")
+	_assert_shade_click_closes(popup)
 
 
 func _check_equipment_archive_popup() -> void:
@@ -86,14 +94,6 @@ func _check_event_choice_popup() -> void:
 	popup.queue_free()
 
 
-func _check_event_popup() -> void:
-	var popup := EVENT_RESULT_POPUP_SCENE.instantiate()
-	root.add_child(popup)
-	popup.call("setup", {"ok": true, "message": "航标信号已经归档。"})
-	_assert_has_node(popup, "Panel/BodyLabel")
-	popup.queue_free()
-
-
 func _check_reward_cache_choice_popup() -> void:
 	var popup := REWARD_CACHE_CHOICE_POPUP_SCENE.instantiate()
 	root.add_child(popup)
@@ -117,16 +117,16 @@ func _check_boss_reward_popup() -> void:
 		"threshold": 5,
 		"stage": 1,
 		"family_name": "星间巨构",
-		"item_name": "巨构折跃撞角",
+		"candidate_ids": ["colossus_titan_piston", "impact_servos", "twin_lance"],
 	})
 	_assert_has_node(popup, "Panel/TitleLabel")
 	_assert_has_node(popup, "Panel/BodyLabel")
-	_assert_has_node(popup, "Panel/CloseButton")
+	_assert_has_node(popup, "Panel/RewardRows/CandidateRow1")
 	var text := "%s\n%s" % [
 		(popup.get_node("Panel/TitleLabel") as Label).text,
 		(popup.get_node("Panel/BodyLabel") as RichTextLabel).text,
 	]
-	for expected in ["执行体肃清", "星间巨构", "缴获纹章", "巨构折跃撞角"]:
+	for expected in ["选择执行体缴获", "星间巨构", "三项未入库装备"]:
 		if not text.contains(expected):
 			push_error("Boss reward popup should include %s. Popup: %s" % [expected, text])
 	popup.queue_free()
@@ -175,7 +175,7 @@ func _check_settings_popup() -> void:
 	var popup := SETTINGS_POPUP_SCENE.instantiate()
 	root.add_child(popup)
 	_assert_has_node(popup, "Panel/CloseButton")
-	popup.queue_free()
+	_assert_shade_click_closes(popup)
 
 
 func _check_command_console_popup() -> void:
@@ -195,3 +195,18 @@ func _check_command_console_popup() -> void:
 func _assert_has_node(parent: Node, path: NodePath) -> void:
 	if not parent.has_node(path):
 		push_error("Missing popup node: %s in %s" % [path, parent.name])
+
+
+func _assert_shade_click_closes(popup: Control) -> void:
+	var shade := popup.get_node("Shade") as Control
+	var panel := popup.get_node("Panel") as Control
+	if shade.mouse_filter != Control.MOUSE_FILTER_STOP:
+		push_error("Popup shade should receive outside clicks: %s" % popup.name)
+	if panel.mouse_filter != Control.MOUSE_FILTER_STOP:
+		push_error("Popup panel should stop inside clicks from reaching the shade: %s" % popup.name)
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	shade.gui_input.emit(click)
+	if not popup.is_queued_for_deletion():
+		push_error("Clicking outside should close popup: %s" % popup.name)

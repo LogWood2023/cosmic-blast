@@ -12,7 +12,6 @@ const UI_SCENES: Array[String] = [
 	"res://scenes/ui/world_map/ShopPopup.tscn",
 	"res://scenes/ui/world_map/HangarPopup.tscn",
 	"res://scenes/ui/world_map/EventChoicePopup.tscn",
-	"res://scenes/ui/world_map/EventResultPopup.tscn",
 	"res://scenes/ui/world_map/BossRewardPopup.tscn",
 	"res://scenes/ui/world_map/SpecialBonusPopup.tscn",
 	"res://scenes/ui/world_map/EquipmentItemRow.tscn",
@@ -105,17 +104,6 @@ func _setup_dynamic_content(scene_path: String, instance: Node) -> void:
 				{"choice_id": "heal", "title": "静默修复", "category": "heal", "preview": "恢复机体结构", "reward_preview": "结构值回升"},
 				{"choice_id": "equipment", "title": "密封蓝图", "category": "equipment", "preview": "取得一件装备", "reward_preview": "装备入库"},
 			]
-		)
-	if scene_path.ends_with("EventResultPopup.tscn") and instance.has_method("setup"):
-		instance.call(
-			"setup",
-			{
-				"ok": true,
-				"event_title": "失落航标",
-				"message": "回收队带回了星髓矿。",
-				"minerals": 12,
-				"loot_items": [],
-			}
 		)
 	if scene_path.ends_with("BossRewardPopup.tscn") and instance.has_method("setup"):
 		instance.call(

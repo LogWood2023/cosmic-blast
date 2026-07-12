@@ -124,18 +124,8 @@ func _check_world_map_archive_entry() -> void:
 	add_child(world_map)
 	await get_tree().process_frame
 	var archive_button := world_map.get_node_or_null("DetailsPanel/ArchiveButton") as Button
-	if archive_button == null:
-		_fail("World map center panel should expose DetailsPanel/ArchiveButton.")
-		return
-	if archive_button.text != "纹章档案":
-		_fail("Archive button should use polished Chinese copy, got: %s" % archive_button.text)
-		return
-	archive_button.pressed.emit()
-	await get_tree().process_frame
-	if _failed:
-		return
-	if world_map.get_node_or_null("EquipmentArchivePopup") == null:
-		_fail("Archive button should open EquipmentArchivePopup as an independent scene.")
+	if archive_button != null:
+		_fail("World map should not expose an archive entry after the layout revision.")
 		return
 	world_map.queue_free()
 
@@ -148,9 +138,10 @@ func _join_visible_row_text(popup: Node) -> String:
 			continue
 		var labels: Array[String] = []
 		for label_path in [
-			"InfoPanel/InfoBox/NameLabel",
-			"InfoPanel/InfoBox/MetaLabel",
-			"InfoPanel/InfoBox/DescriptionLabel",
+			"InfoPanel/Margin/Inner/InfoBox/NameLabel",
+			"InfoPanel/Margin/Inner/InfoBox/CategoryLabel",
+			"InfoPanel/Margin/Inner/InfoBox/EffectLabel",
+			"InfoPanel/Margin/Inner/InfoBox/FlavorLabel",
 			"ActionButton",
 		]:
 			var label := row.get_node_or_null(label_path)
@@ -165,7 +156,7 @@ func _visible_meta_contains(popup: Node, text: String) -> bool:
 	for row in list.get_children():
 		if row is CanvasItem and not (row as CanvasItem).visible:
 			continue
-		var meta_label := row.get_node_or_null("InfoPanel/InfoBox/MetaLabel") as Label
+		var meta_label := row.get_node_or_null("InfoPanel/Margin/Inner/InfoBox/CategoryLabel") as Label
 		if meta_label != null and meta_label.text.contains(text):
 			return true
 	return false

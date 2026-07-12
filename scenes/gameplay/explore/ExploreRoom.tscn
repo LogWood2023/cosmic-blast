@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/explore/ExploreMapUI.tscn" id="6_map"]
 [ext_resource type="PackedScene" path="res://scenes/ui/explore/CompassMiniMap.tscn" id="9_compass"]
 [ext_resource type="PackedScene" path="res://scenes/ui/explore_loading/ExploreLoadingScreen.tscn" id="10_loading"]
+[ext_resource type="PackedScene" path="res://scenes/ui/explore/ExploreObjectivesHUD.tscn" id="11_objectives"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_room"]
 size = Vector2(10800, 10800)
@@ -99,5 +100,7 @@ layer = 20
 [node name="ExploreMapUI" parent="UILayer" unique_id=640154683 instance=ExtResource("6_map")]
 
 [node name="CompassMiniMap" parent="UILayer" unique_id=340130281 instance=ExtResource("9_compass")]
+
+[node name="ExploreObjectivesHUD" parent="UILayer" instance=ExtResource("11_objectives")]
 
 [node name="LoadingScreen" parent="UILayer" instance=ExtResource("10_loading")]

@@ -10,7 +10,6 @@ const UI_SCENES := [
 	"res://scenes/ui/world_map/WorldMapUI.tscn",
 	"res://scenes/ui/world_map/ShopPopup.tscn",
 	"res://scenes/ui/world_map/HangarPopup.tscn",
-	"res://scenes/ui/world_map/EventResultPopup.tscn",
 	"res://scenes/ui/world_map/EquipmentItemRow.tscn",
 	"res://scenes/ui/explore/ExploreMapUI.tscn",
 	"res://scenes/ui/explore/CompassMiniMap.tscn",
@@ -78,8 +77,11 @@ func _scan_buttons(scene_path: String, node: Node) -> void:
 
 func _scan_required_nodes(scene_path: String, instance: Node) -> void:
 	if scene_path.ends_with("EquipmentItemRow.tscn"):
-		_require_node(scene_path, instance, "InfoPanel/CrestSlot")
-		_require_node(scene_path, instance, "InfoPanel/CrestSlot/NotchRow")
+		_require_node(scene_path, instance, "InfoPanel/Margin/Inner/CrestSlot/IconTexture")
+		_require_node(scene_path, instance, "InfoPanel/Margin/Inner/InfoBox/CategoryLabel")
+		_require_node(scene_path, instance, "InfoPanel/Margin/Inner/InfoBox/EffectLabel")
+		_require_node(scene_path, instance, "InfoPanel/Margin/Inner/InfoBox/FlavorLabel")
+		_require_node(scene_path, instance, "InfoPanel/CardButton")
 		_require_node(scene_path, instance, "ActionButton")
 	if scene_path.ends_with("HangarPopup.tscn"):
 		_require_node(scene_path, instance, "Panel/CharmBay/CharmSlots")

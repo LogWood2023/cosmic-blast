@@ -2,6 +2,7 @@ extends Node
 ## Manages one formal roguelite run: world map, economy, equipment, and crisis bosses.
 
 const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd")
+const DesignedEnemyCatalog := preload("res://scripts/entities/designed_enemies/DesignedEnemyCatalog.gd")
 
 const WORLD_MAP_SCENE: String = "res://scenes/app/WorldMap.tscn"
 const EXPLORE_ROOM_SCENE: String = "res://scenes/gameplay/explore/ExploreRoom.tscn"
@@ -728,7 +729,6 @@ const SHOP_REROLL_BASE_COST: int = 18
 const SHOP_REROLL_COST_STEP: int = 12
 const SHOP_FOCUS_MIN_OFFERS: int = 7
 const SHOP_ORE_SOURCE_MIN_OFFERS: int = 3
-const LOADOUT_PRESET_COUNT: int = 3
 const REWARD_CACHE_MINERAL_MULT_BONUS: float = 0.18
 const REWARD_CACHE_MINERAL_CHEST_BONUS: int = 3
 const REWARD_CACHE_EQUIPMENT_BONUS: float = 0.18
@@ -765,14 +765,10 @@ const REWARD_CACHE_CHOICE_PROFILES: Array[Dictionary] = [
 	},
 ]
 const ROUTE_DIRECTIVE_COUNT: int = 3
-const ROUTE_MOMENTUM_DURATION_NODES: int = 3
-const ROUTE_MOMENTUM_MAX_DURATION_NODES: int = 5
-const ROUTE_MOMENTUM_MINERAL_BONUS_RATE: float = 0.18
-const ROUTE_MOMENTUM_MINERAL_STACK_RATE: float = 0.06
-const ROUTE_MOMENTUM_MAX_MINERAL_BONUS_RATE: float = 0.36
-const ROUTE_MOMENTUM_EQUIPMENT_CHANCE_BONUS: float = 0.05
-const ROUTE_MOMENTUM_EQUIPMENT_STACK_BONUS: float = 0.025
-const ROUTE_MOMENTUM_MAX_EQUIPMENT_CHANCE_BONUS: float = 0.125
+# 航路悬赏只会从各 Boss 家族的精英敌人中抽取目标。
+const ROUTE_DIRECTIVE_ELITE_BEHAVIORS: Array[int] = [3, 4, 8, 9, 13, 14, 18, 19, 23, 24]
+const ROUTE_DIRECTIVE_MINERAL_REWARD_MIN: int = 240
+const ROUTE_DIRECTIVE_MINERAL_REWARD_MAX: int = 360
 const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "clear_forward_lane",
@@ -953,7 +949,13 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	},
 ]
 const MAP_RING_COUNTS: Array[int] = [5, 8, 11]
-const MAP_RING_RADII: Array[float] = [200.0, 330.0, 455.0]
+# Keep the formal world map wide enough for its route graph.  The previous
+# radii made the map look cramped once the special beacon nodes were added.
+const MAP_RING_RADII: Array[float] = [260.0, 470.0, 680.0]
+const MAP_NODE_MIN_DISTANCE: float = 118.0
+const MAP_POSITION_SEARCH_STEP: float = 28.0
+const MAP_POSITION_SEARCH_RINGS: int = 12
+const MAP_POSITION_SEARCH_SAMPLES: int = 24
 const MAP_BATTLE_NODE_COUNT: int = 17
 const MAP_EVENT_NODE_COUNT: int = 4
 const MAP_REWARD_NODE_COUNT: int = 3
@@ -1885,13 +1887,12 @@ var pending_crisis_broadcast: String = ""
 var pending_boss_scene: String = ""
 var last_boss_reward: Dictionary = {}
 var last_boss_completion_summary: Dictionary = {}
+var pending_boss_reward: Dictionary = {}
 var last_result_summary: Dictionary = {}
 var last_node_completion_summary: Dictionary = {}
 var active_special_bonus_ids: Array[String] = []
 var active_event_contracts: Array[Dictionary] = []
 var active_route_directives: Array[Dictionary] = []
-var retired_route_directive_ids: Array[String] = []
-var active_route_momentum: Dictionary = {}
 var active_run_conditions: Array[Dictionary] = []
 var force_next_event_id: String = ""
 var shop_offer_ids: Array[String] = []
@@ -1902,7 +1903,6 @@ var shop_beacon_family: String = ""
 var shop_beacon_bonus_name: String = ""
 var shop_ore_source_focus: String = ""
 var shop_ore_source_focus_text: String = ""
-var loadout_presets: Array[Dictionary] = []
 
 
 func start_new_run() -> void:
@@ -1930,12 +1930,10 @@ func start_new_run() -> void:
 	active_special_bonus_ids.clear()
 	active_event_contracts.clear()
 	active_route_directives.clear()
-	retired_route_directive_ids.clear()
-	active_route_momentum.clear()
 	active_run_conditions.clear()
 	force_next_event_id = ""
 	_reset_shop_state()
-	_reset_loadout_presets()
+	pending_boss_reward.clear()
 	_select_run_conditions()
 	_generate_world_map()
 	_generate_route_directives()
@@ -1957,12 +1955,10 @@ func cancel_run() -> void:
 	active_special_bonus_ids.clear()
 	active_event_contracts.clear()
 	active_route_directives.clear()
-	retired_route_directive_ids.clear()
-	active_route_momentum.clear()
 	active_run_conditions.clear()
 	force_next_event_id = ""
 	_reset_shop_state()
-	_reset_loadout_presets()
+	pending_boss_reward.clear()
 
 
 # ── 存档 ────────────────────────────────────────────────
@@ -1992,12 +1988,11 @@ func save_run() -> void:
 		"cleared_crisis_thresholds": cleared_crisis_thresholds,
 		"pending_boss_threshold": pending_boss_threshold,
 		"pending_boss_scene": pending_boss_scene,
+		"pending_boss_reward": pending_boss_reward,
 		"last_boss_reward": last_boss_reward,
 		"active_special_bonus_ids": active_special_bonus_ids,
 		"active_event_contracts": active_event_contracts,
 		"active_route_directives": active_route_directives,
-		"retired_route_directive_ids": retired_route_directive_ids,
-		"active_route_momentum": active_route_momentum,
 		"active_run_conditions": active_run_conditions,
 		"force_next_event_id": force_next_event_id,
 		"shop_offer_ids": shop_offer_ids,
@@ -2008,7 +2003,6 @@ func save_run() -> void:
 		"shop_beacon_bonus_name": shop_beacon_bonus_name,
 		"shop_ore_source_focus": shop_ore_source_focus,
 		"shop_ore_source_focus_text": shop_ore_source_focus_text,
-		"loadout_presets": loadout_presets,
 		"player_hp": GameManager.player_hp,
 		"score": GameManager.score,
 	}
@@ -2049,6 +2043,7 @@ func load_saved_run() -> bool:
 	cleared_crisis_thresholds.assign(data.get("cleared_crisis_thresholds", []))
 	pending_boss_threshold = int(data.get("pending_boss_threshold", 0))
 	pending_boss_scene = String(data.get("pending_boss_scene", ""))
+	pending_boss_reward = Dictionary(data.get("pending_boss_reward", {}))
 	last_boss_reward = data.get("last_boss_reward", {})
 	last_boss_completion_summary.clear()
 	last_result_summary.clear()
@@ -2056,8 +2051,13 @@ func load_saved_run() -> bool:
 	active_special_bonus_ids.assign(data.get("active_special_bonus_ids", []))
 	active_event_contracts.assign(data.get("active_event_contracts", []))
 	active_route_directives.assign(data.get("active_route_directives", []))
-	retired_route_directive_ids.assign(data.get("retired_route_directive_ids", []))
-	active_route_momentum = data.get("active_route_momentum", {})
+	var needs_route_directive_refresh := active_route_directives.size() != ROUTE_DIRECTIVE_COUNT
+	for raw_directive in active_route_directives:
+		if not Dictionary(raw_directive).has("target_behavior"):
+			needs_route_directive_refresh = true
+			break
+	if needs_route_directive_refresh:
+		_generate_route_directives()
 	active_run_conditions.assign(data.get("active_run_conditions", []))
 	force_next_event_id = String(data.get("force_next_event_id", ""))
 	shop_offer_ids.assign(data.get("shop_offer_ids", []))
@@ -2068,7 +2068,6 @@ func load_saved_run() -> bool:
 	shop_beacon_bonus_name = String(data.get("shop_beacon_bonus_name", ""))
 	shop_ore_source_focus = String(data.get("shop_ore_source_focus", ""))
 	shop_ore_source_focus_text = String(data.get("shop_ore_source_focus_text", ""))
-	loadout_presets.assign(data.get("loadout_presets", []))
 	GameManager.player_hp = clampi(int(data.get("player_hp", GameManager.PLAYER_MAX_HP)), 1, GameManager.PLAYER_MAX_HP)
 	GameManager.score = int(data.get("score", 0))
 	return true
@@ -2133,7 +2132,6 @@ func get_node_equipment_drop_chance(node_id: int = -1) -> float:
 	var chance := float(get_map_node(id).get("equipment_drop_chance", TIER_EQUIPMENT_DROP_CHANCES[0]))
 	chance += float(get_map_node(id).get("reward_cache_equipment_chance_bonus", 0.0))
 	chance += _get_event_contract_equipment_chance_bonus()
-	chance += _get_route_momentum_equipment_chance_bonus()
 	return clampf(chance, 0.0, MAX_READABLE_EQUIPMENT_DROP_CHANCE)
 
 
@@ -2212,25 +2210,16 @@ func get_route_directive_summaries() -> Array:
 	return summaries
 
 
-func get_active_route_momentum_summary() -> Dictionary:
-	if active_route_momentum.is_empty() or int(active_route_momentum.get("remaining_nodes", 0)) <= 0:
-		return {}
-	var remaining := int(active_route_momentum.get("remaining_nodes", 0))
-	var duration := maxi(remaining, int(active_route_momentum.get("duration_nodes", remaining)))
-	var mineral_rate := float(active_route_momentum.get("mineral_bonus_rate", 0.0))
-	var equipment_bonus := float(active_route_momentum.get("equipment_chance_bonus", 0.0))
-	return {
-		"title": String(active_route_momentum.get("title", "航路动能")),
-		"remaining_nodes": remaining,
-		"duration_nodes": duration,
-		"mineral_bonus_rate": mineral_rate,
-		"equipment_chance_bonus": equipment_bonus,
-		"effects_text": _get_route_momentum_effects_text(active_route_momentum),
-	}
-
-
 func get_route_directive_profiles() -> Array:
-	return ROUTE_DIRECTIVE_PROFILES.duplicate(true)
+	var profiles: Array = []
+	for behavior in ROUTE_DIRECTIVE_ELITE_BEHAVIORS:
+		var enemy: Dictionary = Dictionary(DesignedEnemyCatalog.ENEMIES[behavior])
+		profiles.append({
+			"target_behavior": behavior,
+			"target_name": String(enemy.get("name", "精英敌机")),
+			"family_name": String(enemy.get("family", "未知")),
+		})
+	return profiles
 
 
 func get_reward_profiles() -> Array:
@@ -2370,6 +2359,32 @@ func get_node_type_name(node_type: String) -> String:
 		NODE_SPECIAL:
 			return "增益信标"
 	return "未知节点"
+
+
+func get_node_enemy_family_weights(node_id: int) -> Dictionary:
+	var node := get_map_node(node_id)
+	if node.is_empty() or String(node.get("type", "")) != NODE_BATTLE:
+		return {}
+	var room_config: Dictionary = {}
+	_apply_node_room_config(room_config, node)
+	var battle_config: Dictionary = node.get("battle_room_config", {})
+	for key in battle_config.keys():
+		_merge_battle_profile_room_config(room_config, key, battle_config[key])
+	_apply_ore_source_bias_to_room_config(room_config, node)
+	_apply_family_bias_to_room_config(room_config, get_node_family_bias(node_id))
+	_apply_beacon_echo_to_room_config(room_config, node)
+	_apply_reward_cache_route_calibration_to_room_config(room_config, node)
+	_apply_boss_aftershock_to_room_config(room_config, node)
+	var weights := {}
+	for family in FAMILY_BIASES:
+		weights[family] = maxf(0.0, float(room_config.get("%s_family_weight" % family, 1.0)))
+	var battle_family := String(room_config.get("battle_family_bias", ""))
+	if not battle_family.is_empty() and weights.has(battle_family):
+		weights[battle_family] = maxf(
+			float(weights[battle_family]),
+			maxf(1.0, float(room_config.get("battle_family_weight_boost", 1.0)))
+		)
+	return weights
 
 
 func start_explore_node(node_id: int) -> bool:
@@ -2519,22 +2534,17 @@ func handle_boss_victory() -> bool:
 		return false
 	var threshold := pending_boss_threshold
 	var boss_scene := pending_boss_scene
-	_grant_boss_reward(boss_scene, threshold)
+	_prepare_boss_reward(boss_scene, threshold)
 	pending_boss_threshold = 0
 	pending_boss_scene = ""
 	if not cleared_crisis_thresholds.has(threshold):
 		cleared_crisis_thresholds.append(threshold)
-	var boss_aftershock := _apply_boss_aftershock()
+	var boss_aftershock := _apply_boss_aftershock(pending_boss_reward)
 	var boss_completion_summary := _make_boss_completion_summary(threshold)
 	for key in boss_aftershock.keys():
 		boss_completion_summary[key] = boss_aftershock[key]
-	if threshold >= CRISIS_THRESHOLDS.back():
-		last_boss_completion_summary.clear()
-		finish_run(true)
-		get_tree().change_scene_to_file(GAME_OVER_SCENE)
-	else:
-		last_boss_completion_summary = boss_completion_summary
-		get_tree().change_scene_to_file(WORLD_MAP_SCENE)
+	last_boss_completion_summary = boss_completion_summary
+	get_tree().change_scene_to_file(WORLD_MAP_SCENE)
 	return true
 
 
@@ -2746,69 +2756,6 @@ func get_used_compute() -> int:
 	for item_id in equipped_auxiliaries:
 		used += EquipmentCatalogScript.get_compute_cost(item_id)
 	return used
-
-
-func save_loadout_preset(slot_index: int, display_name: String = "") -> Dictionary:
-	if not _is_valid_loadout_slot(slot_index):
-		return {"ok": false, "message": "机库预设槽位无效。"}
-	_ensure_loadout_presets()
-	var preset_name := display_name.strip_edges()
-	if preset_name.is_empty():
-		preset_name = "预设 %d" % (slot_index + 1)
-	var preset := {
-		"name": preset_name,
-		"weapon_id": equipped_weapon,
-		"auxiliaries": equipped_auxiliaries.duplicate(),
-		"used_compute": get_used_compute(),
-	}
-	loadout_presets[slot_index] = preset
-	return {"ok": true, "message": "机库预设已保存。", "slot": slot_index, "preset": preset.duplicate(true)}
-
-
-func get_loadout_preset(slot_index: int) -> Dictionary:
-	if not _is_valid_loadout_slot(slot_index):
-		return {}
-	_ensure_loadout_presets()
-	return loadout_presets[slot_index].duplicate(true)
-
-
-func apply_loadout_preset(slot_index: int) -> Dictionary:
-	if not _is_valid_loadout_slot(slot_index):
-		return {"ok": false, "message": "机库预设槽位无效。"}
-	_ensure_loadout_presets()
-	var preset := loadout_presets[slot_index]
-	if preset.is_empty():
-		return {"ok": false, "message": "该预设槽尚未保存配置。"}
-	var weapon_id := String(preset.get("weapon_id", "pulse_cannon"))
-	if equipment_inventory.has(weapon_id) and EquipmentCatalogScript.get_type(weapon_id) == EquipmentCatalogScript.TYPE_WEAPON:
-		equipped_weapon = weapon_id
-	var applied_auxiliaries: Array[String] = []
-	var used_compute := 0
-	var skipped_count := 0
-	for raw_id in preset.get("auxiliaries", []):
-		var item_id := String(raw_id)
-		if not equipment_inventory.has(item_id):
-			skipped_count += 1
-			continue
-		if EquipmentCatalogScript.get_type(item_id) != EquipmentCatalogScript.TYPE_AUX:
-			skipped_count += 1
-			continue
-		var cost := EquipmentCatalogScript.get_compute_cost(item_id)
-		if used_compute + cost > compute_capacity:
-			skipped_count += 1
-			continue
-		if applied_auxiliaries.has(item_id):
-			continue
-		applied_auxiliaries.append(item_id)
-		used_compute += cost
-	equipped_auxiliaries = applied_auxiliaries
-	return {
-		"ok": true,
-		"message": "机库预设已读取。",
-		"slot": slot_index,
-		"skipped_count": skipped_count,
-		"used_compute": used_compute,
-	}
 
 
 func get_loadout_summary() -> Dictionary:
@@ -3235,11 +3182,9 @@ func _complete_current_node(success: bool) -> Dictionary:
 	compute_capacity += 1
 	var contract_summary := _apply_active_event_contracts_on_node_complete()
 	var expired_contracts := _tick_event_contracts()
-	var expired_route_momentum := _tick_route_momentum()
 	var special_refresh := _refresh_special_bonus_nodes()
 	var beacon_echo_routes: Array = special_refresh.get("beacon_echo_routes", [])
 	var activated_special_ids: Array = special_refresh.get("activated_specials", [])
-	var directive_summary := _update_route_directives_on_node_complete(node, activated_special_ids)
 	var summary := {
 		"ok": true,
 		"node_id": completion_node_id,
@@ -3252,22 +3197,13 @@ func _complete_current_node(success: bool) -> Dictionary:
 		"base_minerals_committed": int(loot_summary.get("base_minerals", 0)),
 		"mineral_bonus_added": int(loot_summary.get("mineral_bonus_added", 0)),
 		"event_contract_minerals_added": int(loot_summary.get("event_contract_minerals_added", 0)),
-		"route_momentum_minerals_added": int(loot_summary.get("route_momentum_minerals_added", 0)),
-		"route_momentum_applied": Dictionary(loot_summary.get("route_momentum_applied", {})).duplicate(true),
 		"minerals_committed": int(loot_summary.get("minerals_committed", 0)),
 		"event_contract_crisis_added": int(contract_summary.get("crisis_added", 0)),
 		"event_contracts_applied": contract_summary.get("contracts", []),
 		"expired_event_contract_count": expired_contracts.size(),
 		"expired_event_contracts": expired_contracts,
-		"expired_route_momentum": expired_route_momentum,
 		"active_event_contracts": get_active_event_contracts(),
-		"completed_route_directives": directive_summary.get("completed", []),
-		"new_route_directives": directive_summary.get("added", []),
-		"route_directive_rewards": directive_summary.get("rewards", {}),
-		"route_momentum_activated": Dictionary(directive_summary.get("route_momentum", {})).duplicate(true),
-		"shop_directive_focus_changed": bool(directive_summary.get("shop_focus_changed", false)),
 		"active_route_directives": get_route_directive_summaries(),
-		"active_route_momentum": get_active_route_momentum_summary(),
 	}
 	last_node_completion_summary = summary.duplicate(true)
 	abandon_current_room()
@@ -3279,11 +3215,9 @@ func _commit_pending_room_loot() -> Dictionary:
 	var bonus := int(floor(float(base_minerals) * get_mineral_bonus()))
 	var contract_bonus_summary := _get_event_contract_mineral_bonus(base_minerals)
 	var contract_bonus := int(contract_bonus_summary.get("minerals_added", 0))
-	var momentum_bonus_summary := _get_route_momentum_mineral_bonus(base_minerals)
-	var momentum_bonus := int(momentum_bonus_summary.get("minerals_added", 0))
 	# 撤离摇篮：撤离结算时额外矿物加成
 	var evac_bonus := int(floor(float(base_minerals) * float(get_player_stats().get("evac_mineral_bonus", 0.0))))
-	var total_minerals := base_minerals + bonus + contract_bonus + momentum_bonus + evac_bonus
+	var total_minerals := base_minerals + bonus + contract_bonus + evac_bonus
 	minerals += total_minerals
 	for item_id in pending_room_loot.get("equipment", []):
 		if EquipmentCatalogScript.has_item(item_id) and not equipment_inventory.has(item_id):
@@ -3292,10 +3226,8 @@ func _commit_pending_room_loot() -> Dictionary:
 		"base_minerals": base_minerals,
 		"mineral_bonus_added": bonus,
 		"event_contract_minerals_added": contract_bonus,
-		"route_momentum_minerals_added": momentum_bonus,
 		"minerals_committed": total_minerals,
 		"event_contracts_applied": contract_bonus_summary.get("contracts", []),
-		"route_momentum_applied": Dictionary(momentum_bonus_summary.get("momentum", {})).duplicate(true),
 	}
 
 
@@ -3426,88 +3358,6 @@ func _get_event_contract_equipment_chance_bonus() -> float:
 	for contract in active_event_contracts:
 		bonus += float(contract.get("equipment_chance_bonus", 0.0))
 	return bonus
-
-
-func _activate_route_momentum(completed_count: int) -> Dictionary:
-	if completed_count <= 0:
-		return {}
-	var stack_count := maxi(0, completed_count - 1)
-	var duration := mini(ROUTE_MOMENTUM_MAX_DURATION_NODES, ROUTE_MOMENTUM_DURATION_NODES + stack_count)
-	var mineral_rate := minf(
-		ROUTE_MOMENTUM_MAX_MINERAL_BONUS_RATE,
-		ROUTE_MOMENTUM_MINERAL_BONUS_RATE + ROUTE_MOMENTUM_MINERAL_STACK_RATE * float(stack_count)
-	)
-	var equipment_bonus := minf(
-		ROUTE_MOMENTUM_MAX_EQUIPMENT_CHANCE_BONUS,
-		ROUTE_MOMENTUM_EQUIPMENT_CHANCE_BONUS + ROUTE_MOMENTUM_EQUIPMENT_STACK_BONUS * float(stack_count)
-	)
-	var previous_remaining := int(active_route_momentum.get("remaining_nodes", 0))
-	var previous_mineral_rate := float(active_route_momentum.get("mineral_bonus_rate", 0.0))
-	var previous_equipment_bonus := float(active_route_momentum.get("equipment_chance_bonus", 0.0))
-	var momentum := {
-		"title": "航路动能",
-		"remaining_nodes": mini(ROUTE_MOMENTUM_MAX_DURATION_NODES, maxi(previous_remaining, duration)),
-		"duration_nodes": duration,
-		"mineral_bonus_rate": maxf(previous_mineral_rate, mineral_rate),
-		"equipment_chance_bonus": maxf(previous_equipment_bonus, equipment_bonus),
-		"completed_directive_count": completed_count,
-	}
-	momentum["effects_text"] = _get_route_momentum_effects_text(momentum)
-	momentum["activation_text"] = "航路动能已点燃：接下来 %d 个完成节点内，%s。" % [
-		int(momentum.get("remaining_nodes", 0)),
-		String(momentum.get("effects_text", "回收效率提高")),
-	]
-	active_route_momentum = momentum.duplicate(true)
-	return get_active_route_momentum_summary()
-
-
-func _get_route_momentum_mineral_bonus(base_minerals: int) -> Dictionary:
-	var applied: Dictionary = {}
-	if base_minerals <= 0 or active_route_momentum.is_empty():
-		return {"minerals_added": 0, "momentum": applied}
-	var remaining := int(active_route_momentum.get("remaining_nodes", 0))
-	var rate := float(active_route_momentum.get("mineral_bonus_rate", 0.0))
-	if remaining <= 0 or rate <= 0.0:
-		return {"minerals_added": 0, "momentum": applied}
-	var bonus := int(floor(float(base_minerals) * rate))
-	if bonus <= 0:
-		return {"minerals_added": 0, "momentum": applied}
-	applied = get_active_route_momentum_summary()
-	applied["minerals_added"] = bonus
-	return {"minerals_added": bonus, "momentum": applied}
-
-
-func _get_route_momentum_equipment_chance_bonus() -> float:
-	if active_route_momentum.is_empty() or int(active_route_momentum.get("remaining_nodes", 0)) <= 0:
-		return 0.0
-	return maxf(0.0, float(active_route_momentum.get("equipment_chance_bonus", 0.0)))
-
-
-func _tick_route_momentum() -> Dictionary:
-	if active_route_momentum.is_empty():
-		return {}
-	var ticked := active_route_momentum.duplicate(true)
-	ticked["remaining_nodes"] = int(ticked.get("remaining_nodes", 1)) - 1
-	if int(ticked.get("remaining_nodes", 0)) <= 0:
-		var expired := get_active_route_momentum_summary()
-		active_route_momentum.clear()
-		return expired
-	active_route_momentum = ticked
-	active_route_momentum["effects_text"] = _get_route_momentum_effects_text(active_route_momentum)
-	return {}
-
-
-func _get_route_momentum_effects_text(momentum: Dictionary) -> String:
-	var parts: Array[String] = []
-	var mineral_rate := float(momentum.get("mineral_bonus_rate", 0.0))
-	if mineral_rate > 0.0:
-		parts.append("回收星髓 +%d%%" % int(round(mineral_rate * 100.0)))
-	var equipment_bonus := float(momentum.get("equipment_chance_bonus", 0.0))
-	if equipment_bonus > 0.0:
-		parts.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
-	if parts.is_empty():
-		return "回收效率提高"
-	return "、".join(parts)
 
 
 func _get_active_shop_discount_rate() -> float:
@@ -3667,46 +3517,74 @@ func _tick_event_contracts() -> Array[Dictionary]:
 	return expired_contracts
 
 
-func _grant_boss_reward(scene_path: String, threshold: int) -> void:
+func _prepare_boss_reward(scene_path: String, threshold: int) -> void:
 	last_boss_reward.clear()
+	pending_boss_reward.clear()
 	var family := _get_boss_family_for_scene(scene_path)
 	if family.is_empty():
 		return
 	var stage := CRISIS_THRESHOLDS.find(threshold) + 1
-	var item_id := EquipmentCatalogScript.get_boss_drop_for_family_stage(family, stage, equipment_inventory)
-	last_boss_reward = {
+	var seed := completed_node_count * 1009 + stage * 101 + family.hash()
+	pending_boss_reward = {
 		"family": family,
-		"item_id": item_id,
 		"threshold": threshold,
 		"stage": stage,
+		"is_final": threshold >= CRISIS_THRESHOLDS.back(),
+		"candidate_ids": EquipmentCatalogScript.get_boss_reward_candidate_ids(family, stage, equipment_inventory, seed),
 	}
-	if item_id.is_empty():
-		return
-	if EquipmentCatalogScript.has_item(item_id) and not equipment_inventory.has(item_id):
-		equipment_inventory.append(item_id)
+
+
+func has_pending_boss_reward() -> bool:
+	return not pending_boss_reward.is_empty() and not Array(pending_boss_reward.get("candidate_ids", [])).is_empty()
+
+
+func get_pending_boss_reward_summary() -> Dictionary:
+	if not has_pending_boss_reward():
+		return {}
+	var summary := pending_boss_reward.duplicate(true)
+	summary["ok"] = true
+	summary["family_name"] = EquipmentCatalogScript.get_family_display_name(String(summary.get("family", "")))
+	return summary
+
+
+func claim_boss_reward(item_id: String) -> Dictionary:
+	if not has_pending_boss_reward():
+		return {"ok": false, "message": "没有待确认的执行体缴获。"}
+	if not pending_boss_reward.get("candidate_ids", []).has(item_id):
+		return {"ok": false, "message": "该装备不在本次缴获列表中。"}
+	if equipment_inventory.has(item_id) or not EquipmentCatalogScript.has_item(item_id):
+		return {"ok": false, "message": "该装备已不可领取，请选择其他项目。"}
+	last_boss_reward = pending_boss_reward.duplicate(true)
+	last_boss_reward["item_id"] = item_id
+	last_boss_reward.erase("candidate_ids")
+	var is_final := bool(pending_boss_reward.get("is_final", false))
+	pending_boss_reward.clear()
+	equipment_inventory.append(item_id)
+	return {
+		"ok": true,
+		"item_id": item_id,
+		"item_name": EquipmentCatalogScript.get_display_name(item_id),
+		"is_final": is_final,
+	}
 
 
 func _make_boss_completion_summary(threshold: int) -> Dictionary:
-	var family := String(last_boss_reward.get("family", ""))
+	var family := String(pending_boss_reward.get("family", ""))
 	if family.is_empty():
 		return {}
-	var item_id := String(last_boss_reward.get("item_id", ""))
-	var item_name := ""
-	if not item_id.is_empty():
-		item_name = EquipmentCatalogScript.get_display_name(item_id)
 	return {
 		"ok": true,
 		"threshold": threshold,
-		"stage": int(last_boss_reward.get("stage", CRISIS_THRESHOLDS.find(threshold) + 1)),
+		"stage": int(pending_boss_reward.get("stage", CRISIS_THRESHOLDS.find(threshold) + 1)),
 		"family": family,
 		"family_name": EquipmentCatalogScript.get_family_display_name(family),
-		"item_id": item_id,
-		"item_name": item_name,
+		"candidate_ids": Array(pending_boss_reward.get("candidate_ids", [])).duplicate(),
+		"is_final": bool(pending_boss_reward.get("is_final", false)),
 	}
 
 
-func _apply_boss_aftershock() -> Dictionary:
-	var family := _normalize_shop_family(String(last_boss_reward.get("family", "")))
+func _apply_boss_aftershock(reward: Dictionary) -> Dictionary:
+	var family := _normalize_shop_family(String(reward.get("family", "")))
 	if family.is_empty():
 		return {}
 	var family_name := EquipmentCatalogScript.get_family_display_name(family)
@@ -3730,8 +3608,8 @@ func _apply_boss_aftershock() -> Dictionary:
 			"aftershock_text": aftershock_text,
 			"equipment_bonus": BOSS_AFTERSHOCK_EQUIPMENT_BONUS,
 			"reward_bonus": BOSS_AFTERSHOCK_REWARD_BONUS,
-			"stage": int(last_boss_reward.get("stage", 0)),
-			"threshold": int(last_boss_reward.get("threshold", 0)),
+			"stage": int(reward.get("stage", 0)),
+			"threshold": int(reward.get("threshold", 0)),
 		}
 		target["family_bias"] = family
 		if String(target.get("type", "")) == NODE_REWARD:
@@ -3791,21 +3669,6 @@ func _reset_shop_state() -> void:
 	shop_beacon_bonus_name = ""
 	shop_ore_source_focus = ""
 	shop_ore_source_focus_text = ""
-
-
-func _reset_loadout_presets() -> void:
-	loadout_presets.clear()
-	for i in range(LOADOUT_PRESET_COUNT):
-		loadout_presets.append({})
-
-
-func _ensure_loadout_presets() -> void:
-	while loadout_presets.size() < LOADOUT_PRESET_COUNT:
-		loadout_presets.append({})
-
-
-func _is_valid_loadout_slot(slot_index: int) -> bool:
-	return slot_index >= 0 and slot_index < LOADOUT_PRESET_COUNT
 
 
 func _ensure_shop_draft() -> void:
@@ -3967,115 +3830,50 @@ func _generate_route_directives() -> void:
 
 func _refill_route_directives() -> Array[Dictionary]:
 	var added: Array[Dictionary] = []
-	var candidates := _get_available_route_directive_profiles()
-	var picked_ids := {}
+	var blocked_behaviors: Array[int] = []
 	for raw_directive in active_route_directives:
-		var directive := Dictionary(raw_directive)
-		picked_ids[String(directive.get("directive_id", ""))] = true
-	var grouped_by_goal_type := {}
-	for raw_profile in candidates:
-		var profile := Dictionary(raw_profile)
-		var profile_id := String(profile.get("id", ""))
-		if profile_id.is_empty() or picked_ids.has(profile_id):
-			continue
-		var goal_type := String(profile.get("goal_type", "complete_nodes"))
-		if not grouped_by_goal_type.has(goal_type):
-			grouped_by_goal_type[goal_type] = []
-		grouped_by_goal_type[goal_type].append(profile)
-	var goal_types := grouped_by_goal_type.keys()
-	goal_types.shuffle()
-	for raw_goal_type in goal_types:
-		if active_route_directives.size() >= ROUTE_DIRECTIVE_COUNT:
+		blocked_behaviors.append(int(Dictionary(raw_directive).get("target_behavior", -1)))
+	while active_route_directives.size() < ROUTE_DIRECTIVE_COUNT:
+		var directive := _make_random_route_directive(blocked_behaviors)
+		if directive.is_empty():
 			break
-		var group: Array = grouped_by_goal_type[raw_goal_type]
-		group.shuffle()
-		if group.is_empty():
-			continue
-		var profile := Dictionary(group[0])
-		var directive := _make_route_directive_from_profile(profile)
 		active_route_directives.append(directive)
+		blocked_behaviors.append(int(directive.get("target_behavior", -1)))
 		added.append(_make_route_directive_summary(directive))
-		picked_ids[String(profile.get("id", ""))] = true
-	candidates.shuffle()
-	for raw_profile in candidates:
-		if active_route_directives.size() >= ROUTE_DIRECTIVE_COUNT:
-			break
-		var profile := Dictionary(raw_profile)
-		var profile_id := String(profile.get("id", ""))
-		if picked_ids.has(profile_id):
-			continue
-		var directive := _make_route_directive_from_profile(profile)
-		active_route_directives.append(directive)
-		added.append(_make_route_directive_summary(directive))
-		picked_ids[profile_id] = true
 	return added
 
 
-func _get_available_route_directive_profiles() -> Array:
-	var result: Array = []
-	for raw_profile in ROUTE_DIRECTIVE_PROFILES:
-		var profile := Dictionary(raw_profile)
-		if retired_route_directive_ids.has(String(profile.get("id", ""))):
-			continue
-		if _can_use_route_directive_profile(profile):
-			result.append(profile)
-	if result.size() < ROUTE_DIRECTIVE_COUNT:
-		for raw_profile in ROUTE_DIRECTIVE_PROFILES:
-			var profile := Dictionary(raw_profile)
-			if retired_route_directive_ids.has(String(profile.get("id", ""))):
-				continue
-			if String(profile.get("goal_type", "")) == "complete_nodes" and not result.has(profile):
-				result.append(profile)
-	return result
-
-
-func _can_use_route_directive_profile(profile: Dictionary) -> bool:
-	var goal_type := String(profile.get("goal_type", "complete_nodes"))
-	var required := maxi(1, int(profile.get("required", 1)))
-	match goal_type:
-		"complete_type":
-			return _count_map_nodes_by_type(String(profile.get("target", ""))) >= required
-		"complete_family":
-			return _count_map_nodes_by_family(String(profile.get("target", ""))) >= required
-		"complete_ore_source":
-			return _count_map_nodes_by_ore_source(String(profile.get("target", ""))) >= required
-		"activate_special":
-			return _count_available_special_bonus_nodes() >= required
-	return _get_map_exploration_node_count() >= required
-
-
-func _make_route_directive_from_profile(profile: Dictionary) -> Dictionary:
+func _make_random_route_directive(blocked_behaviors: Array[int]) -> Dictionary:
+	var candidates: Array[int] = []
+	for behavior in ROUTE_DIRECTIVE_ELITE_BEHAVIORS:
+		if not blocked_behaviors.has(behavior):
+			candidates.append(behavior)
+	if candidates.is_empty():
+		for behavior in ROUTE_DIRECTIVE_ELITE_BEHAVIORS:
+			candidates.append(behavior)
+	var target_behavior: int = int(candidates.pick_random())
+	var enemy: Dictionary = Dictionary(DesignedEnemyCatalog.ENEMIES[target_behavior])
+	var enemy_name := String(enemy.get("name", "精英敌机"))
+	var family_name := String(enemy.get("family", "未知"))
+	var reward_minerals := randi_range(ROUTE_DIRECTIVE_MINERAL_REWARD_MIN, ROUTE_DIRECTIVE_MINERAL_REWARD_MAX)
 	return {
-		"directive_id": String(profile.get("id", "")),
-		"title": String(profile.get("title", "航路指令")),
-		"description": String(profile.get("description", "方舟已经标出一条可追踪航线。")),
-		"goal_type": String(profile.get("goal_type", "complete_nodes")),
-		"target": String(profile.get("target", "")),
-		"current": 0,
-		"required": maxi(1, int(profile.get("required", 1))),
-		"reward": Dictionary(profile.get("reward", {})).duplicate(true),
-		"reward_text": String(profile.get("reward_text", "方舟补给")),
-		"completed": false,
-		"claimed": false,
+		"directive_id": "%s_%d" % [String(enemy.get("id", "elite")), Time.get_ticks_usec()],
+		"target_behavior": target_behavior,
+		"target_name": enemy_name,
+		"family_name": family_name,
+		"description": "击毁%s（%s协议下属）" % [enemy_name, family_name],
+		"reward_minerals": reward_minerals,
 	}
 
 
 func _make_route_directive_summary(directive: Dictionary) -> Dictionary:
-	var current := mini(int(directive.get("current", 0)), int(directive.get("required", 1)))
-	var required := maxi(1, int(directive.get("required", 1)))
-	var completed := bool(directive.get("completed", false))
 	return {
 		"directive_id": String(directive.get("directive_id", "")),
-		"title": String(directive.get("title", "航路指令")),
-		"description": String(directive.get("description", "")),
-		"goal_type": String(directive.get("goal_type", "complete_nodes")),
-		"target": String(directive.get("target", "")),
-		"current": current,
-		"required": required,
-		"completed": completed,
-		"claimed": bool(directive.get("claimed", false)),
-		"progress_text": "进度 %d/%d" % [current, required],
-		"reward_text": String(directive.get("reward_text", "方舟补给")),
+		"target_behavior": int(directive.get("target_behavior", -1)),
+		"target_name": String(directive.get("target_name", "精英敌机")),
+		"family_name": String(directive.get("family_name", "未知")),
+		"description": String(directive.get("description", "击毁精英敌机")),
+		"reward_minerals": int(directive.get("reward_minerals", 0)),
 	}
 
 
@@ -4136,60 +3934,29 @@ func _count_available_special_bonus_nodes() -> int:
 	return count
 
 
-func _update_route_directives_on_node_complete(completed_node: Dictionary, activated_special_ids: Array) -> Dictionary:
-	var completed_directives: Array = []
-	var remaining_directives: Array[Dictionary] = []
-	var reward_summary := {"minerals": 0, "compute": 0, "equipment": [], "equipment_names": [], "equipment_chance_bonus": 0.0}
-	var shop_focus_changed := false
-	for i in range(active_route_directives.size()):
-		var directive := Dictionary(active_route_directives[i])
-		if bool(directive.get("claimed", false)):
-			var claimed_id := String(directive.get("directive_id", ""))
-			if not claimed_id.is_empty() and not retired_route_directive_ids.has(claimed_id):
-				retired_route_directive_ids.append(claimed_id)
+func record_route_directive_elite_kill(behavior: int) -> Dictionary:
+	if not is_formal_run_active():
+		return {}
+	var completed: Array = []
+	var remaining: Array[Dictionary] = []
+	var minerals_granted := 0
+	for raw_directive in active_route_directives:
+		var directive := Dictionary(raw_directive)
+		if int(directive.get("target_behavior", -1)) != behavior:
+			remaining.append(directive)
 			continue
-		if _route_directive_matches_node(directive, completed_node, activated_special_ids):
-			directive["current"] = mini(int(directive.get("required", 1)), int(directive.get("current", 0)) + 1)
-		if int(directive.get("current", 0)) >= int(directive.get("required", 1)):
-			directive["completed"] = true
-			directive["claimed"] = true
-			var completed_id := String(directive.get("directive_id", ""))
-			if not completed_id.is_empty() and not retired_route_directive_ids.has(completed_id):
-				retired_route_directive_ids.append(completed_id)
-			var applied_reward := _grant_route_directive_reward(directive)
-			_merge_route_directive_reward_summary(reward_summary, applied_reward)
-			shop_focus_changed = shop_focus_changed or bool(applied_reward.get("shop_focus_changed", false))
-			var summary := _make_route_directive_summary(directive)
-			summary["reward_result"] = applied_reward
-			completed_directives.append(summary)
-			continue
-		remaining_directives.append(directive)
-	active_route_directives = remaining_directives
-	var route_momentum := _activate_route_momentum(completed_directives.size())
-	var added_directives := _refill_route_directives()
+		var reward_minerals := int(directive.get("reward_minerals", 0))
+		minerals += reward_minerals
+		minerals_granted += reward_minerals
+		completed.append(_make_route_directive_summary(directive))
+	active_route_directives = remaining
+	var added := _refill_route_directives()
 	return {
-		"completed": completed_directives,
-		"added": added_directives,
-		"rewards": reward_summary,
-		"route_momentum": route_momentum,
-		"shop_focus_changed": shop_focus_changed,
+		"completed": completed,
+		"added": added,
+		"minerals": minerals_granted,
+		"active": get_route_directive_summaries(),
 	}
-
-
-func _route_directive_matches_node(directive: Dictionary, completed_node: Dictionary, activated_special_ids: Array) -> bool:
-	var goal_type := String(directive.get("goal_type", "complete_nodes"))
-	match goal_type:
-		"complete_type":
-			return String(completed_node.get("type", "")) == String(directive.get("target", ""))
-		"complete_family":
-			var target_family := String(directive.get("target", ""))
-			var plan: Dictionary = completed_node.get("route_plan", {})
-			return String(plan.get("family", completed_node.get("family_bias", ""))) == target_family
-		"complete_ore_source":
-			return String(completed_node.get("ore_source_bias", "")) == String(directive.get("target", ""))
-		"activate_special":
-			return not activated_special_ids.is_empty()
-	return true
 
 
 func _grant_route_directive_reward(directive: Dictionary) -> Dictionary:
@@ -4287,6 +4054,7 @@ func _generate_world_map() -> void:
 		"completed": true,
 	})
 	var rings: Array[Array] = []
+	var occupied_positions: Array[Vector2] = [MAP_CENTER]
 	var node_type_deck := _make_node_type_deck()
 	for ring_index in range(MAP_RING_COUNTS.size()):
 		var ring_ids: Array[int] = []
@@ -4295,13 +4063,15 @@ func _generate_world_map() -> void:
 		var angle_offset := -PI * 0.5 + float(ring_index) * 0.11
 		for i in range(count):
 			var angle := angle_offset + TAU * (float(i) + 0.5) / float(count)
+			var preferred_position := MAP_CENTER + Vector2(cos(angle), sin(angle)) * radius
+			var node_position := _find_non_overlapping_map_position(preferred_position, occupied_positions)
 			var node_id := map_nodes.size()
 			ring_ids.append(node_id)
 			var node := {
 				"id": node_id,
 				"name": "空间残片 %02d" % node_id,
 				"type": _draw_node_type(node_type_deck),
-				"position": MAP_CENTER + Vector2(cos(angle), sin(angle)) * radius,
+				"position": node_position,
 				"links": [],
 				"completed": false,
 				"ring_index": ring_index,
@@ -4318,12 +4088,39 @@ func _generate_world_map() -> void:
 			_apply_ore_source_bias_to_node(node, ring_index, i)
 			_apply_route_plan_to_node(node)
 			map_nodes.append(node)
+			occupied_positions.append(node_position)
 		rings.append(ring_ids)
 	for id in rings[0]:
 		_add_link(CENTER_ID, id)
 	_connect_ordered_rings(rings[0], rings[1])
 	_connect_ordered_rings(rings[1], rings[2])
 	_add_special_bonus_nodes(rings)
+
+
+func _find_non_overlapping_map_position(preferred_position: Vector2, occupied_positions: Array[Vector2]) -> Vector2:
+	if _is_map_position_available(preferred_position, occupied_positions):
+		return preferred_position
+	for search_ring in range(1, MAP_POSITION_SEARCH_RINGS + 1):
+		var search_radius := float(search_ring) * MAP_POSITION_SEARCH_STEP
+		for sample_index in range(MAP_POSITION_SEARCH_SAMPLES):
+			var angle := TAU * float(sample_index) / float(MAP_POSITION_SEARCH_SAMPLES)
+			var candidate := preferred_position + Vector2.RIGHT.rotated(angle) * search_radius
+			if _is_map_position_available(candidate, occupied_positions):
+				return candidate
+	# The expanded map leaves enough room for the search above.  Keep a safe
+	# deterministic fallback for malformed/custom map settings rather than
+	# silently placing a node at the original overlapping position.
+	var fallback := preferred_position
+	while not _is_map_position_available(fallback, occupied_positions):
+		fallback += Vector2.RIGHT * MAP_POSITION_SEARCH_STEP
+	return fallback
+
+
+func _is_map_position_available(candidate: Vector2, occupied_positions: Array[Vector2]) -> bool:
+	for occupied_position in occupied_positions:
+		if candidate.distance_squared_to(occupied_position) < MAP_NODE_MIN_DISTANCE * MAP_NODE_MIN_DISTANCE:
+			return false
+	return true
 
 
 func _make_node_type_deck() -> Array[String]:
@@ -5462,6 +5259,8 @@ func _make_event_choice_data(profile: Dictionary, node: Dictionary) -> Dictionar
 		"choice_id": event_id,
 		"title": String(profile.get("title", event_id)),
 		"category": String(profile.get("category", "mixed")),
+		"flavor_text": String(profile.get("description", "未解析的异常信号正在等待回应。")),
+		"background_path": "res://assets/ui/events/%s.svg" % event_id,
 		"preview": " / ".join(preview_parts),
 		"reward_preview": reward_preview,
 		"cost_preview": cost_preview,
@@ -5942,17 +5741,22 @@ func _get_special_beacon_resonance_effects_text(family: String, count: int) -> S
 func _add_special_bonus_nodes(rings: Array[Array]) -> void:
 	if rings.is_empty() or rings[0].is_empty():
 		return
+	var occupied_positions: Array[Vector2] = []
+	for node in map_nodes:
+		occupied_positions.append(node.get("position", MAP_CENTER))
 	for index in range(SPECIAL_BONUS_PROFILES.size()):
 		var profile := SPECIAL_BONUS_PROFILES[index]
 		var anchor_id := int(rings[0][index % rings[0].size()])
 		var anchor := map_nodes[anchor_id]
 		var anchor_pos: Vector2 = anchor.get("position", MAP_CENTER + Vector2.RIGHT * 180.0)
+		var preferred_position: Vector2 = anchor_pos + Vector2(profile.get("offset", Vector2.ZERO))
+		var special_position := _find_non_overlapping_map_position(preferred_position, occupied_positions)
 		var special_id := map_nodes.size()
 		map_nodes.append({
 			"id": special_id,
 			"name": String(profile.get("name", "增益信标")),
 			"type": NODE_SPECIAL,
-			"position": anchor_pos + profile.get("offset", Vector2.ZERO),
+			"position": special_position,
 			"links": [],
 			"completed": false,
 			"bonus_id": String(profile.get("bonus_id", "")),
@@ -5960,6 +5764,7 @@ func _add_special_bonus_nodes(rings: Array[Array]) -> void:
 			"bonus_description": String(profile.get("bonus_description", "")),
 			"family_bias": String(profile.get("family_bias", "")),
 		})
+		occupied_positions.append(special_position)
 		_add_link(anchor_id, special_id)
 
 

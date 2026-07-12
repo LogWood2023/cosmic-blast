@@ -17,20 +17,19 @@ const FAMILY_OPTIONS: Array[Dictionary] = [
 ]
 
 @onready var minerals_label: Label = $Panel/MineralsLabel
+@onready var shade: ColorRect = $Shade
 @onready var message_label: Label = $Panel/MessageLabel
-@onready var items_list: VBoxContainer = $Panel/ItemsScroll/ItemsList
+@onready var items_list: Container = $Panel/ItemsScroll/ItemsList
 @onready var close_button: Button = $Panel/CloseButton
-@onready var shop_state_label: Label = $Panel/ControlsBar/ShopStateLabel
 @onready var family_focus_option: OptionButton = $Panel/ControlsBar/FamilyFocusOption
 @onready var reroll_button: Button = $Panel/ControlsBar/RerollButton
-@onready var shop_guidance_title: Label = $Panel/ShopGuidanceBar/ShopGuidanceTitle
-@onready var shop_guidance_detail: Label = $Panel/ShopGuidanceBar/ShopGuidanceDetail
 
 
 func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
 	CombatUiMotion.animate_first_panel_enter(self)
 	_populate_family_focus_options()
+	shade.gui_input.connect(_on_shade_gui_input)
 	close_button.pressed.connect(_on_close_pressed)
 	reroll_button.pressed.connect(_on_reroll_pressed)
 
@@ -43,16 +42,14 @@ func _refresh() -> void:
 	var run_manager := _get_run_manager()
 	if run_manager == null:
 		return
-	minerals_label.text = "星髓矿：%d" % int(run_manager.minerals)
+	minerals_label.text = "✦  %d" % int(run_manager.minerals)
 	var reroll_cost := int(run_manager.get_shop_reroll_cost())
 	var free_reroll_summary := {}
 	if run_manager.has_method("get_free_shop_reroll_summary"):
 		free_reroll_summary = run_manager.call("get_free_shop_reroll_summary")
 	var preferred_family := String(run_manager.shop_preferred_family)
 	_sync_family_focus_option(preferred_family)
-	shop_state_label.text = "货单：%s / 重抽 %d 次" % [_family_display_name(preferred_family), int(run_manager.shop_reroll_count)]
 	if int(free_reroll_summary.get("remaining", 0)) > 0:
-		shop_state_label.text = "%s / 货单券 %d" % [shop_state_label.text, int(free_reroll_summary.get("remaining", 0))]
 		reroll_button.text = "免矿重抽"
 	else:
 		reroll_button.text = "重抽 %d" % reroll_cost
@@ -69,22 +66,30 @@ func _refresh() -> void:
 		if run_manager.has_method("get_effective_shop_price"):
 			price = int(run_manager.call("get_effective_shop_price", item_id))
 		var owned: bool = run_manager.equipment_inventory.has(item_id)
-		var meta_text := EquipmentCatalogScript.get_ui_meta_text(item_id, true, price)
-		if price < base_price:
-			meta_text = "%s / 原价 %d / 折后 %d 星髓矿" % [meta_text, base_price, price]
+		_add_offer_card(item_id, item, price, base_price, owned)
 
-		var row = ITEM_ROW_SCENE.instantiate()
-		items_list.add_child(row)
-		row.setup(
-			item_id,
-			String(item.get("name", item_id)),
-			meta_text,
-			String(item.get("description", "")),
-			"已拥有" if owned else "购买",
-			owned,
-			"[已拥有]" if owned else ("[折后]" if price < base_price else "")
-		)
-		row.action_pressed.connect(_on_buy_item)
+
+func _add_offer_card(item_id: String, item: Dictionary, price: int, base_price: int, owned: bool) -> void:
+	var price_text := "✦ %d" % price
+	if price < base_price:
+		price_text = "✦ %d  原价 %d" % [price, base_price]
+	var row = ITEM_ROW_SCENE.instantiate()
+	row.custom_minimum_size = Vector2(0.0, 188.0)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	items_list.add_child(row)
+	row.setup(
+		item_id,
+		String(item.get("name", item_id)),
+		"",
+		String(item.get("description", "")),
+		"",
+		owned,
+		""
+	)
+	row.set_card_action_only(true, "已拥有" if owned else price_text)
+	# 商品卡片的价格需要比通用状态文案更醒目：15px × 1.5，四舍五入为 23px。
+	row.set_context_font_size(23)
+	row.action_pressed.connect(_on_buy_item)
 
 
 func _on_buy_item(item_id: String) -> void:
@@ -138,27 +143,28 @@ func _get_selected_family_focus() -> String:
 
 func _refresh_shop_guidance(run_manager: Node) -> void:
 	if not run_manager.has_method("get_shop_guidance"):
-		shop_guidance_title.text = "采购校准：等待航图"
-		shop_guidance_detail.text = "货单会在方舟完成航向测算后偏移。"
+		family_focus_option.tooltip_text = "选择货单的流派倾向。"
 		return
 	var guidance: Dictionary = run_manager.call("get_shop_guidance")
-	shop_guidance_title.text = String(guidance.get("title", "采购校准：未定航路"))
-	shop_guidance_detail.text = "%s %s" % [
+	var guidance_text := "%s\n%s %s" % [
+		String(guidance.get("title", "采购校准")),
 		String(guidance.get("summary", "")),
 		String(guidance.get("reroll_hint", "")),
 	]
-
-
-func _family_display_name(family: String) -> String:
-	for option in FAMILY_OPTIONS:
-		if String(option.get("id", "")) == family:
-			return String(option.get("label", "全域随机"))
-	return "全域随机"
+	family_focus_option.tooltip_text = guidance_text.strip_edges()
+	reroll_button.tooltip_text = guidance_text.strip_edges()
 
 
 func _on_close_pressed() -> void:
 	closed.emit()
 	queue_free()
+
+
+func _on_shade_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_on_close_pressed()
+	elif event is InputEventScreenTouch and event.pressed:
+		_on_close_pressed()
 
 
 func _get_run_manager() -> Node:

@@ -343,6 +343,7 @@ func _play_hit_flash() -> void:
 
 func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = stream
 	sfx.volume_db = volume_db
 	get_tree().current_scene.add_child(sfx)

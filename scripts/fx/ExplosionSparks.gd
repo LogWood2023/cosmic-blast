@@ -13,7 +13,8 @@ static var _shared_tex: GradientTexture2D
 func _ready() -> void:
 	one_shot = true
 	explosiveness = 1.0
-	amount = AMOUNT
+	add_to_group(&"quality_particles")
+	apply_quality()
 	lifetime = LIFETIME
 	local_coords = false          # 世界空间：火花迸射后独立于发射点
 	texture = _get_tex()
@@ -23,6 +24,10 @@ func _ready() -> void:
 	material = cim
 	emitting = true
 	finished.connect(queue_free)
+
+
+func apply_quality() -> void:
+	amount = AMOUNT if not SettingsManager.reduced_effects else 6
 
 
 static func _get_tex() -> GradientTexture2D:

@@ -306,6 +306,7 @@ func _update_shake(delta: float) -> void:
 
 func _play_sfx(stream: AudioStream) -> void:
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = stream
 	get_tree().current_scene.add_child(sfx)
 	sfx.play()

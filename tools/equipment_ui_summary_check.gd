@@ -1,6 +1,5 @@
 extends Node
 
-
 const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd")
 const SHOP_POPUP_SCENE := preload("res://scenes/ui/world_map/ShopPopup.tscn")
 const HANGAR_POPUP_SCENE := preload("res://scenes/ui/world_map/HangarPopup.tscn")
@@ -14,54 +13,37 @@ func _ready() -> void:
 
 func _run() -> void:
 	RunManager.start_new_run()
-	_check_catalog_summary_api()
+	_check_catalog_copy()
 	if _failed:
 		return
-	await _check_shop_rows_show_build_summary()
+	await _check_shop_card_format()
 	if _failed:
 		return
-	await _check_hangar_rows_show_build_summary()
-	if _failed:
-		return
-	await _check_hangar_family_filter()
-	if _failed:
-		return
-	await _check_hangar_family_recommendation()
-	if _failed:
-		return
-	await _check_hangar_archetype_sync_summary()
+	await _check_hangar_card_format()
 	if _failed:
 		return
 	print("Equipment UI summary check passed.")
 	get_tree().quit(0)
 
 
-func _check_catalog_summary_api() -> void:
-	var catalog = EquipmentCatalogScript.new()
-	for method in ["get_family_display_name", "get_rarity_display_name", "get_effect_summary_text", "get_build_tags", "get_build_summary_text", "get_ui_meta_text"]:
-		if not catalog.has_method(method):
-			_fail("EquipmentCatalog should expose %s for equipment UI summaries." % method)
+func _check_catalog_copy() -> void:
+	var all_ids: Array[String] = []
+	all_ids.append_array(EquipmentCatalogScript.get_weapon_item_ids())
+	all_ids.append_array(EquipmentCatalogScript.get_auxiliary_item_ids(true))
+	for item_id in all_ids:
+		var item := EquipmentCatalogScript.get_item(item_id)
+		if String(item.get("name", "")).strip_edges().is_empty():
+			_fail("Equipment name should exist for %s." % item_id)
 			return
-	var summary := String(catalog.call("get_effect_summary_text", "impact_servos"))
-	if summary.is_empty() or not summary.contains("冲锋"):
-		_fail("Effect summary should explain colossus dash value, got: %s" % summary)
-		return
-	if _contains_ascii_letter(summary):
-		_fail("Effect summary should be Chinese UI copy: %s" % summary)
-		return
-	var meta := String(catalog.call("get_ui_meta_text", "impact_servos", false, 0))
-	for expected in ["星间巨构", "普通", "算力", "冲锋", "撞击"]:
-		if not meta.contains(expected):
-			_fail("UI meta should include %s, got: %s" % [expected, meta])
+		if EquipmentCatalogScript.get_effect_summary_text(item_id).strip_edges().is_empty():
+			_fail("Equipment actual effect should exist for %s." % item_id)
 			return
-	var build_summary := String(catalog.call("get_build_summary_text", "gravity_threader"))
-	for expected in ["引力"]:
-		if not build_summary.contains(expected):
-			_fail("Build summary should name warped play pattern %s, got: %s" % [expected, build_summary])
+		if String(item.get("description", "")).strip_edges().is_empty():
+			_fail("Equipment flavor text should exist for %s." % item_id)
 			return
 
 
-func _check_shop_rows_show_build_summary() -> void:
+func _check_shop_card_format() -> void:
 	RunManager.minerals = 999
 	RunManager.shop_offer_ids = ["impact_servos"]
 	RunManager.shop_draft_initialized = true
@@ -69,196 +51,84 @@ func _check_shop_rows_show_build_summary() -> void:
 	add_child(popup)
 	popup.call("setup")
 	await get_tree().process_frame
-	var meta := _item_meta_containing(popup, "星间巨构")
-	for expected in ["星间巨构", "普通", "算力", "星髓矿", "冲锋", "撞击"]:
-		if not meta.contains(expected):
-			_fail("Shop item row should show %s in build summary, got: %s" % [expected, meta])
-			return
+	var row := _first_row(popup)
+	if row == null:
+		return
+	_check_row_copy(row, "impact_servos")
+	var action_button := row.get_node("ActionButton") as Button
+	var card_button := row.get_node("InfoPanel/CardButton") as Button
+	var price_label := row.get_node("InfoPanel/Margin/Inner/InfoBox/ContextLabel") as Label
+	if action_button.visible:
+		_fail("Shop equipment should not show a separate purchase button.")
+		return
+	if card_button.disabled:
+		_fail("Buyable shop equipment card should be clickable.")
+		return
+	if price_label.get_theme_font_size("font_size") != 23:
+		_fail("Shop equipment price should use the enlarged 1.5x font size.")
+		return
+	card_button.pressed.emit()
+	if not RunManager.equipment_inventory.has("impact_servos"):
+		_fail("Clicking the shop equipment card should purchase that equipment.")
+		return
 	popup.queue_free()
 
 
-func _check_hangar_rows_show_build_summary() -> void:
+func _check_hangar_card_format() -> void:
 	RunManager.equipment_inventory = ["pulse_cannon", "impact_servos"]
+	RunManager.equipped_weapon = "pulse_cannon"
+	RunManager.equipped_auxiliaries.clear()
 	var popup := HANGAR_POPUP_SCENE.instantiate()
 	add_child(popup)
+	popup.set("_active_type", EquipmentCatalogScript.TYPE_AUX)
 	popup.call("setup")
 	await get_tree().process_frame
-	var meta := _first_aux_item_meta(popup)
-	for expected in ["星间巨构", "普通", "算力", "冲锋", "撞击"]:
-		if not meta.contains(expected):
-			_fail("Hangar item row should show %s in build summary, got: %s" % [expected, meta])
-			return
-	popup.queue_free()
-
-
-func _check_hangar_family_filter() -> void:
-	RunManager.equipment_inventory = [
-		"pulse_cannon",
-		"impact_servos",
-		"paradise_splitter_board",
-		"general_stability_chip",
-	]
-	var popup := HANGAR_POPUP_SCENE.instantiate()
-	add_child(popup)
-	popup.call("setup")
-	await get_tree().process_frame
-	var filter_bar := popup.get_node_or_null("Panel/FamilyFilterBar") as HBoxContainer
-	if filter_bar == null:
-		_fail("Hangar popup should expose Panel/FamilyFilterBar for build filtering.")
+	var row := _first_row(popup)
+	if row == null:
 		return
-	var colossus_button := filter_bar.get_node_or_null("ColossusButton") as Button
-	if colossus_button == null:
-		_fail("Hangar family filter should include ColossusButton.")
+	_check_row_copy(row, "impact_servos")
+	var equipped_frame := popup.get_node("Panel/CurrentEquipment/EquippedFrame") as Panel
+	var current_name := popup.get_node("Panel/CurrentEquipment/CurrentName") as Label
+	var fixed_weapon_name := current_name.text
+	if not equipped_frame.visible:
+		_fail("Auxiliary tab should show the fixed equipped auxiliary area.")
 		return
-	colossus_button.pressed.emit()
-	await get_tree().process_frame
-	var visible_meta := _visible_item_meta_texts(popup)
-	if visible_meta.size() < 2:
-		_fail("Colossus filter should keep colossus and general support rows visible, got %d." % visible_meta.size())
+	popup.call("_set_active_type", EquipmentCatalogScript.TYPE_WEAPON)
+	if not equipped_frame.visible:
+		_fail("Weapon tab should keep the equipped auxiliary area visible.")
 		return
-	var joined := "\n".join(visible_meta)
-	for expected in ["星间巨构", "通用"]:
-		if not joined.contains(expected):
-			_fail("Colossus filter should show %s rows, got: %s" % [expected, joined])
-			return
-	if joined.contains("天堂号"):
-		_fail("Colossus filter should hide paradise rows, got: %s" % joined)
-		return
-	var summary_label := popup.get_node_or_null("Panel/LoadoutBar/SummaryLabel") as Label
-	if summary_label == null or not summary_label.text.contains("筛选：星间巨构"):
-		_fail("Hangar summary should show active family filter, got: %s" % (summary_label.text if summary_label else ""))
+	if current_name.text != fixed_weapon_name:
+		_fail("Switching inventory tabs should not replace the fixed weapon panel.")
 		return
 	popup.queue_free()
 
 
-func _check_hangar_family_recommendation() -> void:
-	RunManager.compute_capacity = 5
-	RunManager.equipped_auxiliaries = []
-	RunManager.equipment_inventory = [
-		"pulse_cannon",
-		"colossus_impact_coil",
-		"colossus_ramming_keel",
-		"paradise_splitter_board",
-		"general_stability_chip",
-	]
-	var popup := HANGAR_POPUP_SCENE.instantiate()
-	add_child(popup)
-	popup.call("setup")
-	await get_tree().process_frame
-	var recommendation_bar := popup.get_node_or_null("Panel/RecommendationBar") as HBoxContainer
-	if recommendation_bar == null:
-		_fail("Hangar popup should expose Panel/RecommendationBar for family recommendations.")
-		return
-	var filter_bar := popup.get_node_or_null("Panel/FamilyFilterBar") as HBoxContainer
-	var colossus_button := filter_bar.get_node_or_null("ColossusButton") as Button
-	colossus_button.pressed.emit()
-	await get_tree().process_frame
-	var title_label := recommendation_bar.get_node_or_null("RecommendationTitle") as Label
-	var detail_label := recommendation_bar.get_node_or_null("RecommendationDetail") as Label
-	var equip_button := recommendation_bar.get_node_or_null("RecommendationEquipButton") as Button
-	if title_label == null or detail_label == null or equip_button == null:
-		_fail("Recommendation bar should include title, detail and equip button nodes.")
-		return
-	if not title_label.text.contains("星间巨构"):
-		_fail("Recommendation title should follow active family filter, got: %s" % title_label.text)
-		return
-	for expected in ["巨构撞击龙骨", "巨构冲击线圈", "算力 5/5"]:
-		if not detail_label.text.contains(expected):
-			_fail("Recommendation detail should include %s, got: %s" % [expected, detail_label.text])
+func _first_row(popup: Node) -> Node:
+	var list := popup.get_node("Panel/ItemsScroll/ItemsList")
+	if list.get_child_count() == 0:
+		_fail("Equipment popup should create at least one item row.")
+		return null
+	return list.get_child(0)
+
+
+func _check_row_copy(row: Node, item_id: String) -> void:
+	var item := EquipmentCatalogScript.get_item(item_id)
+	var name_label := row.get_node("InfoPanel/Margin/Inner/InfoBox/NameLabel") as Label
+	var category_label := row.get_node("InfoPanel/Margin/Inner/InfoBox/CategoryLabel") as Label
+	var effect_label := row.get_node("InfoPanel/Margin/Inner/InfoBox/EffectLabel") as Label
+	var flavor_label := row.get_node("InfoPanel/Margin/Inner/InfoBox/FlavorLabel") as Label
+	if name_label.text != String(item.get("name", "")):
+		_fail("Equipment card name does not match catalog data.")
+	elif category_label.text not in ["武器", "辅助机"]:
+		_fail("Equipment card should show only its category, got %s." % category_label.text)
+	elif effect_label.text != EquipmentCatalogScript.get_effect_summary_text(item_id):
+		_fail("Equipment card actual effect does not match catalog summary.")
+	elif flavor_label.text != String(item.get("description", "")):
+		_fail("Equipment card flavor text does not match catalog description.")
+	for forbidden in ["普通", "稀有", "史诗", "星间巨构", "天堂号", "扭曲星核"]:
+		if category_label.text.contains(forbidden):
+			_fail("Equipment category should not include family or rarity: %s." % category_label.text)
 			return
-	if detail_label.text.contains("天堂分流板"):
-		_fail("Recommendation detail should not suggest off-family auxiliaries: %s" % detail_label.text)
-		return
-	equip_button.pressed.emit()
-	await get_tree().process_frame
-	for expected_item in ["colossus_ramming_keel", "colossus_impact_coil"]:
-		if not RunManager.equipped_auxiliaries.has(expected_item):
-			_fail("Recommendation equip should install %s, got %s." % [expected_item, str(RunManager.equipped_auxiliaries)])
-			return
-	if RunManager.equipped_auxiliaries.has("paradise_splitter_board"):
-		_fail("Recommendation equip should not install off-family auxiliaries.")
-		return
-	popup.queue_free()
-
-
-func _check_hangar_archetype_sync_summary() -> void:
-	RunManager.compute_capacity = 7
-	RunManager.equipment_inventory = [
-		"pulse_cannon",
-		"colossus_impact_coil",
-		"colossus_ramming_keel",
-		"general_stability_chip",
-	]
-	RunManager.equipped_auxiliaries = [
-		"colossus_impact_coil",
-		"colossus_ramming_keel",
-		"general_stability_chip",
-	]
-	var popup := HANGAR_POPUP_SCENE.instantiate()
-	add_child(popup)
-	popup.call("setup")
-	await get_tree().process_frame
-	var sync_label := popup.get_node_or_null("Panel/LoadoutBar/ArchetypeSyncLabel") as Label
-	if sync_label == null:
-		_fail("Hangar popup should expose Panel/LoadoutBar/ArchetypeSyncLabel for route diagnosis.")
-		return
-	for expected in ["主导：星间巨构", "同调", "巨构", "通用"]:
-		if not sync_label.text.contains(expected):
-			_fail("Hangar archetype sync label should include %s, got: %s" % [expected, sync_label.text])
-			return
-	if _contains_ascii_letter(sync_label.text):
-		_fail("Hangar archetype sync label should be Chinese UI copy: %s" % sync_label.text)
-		return
-	popup.queue_free()
-
-
-func _visible_item_meta_texts(popup: Node) -> Array[String]:
-	var result: Array[String] = []
-	var list := popup.get_node("Panel/ItemsScroll/ItemsList")
-	for row in list.get_children():
-		if row is CanvasItem and not (row as CanvasItem).visible:
-			continue
-		var meta_label := row.get_node("InfoPanel/InfoBox/MetaLabel") as Label
-		result.append(meta_label.text)
-	return result
-
-
-func _first_item_meta(popup: Node) -> String:
-	var list := popup.get_node("Panel/ItemsScroll/ItemsList")
-	if list.get_child_count() <= 0:
-		_fail("Popup should create at least one item row.")
-		return ""
-	var row := list.get_child(0)
-	var meta_label := row.get_node("InfoPanel/InfoBox/MetaLabel") as Label
-	return meta_label.text
-
-
-func _first_aux_item_meta(popup: Node) -> String:
-	var list := popup.get_node("Panel/ItemsScroll/ItemsList")
-	for row in list.get_children():
-		var meta_label := row.get_node("InfoPanel/InfoBox/MetaLabel") as Label
-		if meta_label.text.contains("辅助机") and meta_label.text.contains("星间巨构"):
-			return meta_label.text
-	_fail("Hangar popup should contain an auxiliary item row.")
-	return ""
-
-
-func _item_meta_containing(popup: Node, text: String) -> String:
-	var list := popup.get_node("Panel/ItemsScroll/ItemsList")
-	for row in list.get_children():
-		var meta_label := row.get_node("InfoPanel/InfoBox/MetaLabel") as Label
-		if meta_label.text.contains(text):
-			return meta_label.text
-	_fail("Popup should contain an item row with %s." % text)
-	return ""
-
-
-func _contains_ascii_letter(text: String) -> bool:
-	for i in range(text.length()):
-		var code := text.unicode_at(i)
-		if (code >= 65 and code <= 90) or (code >= 97 and code <= 122):
-			return true
-	return false
 
 
 func _fail(message: String) -> void:

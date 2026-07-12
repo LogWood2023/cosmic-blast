@@ -151,31 +151,6 @@ func _check_management_operation_copy() -> void:
 	if _failed:
 		return
 
-	RunManager.start_new_run()
-	RunManager.equipment_inventory = ["pulse_cannon", "twin_lance", "overclock_core"]
-	RunManager.equipped_weapon = "twin_lance"
-	RunManager.equipped_auxiliaries = ["overclock_core"]
-	_check_result_message_copy("经营操作/机库/非法存档槽", RunManager.save_loadout_preset(-1))
-	if _failed:
-		return
-	var saved := RunManager.save_loadout_preset(0)
-	_check_result_message_copy("经营操作/机库/保存预设", saved)
-	if _failed:
-		return
-	var preset: Dictionary = saved.get("preset", {})
-	_check_copy("经营操作/机库/默认预设名", String(preset.get("name", "")), true)
-	if _failed:
-		return
-	_check_result_message_copy("经营操作/机库/非法读取槽", RunManager.apply_loadout_preset(-1))
-	if _failed:
-		return
-	_check_result_message_copy("经营操作/机库/空预设槽", RunManager.apply_loadout_preset(1))
-	if _failed:
-		return
-	_check_result_message_copy("经营操作/机库/读取预设", RunManager.apply_loadout_preset(0))
-	if _failed:
-		return
-
 
 func _check_result_message_copy(label: String, result: Dictionary) -> void:
 	if not result.has("message"):

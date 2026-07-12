@@ -1984,6 +1984,7 @@ func ease_in(t: float) -> float:
 
 func _setup_bgm() -> void:
 	bgm_player = AudioStreamPlayer.new()
+	bgm_player.bus = &"Music"
 	bgm_player.stream = BOSS_BGM
 	bgm_player.volume_db = -10
 	add_child(bgm_player)
@@ -2214,6 +2215,12 @@ func _die() -> void:
 	_death_particle_color = _theme_color(1.0)
 	bgm_player.stop()
 	GameManager.resume_bgm()
+	for area_node in find_children("*", "Area2D", true, false):
+		var area := area_node as Area2D
+		area.set_deferred("monitoring", false)
+		area.set_deferred("monitorable", false)
+		area.set_deferred("collision_layer", 0)
+		area.set_deferred("collision_mask", 0)
 	for tw in _skill_tweens:
 		if is_instance_valid(tw) and tw.is_valid():
 			tw.kill()
@@ -2241,7 +2248,8 @@ func _death_process(delta: float) -> void:
 	if death_timer >= DEATH_DURATION and not won:
 		won = true
 		_spawn_final_death_particles()
-		queue_free()
+		visible = false
+		set_process(false)
 		_return_to_menu()
 
 
@@ -2906,9 +2914,9 @@ func _play_sfx(audio: AudioStream, vol_db: float = 0.0) -> void:
 	if dying:
 		return
 	var p = AudioStreamPlayer.new()
+	p.bus = &"SFX"
 	p.stream = audio
 	p.volume_db = vol_db
-	p.bus = &"Master"
 	p.finished.connect(p.queue_free)
 	add_child(p)
 	p.play()
@@ -2917,9 +2925,6 @@ func _play_sfx(audio: AudioStream, vol_db: float = 0.0) -> void:
 func _spawn_explosion(pos: Vector2, scale_val: float = 1.0) -> void:
 	var exp = Sprite2D.new()
 	exp.texture = EXPLOSION_TEX
-	exp.hframes = 8
-	exp.vframes = 1
-	exp.frame = 0
 	exp.position = pos
 	exp.scale = Vector2(scale_val, scale_val)
 	exp.z_index = 200
@@ -2931,9 +2936,14 @@ func _create_debris(pos: Vector2, lifetime: float = 2.0) -> void:
 	var d = Sprite2D.new()
 	d.texture = DEBRIS_TEX
 	d.position = pos
-	d.scale = Vector2(randf_range(0.5, 2.0), randf_range(0.5, 2.0))
+	var debris_scale := randf_range(0.05, 0.09)
+	d.scale = Vector2(debris_scale, debris_scale)
 	d.rotation = randf_range(0, TAU)
+	d.region_enabled = true
+	d.region_rect = Rect2(randi_range(0, 1) * 512, randi_range(0, 1) * 512, 512, 512)
 	d.z_index = 180
 	d.set_script(DebrisScript)
 	d.lifetime = lifetime
+	d.velocity = Vector2.RIGHT.rotated(randf_range(0.0, TAU)) * randf_range(140.0, 360.0)
+	d.rotation_speed = randf_range(-9.0, 9.0)
 	get_tree().current_scene.add_child(d)

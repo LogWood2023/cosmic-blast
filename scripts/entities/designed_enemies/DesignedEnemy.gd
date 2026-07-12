@@ -1099,6 +1099,8 @@ func _die() -> void:
 		GameManager.add_score(100)
 		_deactivate_core_devourer_gravity_claw()
 		return
+	# 奖励箱替换精英与巡逻精英使用不同的生成方式，但都会经过这里。
+	RunManager.record_route_directive_elite_kill(int(behavior))
 	if _explore_pool_enabled and _explore_pool_active:
 		GameManager.add_score(100)
 		GameManager.on_enemy_killed()

@@ -99,6 +99,7 @@ func _spawn_explosion_vfx() -> void:
 
 func _play_explode_sfx() -> void:
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = EXPLODE_SFX
 	sfx.volume_db = -12
 	get_tree().current_scene.add_child(sfx)

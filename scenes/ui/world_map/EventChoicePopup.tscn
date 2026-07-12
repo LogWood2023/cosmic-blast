@@ -50,6 +50,18 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_f82qx")
 
+[node name="EventBackground" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+modulate = Color(1, 1, 1, 0.78)
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
 [node name="Shade" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -57,7 +69,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.005, 0.008, 0.012, 0.72)
+color = Color(0.005, 0.008, 0.012, 0.42)
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1

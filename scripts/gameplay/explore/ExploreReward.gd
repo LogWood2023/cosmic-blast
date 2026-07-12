@@ -359,6 +359,7 @@ func _play_hit_feedback() -> void:
 
 func _break() -> void:
 	_broken = true
+	set_meta(&"reward_depleted", true)
 	if RunManager.is_formal_run_active():
 		_drop_run_loot()
 	set_deferred("monitoring", false)
@@ -513,6 +514,7 @@ func _play_sfx(stream: AudioStream) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = stream
 	var scene = get_tree().current_scene
 	if scene:

@@ -93,21 +93,19 @@ func _check_shop_guidance_ui() -> void:
 	add_child(popup)
 	popup.call("setup")
 	await get_tree().process_frame
-	var bar := popup.get_node_or_null("Panel/ShopGuidanceBar") as VBoxContainer
-	if bar == null:
-		_fail("Shop popup should expose Panel/ShopGuidanceBar.")
+	if popup.get_node_or_null("Panel/ShopGuidanceBar") != null:
+		_fail("Shop guidance should not occupy a separate bar in the audited layout.")
 		popup.queue_free()
 		return
-	var title_label := bar.get_node_or_null("ShopGuidanceTitle") as Label
-	var detail_label := bar.get_node_or_null("ShopGuidanceDetail") as Label
-	if title_label == null or detail_label == null:
-		_fail("Shop guidance bar should include title and detail labels.")
+	var focus_option := popup.get_node_or_null("Panel/ControlsBar/FamilyFocusOption") as OptionButton
+	if focus_option == null:
+		_fail("Shop popup should expose the family focus control.")
 		popup.queue_free()
 		return
-	var combined := "%s\n%s" % [title_label.text, detail_label.text]
+	var combined := focus_option.tooltip_text
 	for expected in ["采购校准", "星间巨构", "货单"]:
 		if not combined.contains(expected):
-			_fail("Shop guidance UI should include %s, got: %s" % [expected, combined])
+			_fail("Shop guidance tooltip should include %s, got: %s" % [expected, combined])
 			popup.queue_free()
 			return
 	if _contains_ascii_identifier(combined):

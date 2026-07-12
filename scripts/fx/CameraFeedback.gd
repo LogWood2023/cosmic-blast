@@ -11,6 +11,7 @@ const TRAUMA_DECAY := 2.6                # trauma 每秒线性衰减
 const MAX_OFFSET := Vector2(26.0, 18.0)  # trauma=1 时的最大偏移
 
 var _trauma: float = 0.0
+var intensity_scale: float = 1.0
 var _shaking_cam: Camera2D               # 上一帧被写过 offset 的相机，结束时归零
 # headless 自检环境无渲染、无激活相机，震动无意义，直接跳过
 @onready var _disabled: bool = DisplayServer.get_name() == "headless"
@@ -29,7 +30,7 @@ func _process(delta: float) -> void:
 		return
 	if _trauma <= 0.0:
 		return
-	var amount := _trauma * _trauma
+	var amount := _trauma * _trauma * intensity_scale
 	cam.offset = Vector2(
 		randf_range(-1.0, 1.0) * MAX_OFFSET.x * amount,
 		randf_range(-1.0, 1.0) * MAX_OFFSET.y * amount

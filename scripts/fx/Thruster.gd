@@ -8,7 +8,8 @@ const LIFETIME := 0.34
 
 
 func _ready() -> void:
-	amount = AMOUNT
+	add_to_group(&"quality_particles")
+	apply_quality()
 	lifetime = LIFETIME
 	local_coords = true          # 火焰随机体旋转，始终朝机尾
 	texture = _make_dot()
@@ -17,6 +18,10 @@ func _ready() -> void:
 	cim.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	material = cim
 	emitting = true
+
+
+func apply_quality() -> void:
+	amount = AMOUNT if not SettingsManager.reduced_effects else 12
 
 
 func _make_dot() -> GradientTexture2D:

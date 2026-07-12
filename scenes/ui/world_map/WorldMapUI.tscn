@@ -1,6 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/app/WorldMap.gd" id="1_worldmap"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/settings_gear.svg" id="2_settings"]
+[ext_resource type="Script" path="res://scripts/ui/world_map/WorldMapViewport.gd" id="3_map_viewport"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/star_marrow.svg" id="4_star_marrow"]
+[ext_resource type="Script" path="res://scripts/ui/world_map/EnemyFamilyWeightPie.gd" id="5_enemy_family_weight_pie"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 bg_color = Color(0.02745098, 0.0627451, 0.09411765, 0.9)
@@ -68,12 +72,41 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_worldmap")
 
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.012, 0.018, 0.04, 1)
+
+[node name="MapViewport" type="Control" parent="."]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 53.0
+offset_top = 166.0
+offset_right = -518.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+tooltip_text = "拖拽平移，滚轮缩放"
+script = ExtResource("3_map_viewport")
+
 [node name="TopBar" type="Panel" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
 offset_left = 44.0
 offset_top = 30.0
-offset_right = 1392.0
+offset_right = -528.0
 offset_bottom = 132.0
+grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
 [node name="TitleLabel" type="Label" parent="TopBar"]
@@ -101,11 +134,17 @@ theme_override_font_sizes/font_size = 22
 text = "危机 0   算力 0/5   星髓矿 0"
 
 [node name="DetailsPanel" type="Panel" parent="."]
-layout_mode = 0
-offset_left = 1428.0
-offset_top = 30.0
-offset_right = 1880.0
-offset_bottom = 982.0
+layout_mode = 1
+anchors_preset = 9
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -492.0
+offset_top = 98.0
+offset_right = -40.0
+offset_bottom = -30.0
+grow_horizontal = 0
+grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
 [node name="DetailsTitle" type="Label" parent="DetailsPanel"]
@@ -124,7 +163,7 @@ layout_mode = 0
 offset_left = 24.0
 offset_top = 88.0
 offset_right = 428.0
-offset_bottom = 606.0
+offset_bottom = 540.0
 theme_override_styles/panel = SubResource("StyleBox_details_body")
 
 [node name="DetailsBody" type="RichTextLabel" parent="DetailsPanel"]
@@ -132,22 +171,170 @@ layout_mode = 0
 offset_left = 42.0
 offset_top = 106.0
 offset_right = 410.0
-offset_bottom = 586.0
+offset_bottom = 520.0
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = true
+scroll_following = false
 theme_override_colors/default_color = Color(0.82, 0.9, 0.95, 1)
 theme_override_font_sizes/normal_font_size = 20
 theme_override_font_sizes/bold_font_size = 20
 text = ""
 
-[node name="ShopButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(130, 52)
+[node name="EnemyFamilyWeightTitle" type="Label" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 226.0
+offset_right = 410.0
+offset_bottom = 254.0
+theme_override_colors/font_color = Color(0.32156864, 0.9098039, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "五系敌人权重"
+horizontal_alignment = 1
+
+[node name="EnemyFamilyWeightPie" type="Control" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 117.0
+offset_top = 256.0
+offset_right = 335.0
+offset_bottom = 474.0
+mouse_filter = 0
+tooltip_text = ""
+script = ExtResource("5_enemy_family_weight_pie")
+
+[node name="EnemyFamilyWeightHint" type="Label" parent="DetailsPanel"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 480.0
+offset_right = 410.0
+offset_bottom = 514.0
+theme_override_colors/font_color = Color(0.82, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 16
+text = "将鼠标移至扇区，查看敌人系列与权重占比。"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="RouteDirectivePanel" type="Panel" parent="DetailsPanel"]
 layout_mode = 0
 offset_left = 24.0
-offset_top = 704.0
-offset_right = 154.0
-offset_bottom = 756.0
+offset_top = 556.0
+offset_right = 428.0
+offset_bottom = 772.0
+theme_override_styles/panel = SubResource("StyleBox_details_body")
+
+[node name="Title" type="Label" parent="DetailsPanel/RouteDirectivePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 388.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 20
+text = "悬赏指令"
+
+[node name="Row1" type="HBoxContainer" parent="DetailsPanel/RouteDirectivePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 52.0
+offset_right = 388.0
+offset_bottom = 96.0
+theme_override_constants/separation = 8
+
+[node name="Task" type="Label" parent="DetailsPanel/RouteDirectivePanel/Row1"]
+custom_minimum_size = Vector2(270, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.82, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 16
+text = "击毁精英敌机（协议下属）"
+vertical_alignment = 1
+
+[node name="MineralIcon" type="TextureRect" parent="DetailsPanel/RouteDirectivePanel/Row1"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("4_star_marrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Reward" type="Label" parent="DetailsPanel/RouteDirectivePanel/Row1"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 18
+text = "300"
+vertical_alignment = 1
+
+[node name="Row2" type="HBoxContainer" parent="DetailsPanel/RouteDirectivePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 108.0
+offset_right = 388.0
+offset_bottom = 152.0
+theme_override_constants/separation = 8
+
+[node name="Task" type="Label" parent="DetailsPanel/RouteDirectivePanel/Row2"]
+custom_minimum_size = Vector2(270, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.82, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 16
+text = "击毁精英敌机（协议下属）"
+vertical_alignment = 1
+
+[node name="MineralIcon" type="TextureRect" parent="DetailsPanel/RouteDirectivePanel/Row2"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("4_star_marrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Reward" type="Label" parent="DetailsPanel/RouteDirectivePanel/Row2"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 18
+text = "300"
+vertical_alignment = 1
+
+[node name="Row3" type="HBoxContainer" parent="DetailsPanel/RouteDirectivePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 164.0
+offset_right = 388.0
+offset_bottom = 208.0
+theme_override_constants/separation = 8
+
+[node name="Task" type="Label" parent="DetailsPanel/RouteDirectivePanel/Row3"]
+custom_minimum_size = Vector2(270, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.82, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 16
+text = "击毁精英敌机（协议下属）"
+vertical_alignment = 1
+
+[node name="MineralIcon" type="TextureRect" parent="DetailsPanel/RouteDirectivePanel/Row3"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("4_star_marrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Reward" type="Label" parent="DetailsPanel/RouteDirectivePanel/Row3"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72156864, 0.3019608, 1)
+theme_override_font_sizes/font_size = 18
+text = "300"
+vertical_alignment = 1
+
+[node name="ShopButton" type="Button" parent="DetailsPanel"]
+custom_minimum_size = Vector2(249, 52)
+layout_mode = 0
+offset_left = 179.0
+offset_top = 868.0
+offset_right = 428.0
+offset_bottom = 920.0
 theme_override_colors/font_color = Color(0.98, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBox_button")
@@ -157,12 +344,12 @@ theme_override_styles/focus = SubResource("StyleBox_button_hover")
 text = "商店"
 
 [node name="HangarButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(130, 52)
+custom_minimum_size = Vector2(249, 52)
 layout_mode = 0
-offset_left = 161.0
-offset_top = 704.0
-offset_right = 291.0
-offset_bottom = 756.0
+offset_left = 179.0
+offset_top = 797.0
+offset_right = 428.0
+offset_bottom = 849.0
 theme_override_colors/font_color = Color(0.98, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBox_button")
@@ -171,28 +358,13 @@ theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
 theme_override_styles/focus = SubResource("StyleBox_button_hover")
 text = "机库"
 
-[node name="ArchiveButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(130, 52)
-layout_mode = 0
-offset_left = 298.0
-offset_top = 704.0
-offset_right = 428.0
-offset_bottom = 756.0
-theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBox_button")
-theme_override_styles/hover = SubResource("StyleBox_button_hover")
-theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
-theme_override_styles/focus = SubResource("StyleBox_button_hover")
-text = "纹章档案"
-
-[node name="EnterButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(404, 64)
+[node name="ActionButton" type="Button" parent="DetailsPanel"]
+custom_minimum_size = Vector2(137, 123)
 layout_mode = 0
 offset_left = 24.0
-offset_top = 790.0
-offset_right = 428.0
-offset_bottom = 854.0
+offset_top = 797.0
+offset_right = 161.0
+offset_bottom = 920.0
 theme_override_colors/font_color = Color(0.98, 1, 1, 1)
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBox_button")
@@ -201,35 +373,57 @@ theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
 theme_override_styles/focus = SubResource("StyleBox_button_hover")
 text = "进入节点"
 
-[node name="MessagePanel" type="Panel" parent="."]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 984.0
-offset_right = 1392.0
-offset_bottom = 1044.0
-theme_override_styles/panel = SubResource("StyleBox_panel")
-
 [node name="MessageLabel" type="Label" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 72.0
-offset_top = 1000.0
-offset_right = 1348.0
-offset_bottom = 1032.0
+offset_top = -62.0
+offset_right = -548.0
+offset_bottom = -34.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(0.84, 0.94, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_outline_color = Color(0.005, 0.01, 0.02, 0.95)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
 text = ""
+horizontal_alignment = 2
+text_overrun_behavior = 3
 
-[node name="BackButton" type="Button" parent="."]
-custom_minimum_size = Vector2(190, 52)
-layout_mode = 0
-offset_left = 1690.0
-offset_top = 1000.0
-offset_right = 1880.0
-offset_bottom = 1052.0
+[node name="SettingsButton" type="Button" parent="."]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -104.0
+offset_top = 26.0
+offset_right = -40.0
+offset_bottom = 90.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBox_button")
 theme_override_styles/hover = SubResource("StyleBox_button_hover")
 theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
 theme_override_styles/focus = SubResource("StyleBox_button_hover")
-text = "返回主菜单"
+text = ""
+tooltip_text = "设置"
+
+[node name="Icon" type="TextureRect" parent="SettingsButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_settings")
+expand_mode = 1
+stretch_mode = 5

@@ -8,7 +8,8 @@ const LIFETIME := 0.6
 
 
 func _ready() -> void:
-	amount = AMOUNT
+	add_to_group(&"quality_particles")
+	apply_quality()
 	lifetime = LIFETIME
 	local_coords = true          # 涡旋随机体移动，围绕机身
 	emitting = false
@@ -17,6 +18,10 @@ func _ready() -> void:
 	var cim := CanvasItemMaterial.new()
 	cim.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	material = cim
+
+
+func apply_quality() -> void:
+	amount = AMOUNT if not SettingsManager.reduced_effects else 18
 
 
 func _process(_delta: float) -> void:

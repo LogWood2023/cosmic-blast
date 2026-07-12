@@ -105,16 +105,28 @@ text = "执行体肃清"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RewardRow" parent="Panel" instance=ExtResource("2_reward_row")]
-custom_minimum_size = Vector2(0, 154)
+[node name="RewardRows" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 56.0
 offset_top = 120.0
 offset_right = -56.0
-offset_bottom = 274.0
+offset_bottom = 590.0
 grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="CandidateRow1" parent="Panel/RewardRows" instance=ExtResource("2_reward_row")]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+
+[node name="CandidateRow2" parent="Panel/RewardRows" instance=ExtResource("2_reward_row")]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+
+[node name="CandidateRow3" parent="Panel/RewardRows" instance=ExtResource("2_reward_row")]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
 
 [node name="BodyLabel" type="RichTextLabel" parent="Panel"]
 layout_mode = 1
@@ -122,37 +134,15 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 58.0
-offset_top = 294.0
+offset_top = 606.0
 offset_right = -58.0
-offset_bottom = -112.0
+offset_bottom = -32.0
 grow_horizontal = 2
 grow_vertical = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = true
 theme_override_colors/default_color = Color(0.88, 0.93, 0.98, 1)
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 22
-text = "缴获纹章已封存。"
-
-[node name="CloseButton" type="Button" parent="Panel"]
-custom_minimum_size = Vector2(272, 60)
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -136.0
-offset_top = -84.0
-offset_right = 136.0
-offset_bottom = -24.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.98, 1, 1, 1)
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-text = "收入机库"
+theme_override_font_sizes/normal_font_size = 20
+theme_override_font_sizes/bold_font_size = 20
+text = "请选择一项执行体缴获。"

@@ -5,6 +5,8 @@ const REQUIRED_SPECIAL_COUNT: int = 7
 const REQUIRED_INTEL_VARIETY: int = 4
 const REQUIRED_MODIFIER_VARIETY: int = 5
 const REQUIRED_OPPORTUNITY_VARIETY: int = 5
+const REQUIRED_MAP_WIDTH: float = 1250.0
+const REQUIRED_NODE_DISTANCE: float = 118.0
 
 var _failed: bool = false
 
@@ -15,6 +17,9 @@ func _ready() -> void:
 
 func _run() -> void:
 	RunManager.start_new_run()
+	_check_map_layout()
+	if _failed:
+		return
 	_check_map_node_variety()
 	if _failed:
 		return
@@ -32,6 +37,35 @@ func _run() -> void:
 		return
 	print("World map variety check passed.")
 	get_tree().quit(0)
+
+
+func _check_map_layout() -> void:
+	if RunManager.map_nodes.is_empty():
+		_fail("World map should generate nodes before layout validation.")
+		return
+	var first_position: Vector2 = RunManager.map_nodes[0].get("position", Vector2.ZERO)
+	var min_x := first_position.x
+	var max_x := first_position.x
+	for node_index in range(RunManager.map_nodes.size()):
+		var node: Dictionary = RunManager.map_nodes[node_index]
+		var node_position: Vector2 = node.get("position", Vector2.ZERO)
+		if not node_position.is_finite():
+			_fail("World map node %d should have a finite position." % int(node.get("id", node_index)))
+			return
+		min_x = minf(min_x, node_position.x)
+		max_x = maxf(max_x, node_position.x)
+		for other_index in range(node_index):
+			var other_position: Vector2 = RunManager.map_nodes[other_index].get("position", Vector2.ZERO)
+			var distance := node_position.distance_to(other_position)
+			if distance + 0.01 < REQUIRED_NODE_DISTANCE:
+				_fail(
+					"World map nodes %d and %d overlap: distance %.2f, required %.2f."
+					% [int(node.get("id", node_index)), int(RunManager.map_nodes[other_index].get("id", other_index)), distance, REQUIRED_NODE_DISTANCE]
+				)
+				return
+	var map_width := max_x - min_x
+	if map_width < REQUIRED_MAP_WIDTH:
+		_fail("World map should be at least %.0f units wide, got %.2f." % [REQUIRED_MAP_WIDTH, map_width])
 
 
 func _check_map_node_variety() -> void:

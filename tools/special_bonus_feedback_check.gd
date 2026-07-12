@@ -1,7 +1,6 @@
 extends Node
 
 
-const EVENT_RESULT_POPUP_SCENE := preload("res://scenes/ui/world_map/EventResultPopup.tscn")
 const WORLD_MAP_SCENE := preload("res://scenes/app/WorldMap.tscn")
 
 var _failed: bool = false
@@ -14,9 +13,6 @@ func _ready() -> void:
 func _run() -> void:
 	RunManager.start_new_run()
 	_check_bonus_display_names()
-	if _failed:
-		return
-	_check_event_popup_uses_bonus_display_name()
 	if _failed:
 		return
 	await _check_world_map_reports_activated_bonus()
@@ -52,27 +48,6 @@ func _check_bonus_display_names() -> void:
 	if _contains_ascii_letter(display_name):
 		_fail("Special bonus display name should be Chinese copy: %s" % display_name)
 		return
-
-
-func _check_event_popup_uses_bonus_display_name() -> void:
-	var popup := EVENT_RESULT_POPUP_SCENE.instantiate()
-	add_child(popup)
-	popup.call("setup", {
-		"ok": true,
-		"event_title": "远距信标同步",
-		"event_category": "special",
-		"message": "方舟核心捕获到远距信标的回响。",
-		"special_bonus_id": "colossus_charge_beacon",
-	})
-	var body := popup.get_node("Panel/BodyLabel") as RichTextLabel
-	var text := body.text
-	if text.contains("colossus_charge_beacon"):
-		_fail("Event result popup should not expose special bonus ids: %s" % text)
-		return
-	if not text.contains("冲刺碰撞协议"):
-		_fail("Event result popup should show special bonus display name: %s" % text)
-		return
-	popup.queue_free()
 
 
 func _check_world_map_reports_activated_bonus() -> void:

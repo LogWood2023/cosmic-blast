@@ -3,12 +3,13 @@ extends Sprite2D
 
 var velocity: Vector2
 var rotation_speed: float
+var lifetime: float = 1.0
 
 
 func _ready() -> void:
-	# 淡出动画：1 秒内透明度降到 0，然后销毁
+	# 按生成器指定的生命周期淡出，然后销毁。
 	var tween: Tween = get_tree().create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 1.0)
+	tween.tween_property(self, "modulate:a", 0.0, maxf(lifetime, 0.05))
 	tween.tween_callback(queue_free)
 
 

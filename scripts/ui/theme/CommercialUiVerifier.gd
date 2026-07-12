@@ -23,7 +23,6 @@ const MOTION_BINDING_SCRIPTS := [
 	"res://scripts/ui/main_menu/SettingsPopup.gd",
 	"res://scripts/ui/world_map/ShopPopup.gd",
 	"res://scripts/ui/world_map/HangarPopup.gd",
-	"res://scripts/ui/world_map/EventResultPopup.gd",
 	"res://scripts/ui/world_map/EquipmentItemRow.gd",
 	"res://scripts/ui/EvacuationSuccessHUD.gd",
 ]
@@ -31,7 +30,6 @@ const PANEL_ENTER_SCRIPTS := [
 	"res://scripts/ui/main_menu/SettingsPopup.gd",
 	"res://scripts/ui/world_map/ShopPopup.gd",
 	"res://scripts/ui/world_map/HangarPopup.gd",
-	"res://scripts/ui/world_map/EventResultPopup.gd",
 	"res://scripts/ui/EvacuationSuccessHUD.gd",
 ]
 
@@ -312,9 +310,9 @@ func _check_motion_bindings() -> void:
 
 
 func _check_charm_equipment_ui() -> void:
-	_require_scene_text("res://scenes/ui/world_map/EquipmentItemRow.tscn", ["CrestSlot", "CrestMark", "NotchRow", "ActionButton"])
+	_require_scene_text("res://scenes/ui/world_map/EquipmentItemRow.tscn", ["CrestSlot", "IconTexture", "CategoryLabel", "EffectLabel", "FlavorLabel", "CardButton", "ActionButton"])
 	_require_scene_text("res://scenes/ui/world_map/HangarPopup.tscn", ["CharmBay", "CharmSlots", "ItemsScroll", "CloseButton"])
-	_require_scene_text("res://scripts/ui/world_map/HangarPopup.gd", ["_refresh_charm_slots", "辅助机", "算力"])
+	_require_scene_text("res://scripts/ui/world_map/HangarPopup.gd", ["_refresh_compute_slots", "辅助机", "算力"])
 
 
 func _require_scene_text(path: String, required: Array) -> void:

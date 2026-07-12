@@ -11,7 +11,8 @@ static var _shared_tex: GradientTexture2D
 
 
 func _ready() -> void:
-	amount = AMOUNT
+	add_to_group(&"quality_particles")
+	apply_quality()
 	lifetime = LIFETIME
 	local_coords = false          # 世界空间：光点飞行时留下尾迹
 	texture = _get_tex()
@@ -20,6 +21,10 @@ func _ready() -> void:
 	cim.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	material = cim
 	emitting = true
+
+
+func apply_quality() -> void:
+	amount = AMOUNT if not SettingsManager.reduced_effects else 8
 
 
 static func _get_tex() -> GradientTexture2D:

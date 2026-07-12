@@ -58,10 +58,12 @@ var _test_seq_index: int = 0
 
 # ═══════════ 死亡 ═══════════
 const DEATH_DURATION: float = 5.0
+const DEATH_PARTICLE_TARGET: int = 180
 var death_timer: float = 0.0
 var death_explosion_cd: float = 0.0
 var death_sfx_cd: float = 0.0
 var won: bool = false
+var _death_particles_emitted: int = 0
 
 # ═══════════ BGM ═══════════
 var bgm_player: AudioStreamPlayer
@@ -1001,6 +1003,23 @@ func _skill_4_ensure_overlay() -> void:
 	_skill_4_overlay_timer = 0.0
 
 
+func _dispose_skill_4_overlay() -> void:
+	GameManager.controls_inverted = false
+	_cleanup_error_texts()
+	if is_instance_valid(_skill_4_overlay_rect):
+		# The screen shader outputs opaque pixels even when ColorRect alpha is zero.
+		# Detach it synchronously before queue_free() so no gray capture frame leaks.
+		_skill_4_overlay_rect.visible = false
+		_skill_4_overlay_rect.material = null
+	if is_instance_valid(_skill_4_overlay):
+		_skill_4_overlay.visible = false
+		_skill_4_overlay.queue_free()
+	_skill_4_overlay = null
+	_skill_4_overlay_rect = null
+	_skill_4_overlay_mat = null
+	_skill_4_overlay_state = 0
+
+
 func _update_skill_4_overlay(delta: float) -> void:
 	if not is_instance_valid(_skill_4_overlay_rect):
 		_skill_4_overlay_state = 0
@@ -1030,13 +1049,7 @@ func _update_skill_4_overlay(delta: float) -> void:
 			if _skill_4_overlay_mat:
 				_skill_4_overlay_mat.set_shader_parameter(&"strength", t * 3.0)
 			if t <= 0.0:
-				GameManager.controls_inverted = false
-				_cleanup_error_texts()
-				_skill_4_overlay.queue_free()
-				_skill_4_overlay = null
-				_skill_4_overlay_rect = null
-				_skill_4_overlay_mat = null
-				_skill_4_overlay_state = 0
+				_dispose_skill_4_overlay()
 
 
 func _draw_skill_4_ring() -> void:
@@ -1284,6 +1297,7 @@ func _die() -> void:
 	is_executing = false
 	death_timer = 0.0
 	_death_particle_timer = 0.0
+	_death_particles_emitted = 0
 	bgm_player.stop()
 	GameManager.resume_bgm()
 	for tw in _skill_tweens:
@@ -1295,10 +1309,13 @@ func _die() -> void:
 		_whisper_player.stop()
 	_reset_screen_shake()
 	_cleanup_error_texts()
-	if is_instance_valid(_skill_4_overlay):
-		_skill_4_overlay.queue_free()
-	_skill_4_overlay = null
-	GameManager.controls_inverted = false
+	_dispose_skill_4_overlay()
+	for area_node in find_children("*", "Area2D", true, false):
+		var area := area_node as Area2D
+		area.set_deferred("monitoring", false)
+		area.set_deferred("monitorable", false)
+		area.set_deferred("collision_layer", 0)
+		area.set_deferred("collision_mask", 0)
 
 
 func _death_process(delta: float) -> void:
@@ -1319,6 +1336,7 @@ func _death_process(delta: float) -> void:
 				p.rotation = randf_range(0, TAU)
 				p.z_index = 2000
 				get_tree().current_scene.add_child(p)
+				_death_particles_emitted += 1
 				var dur = randf_range(0.5, 1.2)
 				var tw = get_tree().create_tween().bind_node(p)
 				tw.tween_property(p, "modulate:a", 0.0, dur)
@@ -1330,9 +1348,10 @@ func _death_process(delta: float) -> void:
 
 	_shake_hell_eye_parts()
 
-	if death_timer >= DEATH_DURATION and not won:
+	if death_timer >= DEATH_DURATION and _death_particles_emitted >= DEATH_PARTICLE_TARGET and not won:
 		won = true
-		_spawn_final_particles()
+		_spawn_final_blast()
+		visible = false
 		_return_to_menu()
 
 
@@ -1352,6 +1371,16 @@ func _shake_hell_eye_parts() -> void:
 		_nebula_sprite.position = nebula_offset + Vector2(randf_range(-15, 15), randf_range(-10, 10))
 	if is_instance_valid(body_sprite):
 		body_sprite.position = eyeball_offset + Vector2(randf_range(-15, 15), randf_range(-10, 10))
+
+
+func _spawn_final_blast() -> void:
+	_play_sfx(EXPLOSION_SFX, 0.0)
+	CameraFeedback.add_trauma(1.0)
+	# One dominant blast is the clear punctuation; debris and sparks sell disintegration.
+	_spawn_explosion(global_position, 1.35, 2500)
+	for _i in range(18):
+		_spawn_debris(global_position + Vector2(randf_range(-90.0, 90.0), randf_range(-65.0, 65.0)), 4.0)
+	_spawn_final_particles()
 
 
 func _spawn_final_particles() -> void:
@@ -1391,6 +1420,7 @@ func _ready() -> void:
 	max_hp = 1000
 	boss_hp = max_hp
 	bgm_player = AudioStreamPlayer.new()
+	bgm_player.bus = &"Music"
 	bgm_player.stream = HELL_EYE_BGM
 	bgm_player.volume_db = -10
 	add_child(bgm_player)
@@ -1402,6 +1432,7 @@ func _ready() -> void:
 	_get_death_particle_tex()
 	
 	_whisper_player = AudioStreamPlayer.new()
+	_whisper_player.bus = &"SFX"
 	_whisper_player.stream = ROAR_SFX
 	_whisper_player.volume_db = -18
 	_whisper_player.pitch_scale = 0.5
@@ -1468,9 +1499,9 @@ func _play_sfx(audio: AudioStream, vol_db: float = 0.0) -> void:
 	if dying:
 		return
 	var p = AudioStreamPlayer.new()
+	p.bus = &"SFX"
 	p.stream = audio
 	p.volume_db = vol_db
-	p.bus = &"Master"
 	p.finished.connect(p.queue_free)
 	add_child(p)
 	p.play()
@@ -1503,15 +1534,12 @@ func _create_entrance_overlay() -> void:
 	overlay_layer.add_child(overlay_label)
 
 
-func _spawn_explosion(pos: Vector2, scale_val: float = 1.0) -> void:
+func _spawn_explosion(pos: Vector2, scale_val: float = 1.0, draw_order: int = 200) -> void:
 	var exp = Sprite2D.new()
 	exp.texture = EXPLOSION_TEX
-	exp.hframes = 8
-	exp.vframes = 1
-	exp.frame = 0
 	exp.position = pos
 	exp.scale = Vector2(scale_val, scale_val)
-	exp.z_index = 200
+	exp.z_index = draw_order
 	exp.set_script(ExplosionScript)
 	get_tree().current_scene.add_child(exp)
 
@@ -1522,17 +1550,23 @@ func _spawn_skill6_explosion(pos: Vector2) -> void:
 		_spawn_debris(pos, 4.0)
 
 
-func _create_debris(pos: Vector2, lifetime: float = 2.0) -> void:
+func _create_debris(pos: Vector2, lifetime: float = 2.0, scale_val: float = 1.0) -> void:
 	var d = Sprite2D.new()
 	d.texture = DEBRIS_TEX
 	d.position = pos
-	d.scale = Vector2(randf_range(0.5, 2.0), randf_range(0.5, 2.0))
+	var size_multiplier := clampf(sqrt(maxf(scale_val, 1.0)), 1.0, 1.5)
+	var debris_scale := randf_range(0.05, 0.09) * size_multiplier
+	d.scale = Vector2(debris_scale, debris_scale)
 	d.rotation = randf_range(0, TAU)
+	d.region_enabled = true
+	d.region_rect = Rect2(randi_range(0, 1) * 512, randi_range(0, 1) * 512, 512, 512)
 	d.z_index = 180
 	d.set_script(DebrisScript)
 	d.lifetime = lifetime
+	d.velocity = Vector2.RIGHT.rotated(randf_range(0.0, TAU)) * randf_range(140.0, 360.0)
+	d.rotation_speed = randf_range(-9.0, 9.0)
 	get_tree().current_scene.add_child(d)
 
 
 func _spawn_debris(pos: Vector2, scale_val: float = 1.0) -> void:
-	_create_debris(pos, 2.0)
+	_create_debris(pos, 2.0, scale_val)

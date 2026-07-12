@@ -1,0 +1,3 @@
+sandbox_mode = "danger-full-access"
+[mcp_servers.godot]
+url = "http://localhost:9080/mcp"

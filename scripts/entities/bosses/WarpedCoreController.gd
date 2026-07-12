@@ -257,6 +257,7 @@ func _setup_orbiters() -> void:
 
 func _setup_bgm() -> void:
 	bgm_player = AudioStreamPlayer.new()
+	bgm_player.bus = &"Music"
 	bgm_player.stream = BOSS_BGM
 	bgm_player.volume_db = -10
 	add_child(bgm_player)
@@ -1741,6 +1742,12 @@ func _die() -> void:
 	death_sfx_cd = 0.0
 	bgm_player.stop()
 	GameManager.resume_bgm()
+	for area_node in find_children("*", "Area2D", true, false):
+		var area := area_node as Area2D
+		area.set_deferred("monitoring", false)
+		area.set_deferred("monitorable", false)
+		area.set_deferred("collision_layer", 0)
+		area.set_deferred("collision_mask", 0)
 
 	for tw in _skill_tweens:
 		if is_instance_valid(tw) and tw.is_valid():
@@ -1779,7 +1786,11 @@ func _death_process(delta: float) -> void:
 	if death_timer >= DEATH_DURATION and not won:
 		won = true
 		_spawn_final_explosion()
-		queue_free()
+		var camera := get_viewport().get_camera_2d()
+		if camera:
+			camera.offset = Vector2.ZERO
+		visible = false
+		set_process(false)
 		_return_to_menu()
 
 
@@ -1907,6 +1918,7 @@ func _start_bgm() -> void:
 
 func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
 	var sfx = AudioStreamPlayer.new()
+	sfx.bus = &"SFX"
 	sfx.stream = stream
 	sfx.volume_db = volume_db
 	get_tree().current_scene.add_child(sfx)

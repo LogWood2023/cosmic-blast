@@ -2,25 +2,12 @@ extends Control
 
 const SHOP_POPUP_SCENE := preload("res://scenes/ui/world_map/ShopPopup.tscn")
 const HANGAR_POPUP_SCENE := preload("res://scenes/ui/world_map/HangarPopup.tscn")
-const EQUIPMENT_ARCHIVE_POPUP_SCENE := preload("res://scenes/ui/world_map/EquipmentArchivePopup.tscn")
 const EVENT_CHOICE_POPUP_SCENE := preload("res://scenes/ui/world_map/EventChoicePopup.tscn")
-const EVENT_RESULT_POPUP_SCENE := preload("res://scenes/ui/world_map/EventResultPopup.tscn")
 const REWARD_CACHE_CHOICE_POPUP_SCENE := preload("res://scenes/ui/world_map/RewardCacheChoicePopup.tscn")
 const BOSS_REWARD_POPUP_SCENE := preload("res://scenes/ui/world_map/BossRewardPopup.tscn")
 const SPECIAL_BONUS_POPUP_SCENE := preload("res://scenes/ui/world_map/SpecialBonusPopup.tscn")
-const ROUTE_DIRECTIVE_POPUP_SCENE := preload("res://scenes/ui/world_map/RouteDirectivePopup.tscn")
+const SETTINGS_POPUP_SCENE := preload("res://scenes/ui/main_menu/SettingsPopup.tscn")
 const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
-
-const NODE_RADIUS: float = 24.0
-const CENTER_RADIUS: float = 38.0
-const NODE_COLOR_LOCKED: Color = Color(0.12, 0.16, 0.24, 1.0)
-const NODE_COLOR_READY: Color = Color(0.20, 0.78, 1.0, 1.0)
-const NODE_COLOR_DONE: Color = Color(0.22, 0.86, 0.48, 1.0)
-const NODE_COLOR_BASE: Color = Color(1.0, 0.78, 0.24, 1.0)
-const NODE_COLOR_ALERT: Color = Color(1.0, 0.18, 0.12, 1.0)
-const NODE_COLOR_SPECIAL_READY: Color = Color(0.72, 0.38, 1.0, 1.0)
-const NODE_COLOR_SPECIAL_ACTIVE: Color = Color(0.22, 1.0, 0.82, 1.0)
-const MAP_LINE_COLOR: Color = Color(0.24, 0.42, 0.76, 0.62)
 
 var _selected_node_id: int = RunManager.CENTER_ID
 var _message: String = ""
@@ -31,20 +18,27 @@ var _pending_reward_node_id: int = -1
 var _pending_reward_seed: int = -1
 var _pending_boss_reward_popup_summary: Dictionary = {}
 var _pending_special_bonus_popup_summary: Dictionary = {}
-var _pending_route_directive_popup_summary: Dictionary = {}
 var _startup_popup_queue: Array[Callable] = []
 
 @onready var title_label: Label = $TopBar/TitleLabel
 @onready var stats_label: Label = $TopBar/StatsLabel
+@onready var map_viewport: Control = $MapViewport
 @onready var details_panel: Panel = $DetailsPanel
 @onready var details_title: Label = $DetailsPanel/DetailsTitle
 @onready var details_body: RichTextLabel = $DetailsPanel/DetailsBody
-@onready var enter_button: Button = $DetailsPanel/EnterButton
+@onready var enemy_family_weight_title: Label = $DetailsPanel/EnemyFamilyWeightTitle
+@onready var enemy_family_weight_pie = $DetailsPanel/EnemyFamilyWeightPie
+@onready var enemy_family_weight_hint: Label = $DetailsPanel/EnemyFamilyWeightHint
+@onready var route_directive_rows: Array[HBoxContainer] = [
+	$DetailsPanel/RouteDirectivePanel/Row1,
+	$DetailsPanel/RouteDirectivePanel/Row2,
+	$DetailsPanel/RouteDirectivePanel/Row3,
+]
+@onready var action_button: Button = $DetailsPanel/ActionButton
 @onready var shop_button: Button = $DetailsPanel/ShopButton
 @onready var hangar_button: Button = $DetailsPanel/HangarButton
-@onready var archive_button: Button = $DetailsPanel/ArchiveButton
 @onready var message_label: Label = $MessageLabel
-@onready var back_button: Button = $BackButton
+@onready var settings_button: Button = $SettingsButton
 
 
 func _ready() -> void:
@@ -54,19 +48,24 @@ func _ready() -> void:
 	# 回到世界地图即为一个干净的存档点，写盘保存本局进度
 	RunManager.save_run()
 	_consume_node_completion_feedback()
-	enter_button.pressed.connect(_on_enter_pressed)
+	action_button.pressed.connect(_on_enter_pressed)
 	shop_button.pressed.connect(_show_shop)
 	hangar_button.pressed.connect(_show_hangar)
-	archive_button.pressed.connect(_show_equipment_archive)
-	back_button.pressed.connect(_on_back_pressed)
+	settings_button.pressed.connect(_show_settings)
+	enemy_family_weight_pie.slice_hovered.connect(_on_enemy_family_weight_slice_hovered)
+	enemy_family_weight_pie.slice_unhovered.connect(_on_enemy_family_weight_slice_unhovered)
+	map_viewport.connect("node_selected", _on_map_node_selected)
+	map_viewport.call("reset_view")
 	_refresh_all()
 	# 入场弹窗排队依次展示；此前三个同帧打开会互相 queue_free，玩家只看到最后一个
 	if not _pending_special_bonus_popup_summary.is_empty():
 		_startup_popup_queue.append(_show_pending_special_bonus_popup)
-	if not _pending_route_directive_popup_summary.is_empty():
-		_startup_popup_queue.append(_show_pending_route_directive_popup)
 	if not _pending_boss_reward_popup_summary.is_empty():
 		_startup_popup_queue.append(_show_pending_boss_reward_popup)
+	elif RunManager.has_method("get_pending_boss_reward_summary"):
+		_pending_boss_reward_popup_summary = Dictionary(RunManager.get_pending_boss_reward_summary())
+		if not _pending_boss_reward_popup_summary.is_empty():
+			_startup_popup_queue.append(_show_pending_boss_reward_popup)
 	if not _startup_popup_queue.is_empty():
 		call_deferred("_show_next_startup_popup")
 
@@ -119,12 +118,6 @@ func _consume_explore_completion_feedback() -> String:
 	var contract_feedback := _make_contract_completion_feedback(summary)
 	if not contract_feedback.is_empty():
 		lines.append(contract_feedback)
-	var route_momentum_feedback := _make_route_momentum_feedback(summary)
-	if not route_momentum_feedback.is_empty():
-		lines.append(route_momentum_feedback)
-	var route_directive_feedback := _make_route_directive_completion_feedback(summary)
-	if not route_directive_feedback.is_empty():
-		lines.append(route_directive_feedback)
 	var expired_feedback := _make_expired_contract_feedback(summary)
 	if not expired_feedback.is_empty():
 		lines.append(expired_feedback)
@@ -246,12 +239,6 @@ func _make_route_directive_completion_feedback(summary: Dictionary) -> String:
 	var route_momentum := Dictionary(summary.get("route_momentum_activated", {}))
 	if completed_directives.is_empty() and new_directives.is_empty() and route_momentum.is_empty():
 		return ""
-	_pending_route_directive_popup_summary = {
-		"completed_directives": completed_directives.duplicate(true),
-		"new_directives": new_directives.duplicate(true),
-		"reward_summary": Dictionary(summary.get("route_directive_rewards", {})).duplicate(true),
-		"route_momentum": route_momentum.duplicate(true),
-	}
 	var names: Array[String] = []
 	for raw_directive in completed_directives:
 		var directive := Dictionary(raw_directive)
@@ -284,106 +271,35 @@ func _make_expired_contract_feedback(summary: Dictionary) -> String:
 	return "契约到期：%s" % "、".join(names)
 
 
-func _gui_input(event: InputEvent) -> void:
+func _on_map_node_selected(node_id: int) -> void:
 	if is_instance_valid(_active_popup):
 		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var node_id := _node_at_position(event.position)
-		if node_id >= 0:
-			_selected_node_id = node_id
-			_message = ""
-			_refresh_all()
-			accept_event()
-
-
-func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.012, 0.018, 0.04, 1.0), true)
-	_draw_links()
-	_draw_nodes()
-
-
-func _draw_links() -> void:
-	var drawn := {}
-	for node in RunManager.map_nodes:
-		var from_id := int(node.get("id", -1))
-		var from_pos: Vector2 = node.get("position", Vector2.ZERO)
-		for linked_id in node.get("links", []):
-			var to_id := int(linked_id)
-			var key := "%d_%d" % [mini(from_id, to_id), maxi(from_id, to_id)]
-			if drawn.has(key):
-				continue
-			drawn[key] = true
-			var linked_node := RunManager.get_map_node(to_id)
-			var to_pos: Vector2 = linked_node.get("position", Vector2.ZERO)
-			draw_line(from_pos, to_pos, MAP_LINE_COLOR, 3.0, true)
-
-
-func _draw_nodes() -> void:
-	for node in RunManager.map_nodes:
-		var id := int(node.get("id", -1))
-		var pos: Vector2 = node.get("position", Vector2.ZERO)
-		var is_base := id == RunManager.CENTER_ID
-		var radius := CENTER_RADIUS if is_base else NODE_RADIUS
-		if String(node.get("type", "")) == RunManager.NODE_SPECIAL:
-			radius = NODE_RADIUS + 5.0
-		var color := _get_node_color(id)
-		if id == _selected_node_id:
-			draw_circle(pos, radius + 9.0, Color(1.0, 1.0, 1.0, 0.22))
-			draw_arc(pos, radius + 12.0, 0.0, TAU, 72, Color.WHITE, 2.0, true)
-		draw_circle(pos, radius, color)
-		draw_circle(pos, radius, Color(1.0, 1.0, 1.0, 0.30), false, 2.0, true)
-		var label := "核" if is_base else _node_short_type(String(node.get("type", "")))
-		var font := get_theme_default_font()
-		var font_size := 22
-		var label_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-		draw_string(font, pos - label_size * 0.5 + Vector2(0.0, label_size.y * 0.75), label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color.WHITE)
-
-
-func _get_node_color(node_id: int) -> Color:
-	if node_id == RunManager.CENTER_ID:
-		return NODE_COLOR_ALERT if RunManager.is_alert_active() else NODE_COLOR_BASE
-	var node := RunManager.get_map_node(node_id)
-	if String(node.get("type", "")) == RunManager.NODE_SPECIAL:
-		return NODE_COLOR_SPECIAL_ACTIVE if RunManager.is_special_bonus_active(node_id) else NODE_COLOR_SPECIAL_READY
-	if RunManager.is_node_completed(node_id):
-		return NODE_COLOR_DONE
-	if RunManager.is_node_accessible(node_id):
-		return NODE_COLOR_READY
-	if RunManager.is_alert_active():
-		return Color(0.26, 0.10, 0.11, 1.0)
-	return NODE_COLOR_LOCKED
-
-
-func _node_short_type(node_type: String) -> String:
-	match node_type:
-		RunManager.NODE_BATTLE:
-			return "战"
-		RunManager.NODE_EVENT:
-			return "事"
-		RunManager.NODE_REWARD:
-			return "奖"
-		RunManager.NODE_SPECIAL:
-			return "信"
-	return "?"
-
-
-func _node_at_position(pos: Vector2) -> int:
-	for node in RunManager.map_nodes:
-		var id := int(node.get("id", -1))
-		var center: Vector2 = node.get("position", Vector2.ZERO)
-		var radius := CENTER_RADIUS if id == RunManager.CENTER_ID else NODE_RADIUS
-		if String(node.get("type", "")) == RunManager.NODE_SPECIAL:
-			radius = NODE_RADIUS + 5.0
-		if center.distance_to(pos) <= radius + 10.0:
-			return id
-	return -1
+	_selected_node_id = node_id
+	_message = ""
+	_refresh_all()
 
 
 func _refresh_all() -> void:
 	_refresh_top_bar()
 	_refresh_details()
+	_refresh_route_directives()
 	message_label.text = _message
-	queue_redraw()
+	map_viewport.call("refresh_map", _selected_node_id)
+
+
+func _refresh_route_directives() -> void:
+	var summaries: Array = RunManager.get_route_directive_summaries()
+	for index in range(route_directive_rows.size()):
+		var row := route_directive_rows[index]
+		var task_label := row.get_node("Task") as Label
+		var reward_label := row.get_node("Reward") as Label
+		if index >= summaries.size():
+			row.visible = false
+			continue
+		var summary := Dictionary(summaries[index])
+		row.visible = true
+		task_label.text = String(summary.get("description", "击毁精英敌机"))
+		reward_label.text = str(int(summary.get("reward_minerals", 0)))
 
 
 func _refresh_top_bar() -> void:
@@ -402,12 +318,6 @@ func _refresh_top_bar() -> void:
 	var active_contract_count := _get_active_event_contract_count()
 	if active_contract_count > 0:
 		stat_parts.append("航路契约 %d" % active_contract_count)
-	var route_momentum := _get_active_route_momentum()
-	if not route_momentum.is_empty():
-		stat_parts.append("航路动能 %d" % int(route_momentum.get("remaining_nodes", 0)))
-	var active_directive_count := _get_active_route_directive_count()
-	if active_directive_count > 0:
-		stat_parts.append("航路指令 %d" % active_directive_count)
 	var run_condition_count := _get_active_run_condition_count()
 	if run_condition_count > 0:
 		stat_parts.append("航域态势 %d" % run_condition_count)
@@ -462,89 +372,72 @@ func _refresh_details() -> void:
 		return
 	var node_type := String(node.get("type", ""))
 	details_title.text = String(node.get("name", "未知节点"))
-	var lines: Array[String] = []
-	lines.append("[b]类型：[/b]%s" % RunManager.get_node_type_name(node_type))
-	lines.append("[b]状态：[/b]%s" % RunManager.get_node_state_text(_selected_node_id))
-	lines.append("[b]危机等级：[/b]%d" % RunManager.crisis_level)
-	lines.append("[b]算力：[/b]%d/%d" % [RunManager.get_used_compute(), RunManager.compute_capacity])
-	_append_active_event_contract_lines(lines)
-	_append_active_route_momentum_lines(lines)
-	if node_type == RunManager.NODE_SPECIAL:
-		lines.append("")
-		lines.append(String(node.get("bonus_description", "接入后提供整局加成。")))
-		lines.append("[b]接入方式：[/b]探索任一相邻节点后自动接入。")
-		if RunManager.is_special_bonus_active(_selected_node_id):
-			lines.append("[color=#39ffc8]状态：增益已生效。[/color]")
-		elif RunManager.is_node_accessible(_selected_node_id):
-			lines.append("[color=#a966ff]状态：连线已打通，等待同步。[/color]")
-		else:
-			lines.append("[color=#7f8ca8]状态：尚未与已探索航路相连。[/color]")
-	elif RunManager.is_alert_active():
-		lines.append("")
-		lines.append("[color=#ff5b4a]警报锁定：五席执行体正在逼近，只能访问方舟核心。[/color]")
-	elif _selected_node_id == RunManager.CENTER_ID:
-		lines.append("")
-		lines.append("方舟核心可进行商店购买、机库装配，也会在危机警报时开启执行体战斗。")
-		_append_route_directive_lines(lines)
-		_append_active_special_bonus_lines(lines)
-		_append_active_special_beacon_resonance_lines(lines)
-	else:
-		lines.append("")
-		var family_bias := RunManager.get_node_family_bias(_selected_node_id)
-		var intel_title := String(node.get("intel_title", ""))
-		var intel_description := String(node.get("intel_description", ""))
-		var tier := int(node.get("tier", 1))
-		var risk := int(node.get("risk_level", 1))
-		var reward_mult := float(node.get("reward_mult", 1.0))
-		var equipment_chance := float(node.get("equipment_drop_chance", 0.0))
-		lines.append("[b]航图层级：[/b]第%d层   [b]风险：[/b]%d   [b]矿物倍率：[/b]%.2f倍" % [tier, risk, reward_mult])
-		lines.append("[b]装备检出：[/b]%d%%" % int(round(equipment_chance * 100.0)))
-		if node_type == RunManager.NODE_REWARD:
-			var reward_title := String(node.get("reward_title", "奖励缓存"))
-			var reward_description := String(node.get("reward_description", "高价值资源缓存。"))
-			var cache_family := String(node.get("cache_family_bias", ""))
-			lines.append("[b]奖励主题：[/b]%s" % reward_title)
-			if not cache_family.is_empty():
-				lines.append("[b]装备缓存倾向：[/b]%s" % _family_display_name(cache_family))
-			lines.append(reward_description)
-		elif node_type == RunManager.NODE_BATTLE:
-			var battle_title := String(node.get("battle_title", "战斗态势"))
-			var battle_description := String(node.get("battle_description", "敌方巡逻信号活跃。"))
-			var battle_threat := int(node.get("battle_threat", risk))
-			lines.append("[b]战斗态势：[/b]%s   [b]威胁：[/b]%d" % [battle_title, battle_threat])
-			lines.append(battle_description)
-		if not family_bias.is_empty():
-			lines.append("[b]流派倾向：[/b]%s" % _family_display_name(family_bias))
-		_append_route_plan_lines(lines, node)
-		_append_ore_source_room_effect_lines(lines, node)
-		_append_opportunity_lines(lines, node)
-		_append_run_condition_lines(lines, node)
-		_append_beacon_echo_lines(lines, node)
-		_append_reward_cache_calibration_lines(lines, node)
-		_append_boss_aftershock_lines(lines, node)
-		_append_modifier_lines(lines, node)
-		if not intel_title.is_empty():
-			lines.append("[b]作战情报：[/b]%s" % intel_title)
-		if not intel_description.is_empty():
-			lines.append(intel_description)
-		lines.append("")
-		lines.append(_node_description(node_type))
+	var lines: Array[String] = [
+		"[color=#52e8ff][b][i]%s[/i][/b][/color]" % _node_intro_type_name(node_type),
+		"",
+		_node_flavor_text(node, node_type),
+	]
+	var is_battle := node_type == RunManager.NODE_BATTLE
+	enemy_family_weight_title.visible = is_battle
+	enemy_family_weight_pie.visible = is_battle
+	enemy_family_weight_hint.visible = is_battle
+	if is_battle:
+		enemy_family_weight_pie.set_weights(RunManager.get_node_enemy_family_weights(_selected_node_id))
+		enemy_family_weight_hint.text = "将鼠标移至扇区，查看敌人系列与权重占比。"
 	details_body.text = "\n".join(lines)
 	var is_base := _selected_node_id == RunManager.CENTER_ID
-	enter_button.visible = true
-	enter_button.disabled = false
-	shop_button.visible = is_base
-	hangar_button.visible = is_base
-	archive_button.visible = is_base
+	action_button.visible = true
+	action_button.disabled = false
+	# 商店和机库是方舟的常驻管理入口；选择航图节点时仍需与“进入节点”同时可用。
+	shop_button.visible = true
+	hangar_button.visible = true
 	if is_base:
-		enter_button.text = "迎战危机" if RunManager.is_alert_active() else "等待警报"
-		enter_button.disabled = not RunManager.is_alert_active()
+		action_button.text = "进入执行体战斗"
+		action_button.visible = RunManager.is_alert_active()
+		action_button.disabled = not RunManager.is_alert_active()
 	elif node_type == RunManager.NODE_SPECIAL:
-		enter_button.text = "自动接入"
-		enter_button.disabled = true
+		action_button.visible = false
 	else:
-		enter_button.text = "进入节点"
-		enter_button.disabled = not RunManager.is_node_accessible(_selected_node_id)
+		action_button.text = "进入节点"
+		action_button.disabled = not RunManager.is_node_accessible(_selected_node_id)
+
+
+func _node_intro_type_name(node_type: String) -> String:
+	match node_type:
+		RunManager.NODE_BATTLE:
+			return "战斗"
+		RunManager.NODE_REWARD:
+			return "奖励"
+		RunManager.NODE_EVENT:
+			return "事件"
+		RunManager.NODE_SPECIAL:
+			return "特殊信标"
+		RunManager.NODE_BASE:
+			return "方舟核心"
+	return "未知"
+
+
+func _node_flavor_text(node: Dictionary, node_type: String) -> String:
+	match node_type:
+		RunManager.NODE_BATTLE:
+			return String(node.get("battle_description", "敌方巡逻信号活跃。"))
+		RunManager.NODE_REWARD:
+			return String(node.get("reward_description", "高价值资源缓存。"))
+		RunManager.NODE_EVENT:
+			return String(node.get("intel_description", "异常信号等待处置。"))
+		RunManager.NODE_SPECIAL:
+			return String(node.get("bonus_description", "接入后提供整局加成。"))
+		RunManager.NODE_BASE:
+			return "方舟核心维系未明星域中的航线与补给。"
+	return "尚未识别的空间残片。"
+
+
+func _on_enemy_family_weight_slice_hovered(detail: String) -> void:
+	enemy_family_weight_hint.text = detail
+
+
+func _on_enemy_family_weight_slice_unhovered() -> void:
+	enemy_family_weight_hint.text = "将鼠标移至扇区，查看敌人系列与权重占比。"
 
 
 func _append_route_plan_lines(lines: Array[String], node: Dictionary) -> void:
@@ -835,22 +728,13 @@ func _show_hangar() -> void:
 	popup.call("setup")
 
 
-func _show_equipment_archive() -> void:
-	var popup := _open_popup(EQUIPMENT_ARCHIVE_POPUP_SCENE)
-	popup.call("setup")
-
-
-func _show_event_result(result: Dictionary) -> void:
-	var popup := _open_popup(EVENT_RESULT_POPUP_SCENE)
-	popup.call("setup", result)
-
-
 func _show_pending_boss_reward_popup() -> void:
 	if _pending_boss_reward_popup_summary.is_empty():
 		return
 	var popup_summary := _pending_boss_reward_popup_summary.duplicate(true)
 	_pending_boss_reward_popup_summary.clear()
 	var popup := _open_popup(BOSS_REWARD_POPUP_SCENE)
+	popup.connect("reward_selected", _on_boss_reward_selected)
 	popup.call("setup", popup_summary)
 
 
@@ -864,12 +748,7 @@ func _show_pending_special_bonus_popup() -> void:
 
 
 func _show_pending_route_directive_popup() -> void:
-	if _pending_route_directive_popup_summary.is_empty():
-		return
-	var popup_summary := _pending_route_directive_popup_summary.duplicate(true)
-	_pending_route_directive_popup_summary.clear()
-	var popup := _open_popup(ROUTE_DIRECTIVE_POPUP_SCENE)
-	popup.call("setup", popup_summary)
+	pass
 
 
 func _show_event_choices(node_id: int) -> void:
@@ -919,7 +798,24 @@ func _on_event_choice_selected(choice_id: String) -> void:
 	_pending_event_seed = -1
 	_message = String(result.get("message", "事件已完成。"))
 	_refresh_all()
-	_show_event_result(result)
+	if is_instance_valid(_active_popup) and _active_popup.has_method("show_result"):
+		_active_popup.call("show_result", result)
+
+
+func _on_boss_reward_selected(item_id: String) -> void:
+	var result := RunManager.claim_boss_reward(item_id)
+	if not bool(result.get("ok", false)):
+		_set_message(String(result.get("message", "奖励领取失败。")))
+		return
+	_set_message("已收入机库：%s。" % String(result.get("item_name", "未知装备")))
+	if is_instance_valid(_active_popup) and _active_popup.has_method("finish_selection"):
+		_active_popup.call("finish_selection")
+	if bool(result.get("is_final", false)):
+		RunManager.finish_run(true)
+		get_tree().change_scene_to_file(RunManager.GAME_OVER_SCENE)
+		return
+	RunManager.save_run()
+	_refresh_all()
 
 
 func _show_next_startup_popup() -> void:
@@ -954,5 +850,5 @@ func _set_message(message: String) -> void:
 	message_label.text = _message
 
 
-func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+func _show_settings() -> void:
+	_open_popup(SETTINGS_POPUP_SCENE)

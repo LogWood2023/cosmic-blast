@@ -75,6 +75,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 0
 color = Color(0.005, 0.008, 0.012, 0.72)
 
 [node name="Panel" type="Panel" parent="."]
@@ -84,10 +85,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -500.0
-offset_top = -390.0
-offset_right = 500.0
-offset_bottom = 390.0
+offset_left = -850.0
+offset_top = -454.0
+offset_right = 850.0
+offset_bottom = 402.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -96,10 +97,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 24.0
-offset_top = 22.0
-offset_right = -24.0
-offset_bottom = 26.0
+offset_left = 26.0
+offset_top = 24.0
+offset_right = -26.0
+offset_bottom = 28.0
 grow_horizontal = 2
 color = Color(1, 0.309804, 0.415686, 0.92)
 
@@ -107,65 +108,46 @@ color = Color(1, 0.309804, 0.415686, 0.92)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 28.0
-offset_top = 42.0
-offset_right = -280.0
-offset_bottom = 82.0
+offset_left = 45.0
+offset_top = 57.0
+offset_right = -1200.0
+offset_bottom = 105.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 32
-text = "方舟核心 / 商店"
+text = "商店"
 
 [node name="MineralsLabel" type="Label" parent="Panel"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -264.0
-offset_top = 46.0
-offset_right = -28.0
-offset_bottom = 78.0
+offset_left = -620.0
+offset_top = 57.0
+offset_right = -440.0
+offset_bottom = 112.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.321569, 0.909804, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "星髓矿：0"
-horizontal_alignment = 2
-
-[node name="HintLabel" type="Label" parent="Panel"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 28.0
-offset_top = 90.0
-offset_right = -28.0
-offset_bottom = 122.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(0.72, 0.79, 0.86, 1)
-theme_override_font_sizes/font_size = 18
-text = "采购装备会立即消耗资源，已拥有项目会锁定为只读状态。"
+theme_override_colors/font_outline_color = Color(0.005, 0.01, 0.02, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 34
+text = "✦  0"
+horizontal_alignment = 1
 
 [node name="ControlsBar" type="HBoxContainer" parent="Panel"]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 1
+anchor_left = 1.0
 anchor_right = 1.0
-offset_left = 28.0
-offset_top = 134.0
-offset_right = -28.0
-offset_bottom = 182.0
-grow_horizontal = 2
+offset_left = -426.0
+offset_top = 72.0
+offset_right = -32.0
+offset_bottom = 120.0
+grow_horizontal = 0
 theme_override_constants/separation = 14
 alignment = 2
-
-[node name="ShopStateLabel" type="Label" parent="Panel/ControlsBar"]
-custom_minimum_size = Vector2(330, 44)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
-theme_override_font_sizes/font_size = 18
-text = "货单：全域随机 / 重抽 0 次"
-vertical_alignment = 1
 
 [node name="FamilyFocusOption" type="OptionButton" parent="Panel/ControlsBar"]
 custom_minimum_size = Vector2(210, 44)
@@ -194,56 +176,31 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 28.0
-offset_top = 264.0
+offset_top = 142.0
 offset_right = -28.0
-offset_bottom = -112.0
+offset_bottom = -21.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
-
-[node name="ShopGuidanceBar" type="VBoxContainer" parent="Panel"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 28.0
-offset_top = 194.0
-offset_right = -28.0
-offset_bottom = 252.0
-grow_horizontal = 2
-theme_override_constants/separation = 6
-
-[node name="ShopGuidanceTitle" type="Label" parent="Panel/ShopGuidanceBar"]
-custom_minimum_size = Vector2(0, 22)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.721569, 0.301961, 1)
-theme_override_font_sizes/font_size = 17
-text = "采购校准：未定航路"
-text_overrun_behavior = 3
-
-[node name="ShopGuidanceDetail" type="Label" parent="Panel/ShopGuidanceBar"]
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
-theme_override_font_sizes/font_size = 15
-text = "货单会在方舟完成航向测算后偏移。"
-text_overrun_behavior = 3
 
 [node name="ItemsScroll" type="ScrollContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 40.0
-offset_top = 276.0
-offset_right = -40.0
-offset_bottom = -124.0
+offset_left = 56.0
+offset_top = 159.0
+offset_right = -56.0
+offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ItemsList" type="VBoxContainer" parent="Panel/ItemsScroll"]
+[node name="ItemsList" type="GridContainer" parent="Panel/ItemsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+columns = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="FooterLine" type="ColorRect" parent="Panel"]
 layout_mode = 1
@@ -251,10 +208,10 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 28.0
-offset_top = -96.0
-offset_right = -28.0
-offset_bottom = -94.0
+offset_left = 374.0
+offset_top = 27.0
+offset_right = -382.0
+offset_bottom = 29.0
 grow_horizontal = 2
 grow_vertical = 0
 color = Color(1, 0.721569, 0.301961, 0.55)
@@ -265,10 +222,10 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = -84.0
-offset_right = -300.0
-offset_bottom = -28.0
+offset_left = 382.0
+offset_top = -96.0
+offset_right = -651.0
+offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
@@ -283,10 +240,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -268.0
-offset_top = -86.0
-offset_right = -28.0
-offset_bottom = -30.0
+offset_left = -170.0
+offset_top = 17.0
+offset_right = 70.0
+offset_bottom = 73.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)

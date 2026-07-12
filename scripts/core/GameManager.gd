@@ -144,6 +144,7 @@ func _ready() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 	bgm_player = AudioStreamPlayer.new()
+	bgm_player.bus = &"Music"
 	add_child(bgm_player)
 	bgm_player.stream = load(BGM_PATH)
 	bgm_player.play()
