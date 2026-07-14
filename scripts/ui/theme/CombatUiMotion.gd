@@ -8,11 +8,16 @@ const NORMAL_SECONDS := 0.13
 const PRESS_SECONDS := 0.07
 const HOVER_COLOR := Color(1.08, 1.08, 1.08, 1.0)
 const DISABLED_COLOR := Color(0.68, 0.68, 0.68, 0.72)
-const PANEL_ENTER_SECONDS := 0.18
+const PANEL_ANIMATION_SECONDS := 0.3
+const PANEL_ANIMATION_SCALE := Vector2(1.12, 1.12)
+const PANEL_BASE_SCALE_META := &"combat_ui_motion_panel_base_scale"
+const PANEL_BASE_MODULATE_META := &"combat_ui_motion_panel_base_modulate"
+const PANEL_TWEEN_META := &"combat_ui_motion_panel_tween"
 
 var _button: Button
 var _base_scale := Vector2.ONE
 var _base_modulate := Color.WHITE
+var _was_disabled := false
 var _tween: Tween
 
 
@@ -36,17 +41,20 @@ static func bind_button(button: Button) -> void:
 static func animate_panel_enter(panel: Control) -> void:
 	if panel == null:
 		return
+	_stop_panel_animation(panel)
 	panel.pivot_offset = panel.size * 0.5
-	var base_scale := panel.scale
-	var base_modulate := panel.modulate
-	panel.scale = base_scale * 0.94
+	var base_scale := _get_panel_base_scale(panel)
+	var base_modulate := _get_panel_base_modulate(panel)
+	panel.scale = base_scale * PANEL_ANIMATION_SCALE
 	panel.modulate = Color(base_modulate.r, base_modulate.g, base_modulate.b, 0.0)
 	var tween := panel.create_tween()
 	tween.set_parallel(true)
-	tween.set_trans(Tween.TRANS_BACK)
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.set_trans(Tween.TRANS_CUBIC)
 	tween.set_ease(Tween.EASE_OUT)
-	tween.tween_property(panel, "scale", base_scale, PANEL_ENTER_SECONDS)
-	tween.tween_property(panel, "modulate", base_modulate, PANEL_ENTER_SECONDS)
+	tween.tween_property(panel, "scale", base_scale, PANEL_ANIMATION_SECONDS)
+	tween.tween_property(panel, "modulate", base_modulate, PANEL_ANIMATION_SECONDS)
+	panel.set_meta(PANEL_TWEEN_META, tween)
 
 
 static func animate_first_panel_enter(root: Node) -> void:
@@ -55,10 +63,62 @@ static func animate_first_panel_enter(root: Node) -> void:
 		animate_panel_enter(panel)
 
 
+static func animate_panel_exit(panel: Control, on_finished: Callable = Callable()) -> void:
+	if panel == null:
+		if on_finished.is_valid():
+			on_finished.call()
+		return
+	_stop_panel_animation(panel)
+	panel.pivot_offset = panel.size * 0.5
+	var base_scale := _get_panel_base_scale(panel)
+	var base_modulate := _get_panel_base_modulate(panel)
+	var tween := panel.create_tween()
+	tween.set_parallel(true)
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_IN)
+	tween.tween_property(panel, "scale", base_scale * PANEL_ANIMATION_SCALE, PANEL_ANIMATION_SECONDS)
+	tween.tween_property(panel, "modulate", Color(base_modulate.r, base_modulate.g, base_modulate.b, 0.0), PANEL_ANIMATION_SECONDS)
+	if on_finished.is_valid():
+		tween.chain().tween_callback(on_finished)
+	panel.set_meta(PANEL_TWEEN_META, tween)
+
+
+static func animate_first_panel_exit(root: Node, on_finished: Callable = Callable()) -> void:
+	var panel := root.find_child("Panel", true, false) as Control
+	if panel != null:
+		animate_panel_exit(panel, on_finished)
+	elif on_finished.is_valid():
+		on_finished.call()
+
+
+static func _get_panel_base_scale(panel: Control) -> Vector2:
+	if not panel.has_meta(PANEL_BASE_SCALE_META):
+		panel.set_meta(PANEL_BASE_SCALE_META, panel.scale)
+	var base_scale: Vector2 = panel.get_meta(PANEL_BASE_SCALE_META)
+	return base_scale
+
+
+static func _get_panel_base_modulate(panel: Control) -> Color:
+	if not panel.has_meta(PANEL_BASE_MODULATE_META):
+		panel.set_meta(PANEL_BASE_MODULATE_META, panel.modulate)
+	var base_modulate: Color = panel.get_meta(PANEL_BASE_MODULATE_META)
+	return base_modulate
+
+
+static func _stop_panel_animation(panel: Control) -> void:
+	if not panel.has_meta(PANEL_TWEEN_META):
+		return
+	var tween := panel.get_meta(PANEL_TWEEN_META) as Tween
+	if tween != null and tween.is_valid():
+		tween.kill()
+
+
 func _bind(button: Button) -> void:
 	_button = button
 	_base_scale = button.scale
 	_base_modulate = button.modulate
+	_was_disabled = button.disabled
 	button.mouse_entered.connect(_on_hovered)
 	button.mouse_exited.connect(_on_unhovered)
 	button.focus_entered.connect(_on_hovered)
@@ -73,8 +133,26 @@ func _refresh_pivot() -> void:
 	if not is_instance_valid(_button):
 		return
 	_button.pivot_offset = _button.size * 0.5
+	_refresh_disabled_visual()
+
+
+func _process(_delta: float) -> void:
+	if not is_instance_valid(_button):
+		return
+	if _button.disabled == _was_disabled:
+		return
+	_was_disabled = _button.disabled
+	_refresh_disabled_visual()
+
+
+func _refresh_disabled_visual() -> void:
+	if _tween:
+		_tween.kill()
 	if _button.disabled:
 		_button.modulate = DISABLED_COLOR
+		return
+	_button.scale = _base_scale
+	_button.modulate = _base_modulate
 
 
 func _on_hovered() -> void:

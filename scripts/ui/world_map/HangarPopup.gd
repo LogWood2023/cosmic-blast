@@ -23,6 +23,7 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 @onready var close_button: Button = $Panel/CloseButton
 
 var _active_type: String = EquipmentCatalogScript.TYPE_WEAPON
+var _is_closing := false
 
 
 func _ready() -> void:
@@ -185,8 +186,13 @@ func _on_equip_item(item_id: String) -> void:
 
 
 func _on_close_pressed() -> void:
-	closed.emit()
-	queue_free()
+	if _is_closing:
+		return
+	_is_closing = true
+	CombatUiMotion.animate_first_panel_exit(self, func() -> void:
+		closed.emit()
+		queue_free()
+	)
 
 
 func _on_shade_gui_input(event: InputEvent) -> void:

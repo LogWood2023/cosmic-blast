@@ -1,44 +1,26 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/world_map/RewardCacheChoicePopup.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.027451, 0.0627451, 0.0941176, 0.97)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.321569, 0.909804, 1, 0.7)
-corner_radius_top_left = 2
-corner_radius_top_right = 8
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
-bg_color = Color(0.012, 0.022, 0.034, 0.82)
+bg_color = Color(0.012, 0.018, 0.028, 0.88)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.321569, 0.909804, 1, 0.24)
-corner_radius_top_left = 2
-corner_radius_top_right = 6
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 6
+border_color = Color(0.93, 0.73, 0.26, 0.28)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.04, 0.13, 0.18, 0.92)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.321569, 0.909804, 1, 0.72)
-corner_radius_top_left = 2
-corner_radius_top_right = 8
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 8
-content_margin_left = 18.0
-content_margin_right = 18.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close"]
+bg_color = Color(0.10, 0.09, 0.04, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.93, 0.73, 0.26, 0.58)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="RewardCacheChoicePopup" type="Control"]
 layout_mode = 3
@@ -57,19 +39,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.005, 0.008, 0.012, 0.72)
+color = Color(0.006, 0.008, 0.012, 0.62)
+mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -430.0
-offset_top = -330.0
-offset_right = 430.0
-offset_bottom = 330.0
+anchors_preset = -1
+anchor_left = 0.49
+anchor_top = 0.05
+anchor_right = 0.91
+anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -78,25 +57,28 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 30.0
-offset_top = 24.0
-offset_right = -30.0
-offset_bottom = 28.0
+offset_left = 34.0
+offset_top = 34.0
+offset_right = -34.0
+offset_bottom = 38.0
 grow_horizontal = 2
-color = Color(0.321569, 0.909804, 1, 0.9)
+color = Color(0.94, 0.72, 0.24, 0.88)
+mouse_filter = 2
 
 [node name="TitleLabel" type="Label" parent="Panel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 36.0
-offset_top = 44.0
-offset_right = -36.0
-offset_bottom = 84.0
+offset_left = 42.0
+offset_top = 56.0
+offset_right = -42.0
+offset_bottom = 106.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
-theme_override_font_sizes/font_size = 30
-text = "奖励缓存选择"
+theme_override_colors/font_color = Color(1, 0.84, 0.37, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.03, 0.01, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 32
+text = "遗失补给"
 horizontal_alignment = 1
 
 [node name="MetaLabel" type="Label" parent="Panel"]
@@ -104,50 +86,65 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 46.0
-offset_top = 92.0
+offset_top = 116.0
 offset_right = -46.0
-offset_bottom = 122.0
+offset_bottom = 148.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.64, 0.76, 0.86, 1)
+theme_override_colors/font_color = Color(0.88, 0.75, 0.48, 1)
 theme_override_font_sizes/font_size = 18
-text = "阶层一 / 奖励缓存 / 通用缓存"
 horizontal_alignment = 1
+
+[node name="StoryLabel" type="RichTextLabel" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 52.0
+offset_top = 170.0
+offset_right = -52.0
+offset_bottom = 336.0
+grow_horizontal = 2
+bbcode_enabled = false
+fit_content = false
+scroll_active = false
+theme_override_colors/default_color = Color(0.96, 0.94, 0.88, 1)
+theme_override_font_sizes/normal_font_size = 22
+text = "一艘损毁的转运船漂浮在航道边缘。你只能带走其中一份完好的补给。"
 
 [node name="ChoicesScroll" type="ScrollContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 46.0
-offset_top = 142.0
-offset_right = -46.0
-offset_bottom = -104.0
+offset_left = 42.0
+offset_top = 366.0
+offset_right = -42.0
+offset_bottom = -126.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
 
 [node name="ChoicesList" type="VBoxContainer" parent="Panel/ChoicesScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
 [node name="CloseButton" type="Button" parent="Panel"]
-custom_minimum_size = Vector2(240, 56)
+custom_minimum_size = Vector2(190, 48)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -80.0
-offset_right = 120.0
-offset_bottom = -24.0
+offset_left = -95.0
+offset_top = -88.0
+offset_right = 95.0
+offset_bottom = -36.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
-text = "暂不处理"
+focus_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.50, 1)
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_close")
+theme_override_styles/hover = SubResource("StyleBoxFlat_close")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_close")
+text = "暂不领取"

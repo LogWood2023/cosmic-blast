@@ -12,9 +12,19 @@ const ZOOM_STEP: float = 1.12
 const DRAG_THRESHOLD: float = 6.0
 const PAN_EDGE_VISIBLE: float = 96.0
 const MAP_LINE_COLOR: Color = Color(0.24, 0.42, 0.76, 0.62)
+const LOCKDOWN_DIM_ALPHA: float = 0.5
+const LOCKDOWN_DIM_COLOR: Color = Color(0.001, 0.003, 0.009, LOCKDOWN_DIM_ALPHA)
+const COMPLETED_NODE_DIM_ALPHA: float = 0.35
 const NODE_SURFACE_COLOR: Color = Color(0.018, 0.034, 0.058, 0.98)
 const NODE_ICON_COLOR: Color = Color(0.94, 0.98, 1.0, 1.0)
 const NODE_MUTED_COLOR: Color = Color(0.36, 0.43, 0.52, 0.92)
+const ALERT_BOSS_ICON_BY_FAMILY: Dictionary = {
+	"colossus": preload("res://assets/ui/icons/boss_alert_colossus.svg"),
+	"paradise": preload("res://assets/ui/icons/boss_alert_paradise.svg"),
+	"warped": preload("res://assets/ui/icons/boss_alert_warped.svg"),
+	"hell_eye": preload("res://assets/ui/icons/boss_alert_hell_eye.svg"),
+	"divine": preload("res://assets/ui/icons/boss_alert_divine.svg"),
+}
 const NODE_LABEL_MIN_ZOOM: float = 0.68
 const LINK_ROUTE_CLEARANCE: float = 30.0
 const LINK_ROUTE_MAX_LANES: int = 12
@@ -29,12 +39,15 @@ var _press_position: Vector2 = Vector2.ZERO
 var _last_drag_position: Vector2 = Vector2.ZERO
 var _hovered_node_id: int = -1
 var _link_routes: Dictionary = {}
+var _alert_pulse_time: float = 0.0
+var _alert_boss_icon: Texture2D
 
 
 func _ready() -> void:
 	clip_contents = true
 	resized.connect(_on_resized)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG
+	_refresh_alert_visual_state()
 	call_deferred("reset_view")
 
 
@@ -43,6 +56,7 @@ func reset_view() -> void:
 	_pan_offset = Vector2.ZERO
 	_link_routes.clear()
 	_clamp_pan()
+	_refresh_alert_visual_state()
 	queue_redraw()
 
 
@@ -50,7 +64,27 @@ func refresh_map(node_id: int) -> void:
 	selected_node_id = node_id
 	_link_routes.clear()
 	_clamp_pan()
+	_refresh_alert_visual_state()
 	queue_redraw()
+
+
+func _process(delta: float) -> void:
+	if not RunManager.is_alert_active():
+		set_process(false)
+		return
+	_alert_pulse_time += delta
+	queue_redraw()
+
+
+func _refresh_alert_visual_state() -> void:
+	var alert_active: bool = RunManager.is_alert_active()
+	set_process(alert_active)
+	if not alert_active:
+		_alert_pulse_time = 0.0
+		_alert_boss_icon = null
+		return
+	var alert_family: String = RunManager.get_alert_boss_family()
+	_alert_boss_icon = ALERT_BOSS_ICON_BY_FAMILY.get(alert_family) as Texture2D
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -127,7 +161,34 @@ func _draw() -> void:
 	_draw_nodes()
 	_draw_link_ports()
 	_draw_node_overlays()
-	_draw_view_hint()
+	if RunManager.is_alert_active():
+		_draw_alert_lockdown()
+
+
+func _draw_alert_lockdown() -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), LOCKDOWN_DIM_COLOR, true)
+	var core_node: Dictionary = RunManager.get_map_node(RunManager.CENTER_ID)
+	if core_node.is_empty():
+		return
+	var position: Vector2 = _world_to_screen(core_node.get("position", Vector2.ZERO))
+	var radius: float = CENTER_RADIUS * _zoom
+	var pulse: float = 0.5 + 0.5 * sin(_alert_pulse_time * 3.8)
+	for ring_index in range(8, 0, -1):
+		var progress: float = float(ring_index) / 8.0
+		var glow_radius: float = radius + 18.0 + 86.0 * progress + pulse * 8.0
+		var glow_alpha: float = 0.012 + (1.0 - progress) * 0.018
+		draw_circle(position, glow_radius, Color(1.0, 0.025, 0.08, glow_alpha))
+	var core_color: Color = Color(1.0, 0.10 + pulse * 0.12, 0.16 + pulse * 0.12, 1.0)
+	draw_arc(position, radius + 18.0 + pulse * 8.0, 0.0, TAU, 48, Color(1.0, 0.08, 0.12, 0.90), maxf(1.5, 2.6 * _zoom), true)
+	draw_arc(position, radius + 33.0 + pulse * 12.0, 0.0, TAU, 48, Color(1.0, 0.18, 0.20, 0.58), maxf(1.2, 2.0 * _zoom), true)
+	_draw_core_material(position, radius, core_color)
+	if _alert_boss_icon != null:
+		var icon_size: Vector2 = Vector2.ONE * radius * 2.28
+		var outer_ring_radius: float = radius + 33.0 + pulse * 12.0
+		var icon_center: Vector2 = position + Vector2(0.0, -outer_ring_radius - icon_size.y * 0.5 - 14.0)
+		var icon_rect: Rect2 = Rect2(icon_center - icon_size * 0.5, icon_size)
+		draw_texture_rect(_alert_boss_icon, icon_rect, false, Color(1.0, 0.70 + pulse * 0.10, 0.72 + pulse * 0.08, 1.0))
+	_draw_node_label(position, radius, RunManager.CENTER_ID, true, RunManager.NODE_BASE, core_color)
 
 
 func _draw_background_material() -> void:
@@ -222,14 +283,10 @@ func _build_link_route(from_node: Dictionary, to_node: Dictionary) -> PackedVect
 	var to_type := String(to_node.get("type", ""))
 	var from_center := _world_to_screen(from_node.get("position", Vector2.ZERO))
 	var to_center := _world_to_screen(to_node.get("position", Vector2.ZERO))
-	var route := PackedVector2Array([from_center, to_center])
-	if not _route_is_clear(route, from_id, to_id):
-		route = _find_clear_parallel_route(from_center, to_center, from_id, to_id)
-	if route.size() >= 2:
-		route[0] = _get_link_anchor(from_center, route[1], from_id, from_type)
-		var last_index := route.size() - 1
-		route[last_index] = _get_link_anchor(to_center, route[last_index - 1], to_id, to_type)
-	return route
+	return PackedVector2Array([
+		_get_link_anchor(from_center, to_center, from_id, from_type),
+		_get_link_anchor(to_center, from_center, to_id, to_type),
+	])
 
 
 func _find_clear_parallel_route(from_center: Vector2, to_center: Vector2, from_id: int, to_id: int) -> PackedVector2Array:
@@ -398,6 +455,28 @@ func _draw_node_overlays() -> void:
 		var color := _get_node_color(node_id, node_type)
 		_draw_node_state_badge(position, radius, node_id)
 		_draw_node_label(position, radius, node_id, is_base, node_type, color)
+		_draw_node_dim_overlay(position, radius, node_id, is_base, node_type)
+
+
+func _draw_node_dim_overlay(position: Vector2, radius: float, node_id: int, is_base: bool, node_type: String) -> void:
+	var dim_alpha := _get_node_dim_alpha(node_id, is_base)
+	if is_zero_approx(dim_alpha):
+		return
+	var dim_color := LOCKDOWN_DIM_COLOR
+	dim_color.a = dim_alpha
+	# Keep the node, its state marker, and selection frame at the same brightness level.
+	draw_circle(position, radius + maxf(14.0, 16.0 * _zoom), dim_color)
+	var label_rect := _get_node_label_rect(position, radius, node_id, is_base, node_type)
+	if label_rect.size != Vector2.ZERO:
+		draw_rect(label_rect.grow(maxf(1.0, 1.5 * _zoom)), dim_color, true)
+
+
+func _get_node_dim_alpha(node_id: int, is_base: bool) -> float:
+	if is_base or RunManager.is_alert_active() or RunManager.is_node_accessible(node_id):
+		return 0.0
+	if RunManager.is_node_completed(node_id):
+		return COMPLETED_NODE_DIM_ALPHA
+	return LOCKDOWN_DIM_COLOR.a
 
 
 func _draw_node_selection(position: Vector2, radius: float, node_id: int, color: Color) -> void:
@@ -560,7 +639,7 @@ func _draw_node_label(position: Vector2, radius: float, node_id: int, is_base: b
 		return
 	var label := _get_node_label_text(is_base, node_type)
 	var font := get_theme_default_font()
-	var font_size := clampi(int(round(13.0 * _zoom)), 11, 16)
+	var font_size := _get_node_label_font_size(node_type)
 	var label_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var padding := Vector2(maxf(5.0, 6.0 * _zoom), maxf(2.0, 3.0 * _zoom))
 	draw_rect(plate_rect, Color(0.008, 0.018, 0.032, 0.94), true)
@@ -574,24 +653,24 @@ func _get_node_label_rect(position: Vector2, radius: float, node_id: int, is_bas
 		return Rect2()
 	var label := _get_node_label_text(is_base, node_type)
 	var font := get_theme_default_font()
-	var font_size := clampi(int(round(13.0 * _zoom)), 11, 16)
+	var font_size := _get_node_label_font_size(node_type)
 	var label_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var padding := Vector2(maxf(5.0, 6.0 * _zoom), maxf(2.0, 3.0 * _zoom))
 	var plate_size := label_size + padding * 2.0
-	var plate_position := position + Vector2(-plate_size.x * 0.5, radius + maxf(7.0, 9.0 * _zoom))
+	var base_font_size := clampi(int(round(13.0 * _zoom)), 11, 16)
+	var base_label_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, base_font_size)
+	var base_plate_size := base_label_size + padding * 2.0
+	var plate_position := position + Vector2(-base_plate_size.x * 0.5, radius + maxf(7.0, 9.0 * _zoom))
 	return Rect2(plate_position, plate_size)
+
+
+func _get_node_label_font_size(_node_type: String) -> int:
+	var base_font_size := clampi(int(round(13.0 * _zoom)), 11, 16)
+	return base_font_size * 2
 
 
 func _get_node_label_text(is_base: bool, node_type: String) -> String:
 	return "方舟核心" if is_base else _node_display_name(node_type)
-
-
-func _draw_view_hint() -> void:
-	var hint := "拖拽平移  ·  滚轮缩放  %d%%" % int(round(_zoom * 100.0))
-	var font := get_theme_default_font()
-	var font_size := 16
-	var hint_size := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-	draw_string(font, Vector2(size.x - hint_size.x - 18.0, 28.0), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(0.64, 0.80, 0.90, 0.62))
 
 
 func _get_node_color(node_id: int, node_type: String) -> Color:
@@ -625,7 +704,7 @@ func _node_display_name(node_type: String) -> String:
 		RunManager.NODE_EVENT:
 			return "事件"
 		RunManager.NODE_REWARD:
-			return "补给"
+			return "奖励事件"
 		RunManager.NODE_SPECIAL:
 			return "信标"
 	return "未知"
@@ -646,6 +725,8 @@ func _node_at_position(position: Vector2) -> int:
 		var center := _world_to_screen(node.get("position", Vector2.ZERO))
 		var radius := _get_node_radius(node_id, node_type) * _zoom
 		if center.distance_to(position) <= radius + 10.0:
+			if RunManager.is_alert_active() and node_id != RunManager.CENTER_ID:
+				return -1
 			return node_id
 	return -1
 

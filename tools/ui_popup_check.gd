@@ -208,5 +208,5 @@ func _assert_shade_click_closes(popup: Control) -> void:
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	shade.gui_input.emit(click)
-	if not popup.is_queued_for_deletion():
-		push_error("Clicking outside should close popup: %s" % popup.name)
+	if not bool(popup.get("_is_closing")):
+		push_error("Clicking outside should start the close animation: %s" % popup.name)

@@ -53,8 +53,8 @@ func _check_route_plan_metadata() -> void:
 			return
 		families[family] = true
 		checked_count += 1
-	if checked_count < 20:
-		_fail("Route plan check expected broad map coverage, got %d nodes." % checked_count)
+	if checked_count < 32:
+		_fail("Route plan check expected all branching-map nodes, got %d nodes." % checked_count)
 		return
 	for family in RunManager.FAMILY_BIASES:
 		if not families.has(String(family)):

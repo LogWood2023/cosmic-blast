@@ -45,11 +45,32 @@ func _run() -> void:
 	if GameManager.stutter_context != READY_CONTEXT:
 		_fail("ExploreRoom did not report ready before timeout. Last context: %s" % GameManager.stutter_context)
 		return
+	_assert_reward_targets_met(room)
+	if _failed:
+		return
 	remove_child(room)
 	room.queue_free()
 	await _finish_explore_room_cleanup(room)
 	print("Explore room ready context check passed.")
 	get_tree().quit(0)
+
+
+func _assert_reward_targets_met(room: Node) -> void:
+	var expected: Dictionary = room.get_meta(&"explore_reward_targets", {})
+	var rewards := room.get_node_or_null("Rewards")
+	if expected.is_empty() or not rewards:
+		_fail("ExploreRoom should report planned rewards and create the Rewards container.")
+		return
+	var actual := {"chests": 0, "ore_veins": 0}
+	for reward in rewards.get_children():
+		if not is_instance_valid(reward) or not reward.has_method("get_reward_type"):
+			continue
+		if int(reward.get_reward_type()) == 0:
+			actual["chests"] = int(actual["chests"]) + 1
+		else:
+			actual["ore_veins"] = int(actual["ore_veins"]) + 1
+	if actual != expected:
+		_fail("ExploreRoom must create every planned reward. Expected %s, got %s." % [str(expected), str(actual)])
 
 
 func _finish_explore_room_cleanup(room: Node) -> void:

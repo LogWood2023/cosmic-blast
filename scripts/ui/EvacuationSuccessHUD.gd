@@ -6,6 +6,8 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
 @onready var evacuate_button: Button = $Panel/EvacuateButton
 
+var _is_closing := false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -15,4 +17,10 @@ func _ready() -> void:
 
 
 func _on_evacuate_pressed() -> void:
-	evacuate_pressed.emit()
+	if _is_closing:
+		return
+	_is_closing = true
+	evacuate_button.disabled = true
+	CombatUiMotion.animate_first_panel_exit(self, func() -> void:
+		evacuate_pressed.emit()
+	)

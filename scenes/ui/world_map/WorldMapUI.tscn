@@ -1,10 +1,14 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/app/WorldMap.gd" id="1_worldmap"]
-[ext_resource type="Texture2D" path="res://assets/ui/icons/settings_gear.svg" id="2_settings"]
 [ext_resource type="Script" path="res://scripts/ui/world_map/WorldMapViewport.gd" id="3_map_viewport"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/star_marrow.svg" id="4_star_marrow"]
-[ext_resource type="Script" path="res://scripts/ui/world_map/EnemyFamilyWeightPie.gd" id="5_enemy_family_weight_pie"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/world_map_shop.png" id="5_shop"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/world_map_hangar.png" id="6_hangar"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/world_map_settings.png" id="7_settings"]
+[ext_resource type="Script" path="res://scripts/ui/world_map/CrisisWarningTape.gd" id="8_crisis_warning_tape"]
+[ext_resource type="Script" path="res://scripts/ui/world_map/CrisisAlertOverlay.gd" id="9_crisis_alert_overlay"]
+[ext_resource type="Script" path="res://scripts/ui/world_map/CrisisAlertTape.gd" id="10_crisis_alert_tape"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 bg_color = Color(0.02745098, 0.0627451, 0.09411765, 0.9)
@@ -62,6 +66,30 @@ border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.32156864, 0.9098039, 1, 0.25)
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_nav_button"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_nav_button_hover"]
+bg_color = Color(0.16, 0.74, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_nav_button_pressed"]
+bg_color = Color(0.36, 0.9, 1, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_nav_button_focus"]
+bg_color = Color(1, 0.72, 0.30, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_nav_caption"]
+bg_color = Color(0.04, 0.16, 0.31, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.72, 1, 0.84)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [node name="WorldMap" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -89,13 +117,12 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 53.0
-offset_top = 166.0
+offset_top = 115.0
 offset_right = -518.0
 offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-tooltip_text = "拖拽平移，滚轮缩放"
 script = ExtResource("3_map_viewport")
 
 [node name="TopBar" type="Panel" parent="."]
@@ -105,33 +132,175 @@ anchor_right = 1.0
 offset_left = 44.0
 offset_top = 30.0
 offset_right = -528.0
-offset_bottom = 132.0
+offset_bottom = 81.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="TitleLabel" type="Label" parent="TopBar"]
-theme_type_variation = &"DisplayTitle"
-layout_mode = 0
-offset_left = 30.0
-offset_top = 14.0
-offset_right = 580.0
-offset_bottom = 58.0
-theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(1, 0.18, 0.12, 0.72)
-theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 32
-text = "方舟核心航图"
+[node name="CrisisSegments" type="HBoxContainer" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 6.0
+offset_right = -12.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 7
+
+[node name="CrisisWarningMask" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 44.0
+offset_top = 20.0
+offset_right = -528.0
+offset_bottom = 92.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+clip_contents = true
+
+[node name="CrisisWarningTape" type="Control" parent="CrisisWarningMask"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8_crisis_warning_tape")
+
+[node name="WarningLabel" type="Label" parent="CrisisWarningMask/CrisisWarningTape"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.86, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0, 0.02, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "WARNING  //  CRISIS LIMIT  //  RETURN TO ARK"
+horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StatsLabel" type="Label" parent="TopBar"]
-layout_mode = 0
-offset_left = 30.0
-offset_top = 62.0
-offset_right = 1288.0
-offset_bottom = 92.0
-theme_override_colors/font_color = Color(0.75, 0.9, 0.96, 1)
-theme_override_font_sizes/font_size = 22
-text = "危机 0   算力 0/5   星髓矿 0"
+[node name="CrisisAlertOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+z_index = 100
+script = ExtResource("9_crisis_alert_overlay")
+
+[node name="Backdrop" type="ColorRect" parent="CrisisAlertOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.08, 0.001, 0.008, 0)
+
+[node name="Flash" type="ColorRect" parent="CrisisAlertOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.02, 0.08, 0)
+
+[node name="TopWarningTape" type="Control" parent="CrisisAlertOverlay"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 62.0
+grow_horizontal = 2
+mouse_filter = 2
+clip_contents = true
+script = ExtResource("10_crisis_alert_tape")
+
+[node name="BottomWarningTape" type="Control" parent="CrisisAlertOverlay"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -48.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+clip_contents = true
+scroll_direction = -1.0
+script = ExtResource("10_crisis_alert_tape")
+
+[node name="CenterContent" type="Control" parent="CrisisAlertOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -200.0
+offset_right = 210.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(210, 200)
+mouse_filter = 2
+
+[node name="WarningLabel" type="Label" parent="CrisisAlertOverlay/CenterContent"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 36.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.33, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0, 0.01, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 24
+text = "CRISIS WARNING"
+horizontal_alignment = 1
+
+[node name="BossIcon" type="TextureRect" parent="CrisisAlertOverlay/CenterContent"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 86.0
+offset_top = 42.0
+offset_right = -86.0
+offset_bottom = 292.0
+grow_horizontal = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BossLabel" type="Label" parent="CrisisAlertOverlay/CenterContent"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 318.0
+offset_bottom = 356.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.84, 1)
+theme_override_colors/font_outline_color = Color(0.14, 0, 0.02, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
 
 [node name="DetailsPanel" type="Panel" parent="."]
 layout_mode = 1
@@ -140,9 +309,9 @@ anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -492.0
-offset_top = 98.0
+offset_top = 104.0
 offset_right = -40.0
-offset_bottom = -30.0
+offset_bottom = -26.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
@@ -161,17 +330,17 @@ vertical_alignment = 1
 [node name="DetailsBodyBack" type="Panel" parent="DetailsPanel"]
 layout_mode = 0
 offset_left = 24.0
-offset_top = 88.0
+offset_top = 74.0
 offset_right = 428.0
-offset_bottom = 540.0
+offset_bottom = 567.0
 theme_override_styles/panel = SubResource("StyleBox_details_body")
 
 [node name="DetailsBody" type="RichTextLabel" parent="DetailsPanel"]
 layout_mode = 0
-offset_left = 42.0
-offset_top = 106.0
-offset_right = 410.0
-offset_bottom = 520.0
+offset_left = 36.0
+offset_top = 92.0
+offset_right = 416.0
+offset_bottom = 547.0
 bbcode_enabled = true
 fit_content = false
 scroll_active = true
@@ -181,45 +350,12 @@ theme_override_font_sizes/normal_font_size = 20
 theme_override_font_sizes/bold_font_size = 20
 text = ""
 
-[node name="EnemyFamilyWeightTitle" type="Label" parent="DetailsPanel"]
-layout_mode = 0
-offset_left = 42.0
-offset_top = 226.0
-offset_right = 410.0
-offset_bottom = 254.0
-theme_override_colors/font_color = Color(0.32156864, 0.9098039, 1, 1)
-theme_override_font_sizes/font_size = 18
-text = "五系敌人权重"
-horizontal_alignment = 1
-
-[node name="EnemyFamilyWeightPie" type="Control" parent="DetailsPanel"]
-layout_mode = 0
-offset_left = 117.0
-offset_top = 256.0
-offset_right = 335.0
-offset_bottom = 474.0
-mouse_filter = 0
-tooltip_text = ""
-script = ExtResource("5_enemy_family_weight_pie")
-
-[node name="EnemyFamilyWeightHint" type="Label" parent="DetailsPanel"]
-layout_mode = 0
-offset_left = 42.0
-offset_top = 480.0
-offset_right = 410.0
-offset_bottom = 514.0
-theme_override_colors/font_color = Color(0.82, 0.9, 0.95, 1)
-theme_override_font_sizes/font_size = 16
-text = "将鼠标移至扇区，查看敌人系列与权重占比。"
-horizontal_alignment = 1
-autowrap_mode = 2
-
 [node name="RouteDirectivePanel" type="Panel" parent="DetailsPanel"]
 layout_mode = 0
 offset_left = 24.0
-offset_top = 556.0
+offset_top = 582.0
 offset_right = 428.0
-offset_bottom = 772.0
+offset_bottom = 806.0
 theme_override_styles/panel = SubResource("StyleBox_details_body")
 
 [node name="Title" type="Label" parent="DetailsPanel/RouteDirectivePanel"]
@@ -328,45 +464,15 @@ theme_override_font_sizes/font_size = 18
 text = "300"
 vertical_alignment = 1
 
-[node name="ShopButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(249, 52)
-layout_mode = 0
-offset_left = 179.0
-offset_top = 868.0
-offset_right = 428.0
-offset_bottom = 920.0
-theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBox_button")
-theme_override_styles/hover = SubResource("StyleBox_button_hover")
-theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
-theme_override_styles/focus = SubResource("StyleBox_button_hover")
-text = "商店"
-
-[node name="HangarButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(249, 52)
-layout_mode = 0
-offset_left = 179.0
-offset_top = 797.0
-offset_right = 428.0
-offset_bottom = 849.0
-theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBox_button")
-theme_override_styles/hover = SubResource("StyleBox_button_hover")
-theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
-theme_override_styles/focus = SubResource("StyleBox_button_hover")
-text = "机库"
-
 [node name="ActionButton" type="Button" parent="DetailsPanel"]
-custom_minimum_size = Vector2(137, 123)
+custom_minimum_size = Vector2(404, 52)
 layout_mode = 0
 offset_left = 24.0
-offset_top = 797.0
-offset_right = 161.0
-offset_bottom = 920.0
+offset_top = 840.0
+offset_right = 428.0
+offset_bottom = 892.0
 theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBox_button")
 theme_override_styles/hover = SubResource("StyleBox_button_hover")
 theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
@@ -393,23 +499,118 @@ text = ""
 horizontal_alignment = 2
 text_overrun_behavior = 3
 
-[node name="SettingsButton" type="Button" parent="."]
-custom_minimum_size = Vector2(64, 64)
+[node name="ShopButton" type="Button" parent="."]
+custom_minimum_size = Vector2(72, 70)
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -104.0
-offset_top = 26.0
-offset_right = -40.0
-offset_bottom = 90.0
+offset_left = -304.0
+offset_top = 18.0
+offset_right = -232.0
+offset_bottom = 88.0
 grow_horizontal = 0
-theme_override_colors/font_color = Color(0.98, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBox_button")
-theme_override_styles/hover = SubResource("StyleBox_button_hover")
-theme_override_styles/pressed = SubResource("StyleBox_button_pressed")
-theme_override_styles/focus = SubResource("StyleBox_button_hover")
-text = ""
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBox_nav_button")
+theme_override_styles/hover = SubResource("StyleBox_nav_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_nav_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_nav_button_focus")
+tooltip_text = "商店"
+
+[node name="Icon" type="TextureRect" parent="ShopButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 0.0
+offset_right = -8.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_shop")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Caption" type="Label" parent="ShopButton"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 50.0
+offset_bottom = 68.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.84, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBox_nav_caption")
+text = "商店"
+horizontal_alignment = 1
+
+[node name="HangarButton" type="Button" parent="."]
+custom_minimum_size = Vector2(72, 70)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -216.0
+offset_top = 18.0
+offset_right = -144.0
+offset_bottom = 88.0
+grow_horizontal = 0
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBox_nav_button")
+theme_override_styles/hover = SubResource("StyleBox_nav_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_nav_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_nav_button_focus")
+tooltip_text = "机库"
+
+[node name="Icon" type="TextureRect" parent="HangarButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 0.0
+offset_right = -8.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_hangar")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Caption" type="Label" parent="HangarButton"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 50.0
+offset_bottom = 68.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.84, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBox_nav_caption")
+text = "机库"
+horizontal_alignment = 1
+
+[node name="SettingsButton" type="Button" parent="."]
+custom_minimum_size = Vector2(72, 70)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -128.0
+offset_top = 18.0
+offset_right = -56.0
+offset_bottom = 88.0
+grow_horizontal = 0
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBox_nav_button")
+theme_override_styles/hover = SubResource("StyleBox_nav_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_nav_button_pressed")
+theme_override_styles/focus = SubResource("StyleBox_nav_button_focus")
 tooltip_text = "设置"
 
 [node name="Icon" type="TextureRect" parent="SettingsButton"]
@@ -417,13 +618,27 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = -15.0
+offset_left = 8.0
+offset_top = 0.0
+offset_right = -8.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("2_settings")
+texture = ExtResource("7_settings")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="Caption" type="Label" parent="SettingsButton"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 50.0
+offset_bottom = 68.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.84, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBox_nav_caption")
+text = "设置"
+horizontal_alignment = 1

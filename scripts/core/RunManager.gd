@@ -15,7 +15,23 @@ const NODE_REWARD: String = "reward"
 const NODE_SPECIAL: String = "special"
 
 const CRISIS_THRESHOLDS: Array[int] = [5, 12, 21]
-
+const BOSS_ALERT_PREVIEWS: Dictionary = {
+	"res://scenes/gameplay/boss/BossBattle_Frontier.tscn": {"name": "星海前锋", "test_text": "测试通告：前锋舰队已完成坐标校准，正在评估方舟的征服价值。"},
+	"res://scenes/gameplay/boss/BossBattle_PeachBlossom.tscn": {"name": "桃源乡", "test_text": "测试通告：乐园协议正在抹除航图中的不稳定变量。"},
+	"res://scenes/gameplay/boss/BossBattle_Source.tscn": {"name": "异变源石", "test_text": "测试通告：星核燃料形态失控，正在向核心区扩散。"},
+	"res://scenes/gameplay/boss/BossBattle_Sentry.tscn": {"name": "前哨战", "test_text": "测试通告：外层侦测人格已锁定方舟核心信号。"},
+	"res://scenes/gameplay/boss/BossBattle_ImitationAngel.tscn": {"name": "仿造天使", "test_text": "测试通告：工业化救赎单元正在接近核心航道。"},
+	"res://scenes/gameplay/boss/BossBattle_Heavy.tscn": {"name": "星尘重兵", "test_text": "测试通告：重装封锁线已展开，等待火力验证。"},
+	"res://scenes/gameplay/boss/BossBattle_Utopia.tscn": {"name": "乌托邦", "test_text": "测试通告：合规裁决开始执行，异常航线将被逐项修剪。"},
+	"res://scenes/gameplay/boss/BossBattle_Spore.tscn": {"name": "诡异菌孢", "test_text": "测试通告：失控繁殖体已污染撤离扇区。"},
+	"res://scenes/gameplay/boss/BossBattle_Admin.tscn": {"name": "防火墙", "test_text": "测试通告：隔离系统判定方舟为感染源，封锁即将收紧。"},
+	"res://scenes/gameplay/boss/BossBattle_HolyBloodBrokenSword.tscn": {"name": "圣血断剑", "test_text": "测试通告：残存审判协议请求以失血偿还越界。"},
+	"res://scenes/gameplay/boss/BossBattle_Nebula.tscn": {"name": "星云巨构", "test_text": "测试通告：巨构行军核心已进入碾压航线。"},
+	"res://scenes/gameplay/boss/BossBattle_Eden.tscn": {"name": "伊甸园", "test_text": "测试通告：完美容器正在覆写自由变量。"},
+	"res://scenes/gameplay/boss/BossBattle_Anti.tscn": {"name": "反物质核", "test_text": "测试通告：反物质反应即将重写当前星域。"},
+	"res://scenes/gameplay/boss/BossBattle_Gate.tscn": {"name": "典狱长", "test_text": "测试通告：深层判决人格宣告方舟不得离开。"},
+	"res://scenes/gameplay/boss/BossBattle_CrystalMother.tscn": {"name": "水晶圣母", "test_text": "测试通告：封存协议已启动，心智样本正在冻结。"},
+}
 # 危机播报文案（对应 docs/lore/02）：引导之声 + 天穹协议双视角。
 # 每次危机 +1 抽一条 TICK；将触阈值时（4/11/20）改抽 APPROACH；触到 5/12/21 锁定时用 LOCK。
 const CRISIS_TICK_BROADCASTS: Array[String] = [
@@ -952,13 +968,39 @@ const MAP_RING_COUNTS: Array[int] = [5, 8, 11]
 # Keep the formal world map wide enough for its route graph.  The previous
 # radii made the map look cramped once the special beacon nodes were added.
 const MAP_RING_RADII: Array[float] = [260.0, 470.0, 680.0]
+const MAP_SPIDER_INITIAL_NODE_COUNT_MIN: int = 3
+const MAP_SPIDER_INITIAL_NODE_COUNT_MAX: int = 5
+const MAP_SPIDER_LAYER_COUNT: int = 4
+const MAP_SPIDER_MAIN_NODE_COUNT_MIN: int = 45
+const MAP_SPIDER_MAIN_NODE_COUNT_MAX: int = 55
+const MAP_SPIDER_PATH_COUNT: int = 4
+const MAP_REWARD_PATH_COUNT: int = 2
+const MAP_BEACON_PATH_COUNT: int = 2
+const MAP_SPIDER_LATERAL_DEPTH_COUNT: int = 3
+const MAP_SPIDER_MIN_RADIUS: float = 250.0
+const MAP_SPIDER_RADIUS_STEP: float = 150.0
+const MAP_SPIDER_RADIUS_JITTER: float = 16.0
+const MAP_SPIDER_MAX_PATH_BEND: float = deg_to_rad(12.0)
+const MAP_SPIDER_NODE_ANGLE_JITTER: float = deg_to_rad(3.0)
+const MAP_SPIDER_GAP_JITTER: float = deg_to_rad(10.0)
+const MAP_LONG_LINK_LENGTH: float = 270.0
+const MAP_BRIDGE_NEIGHBOR_DISTANCE: float = 240.0
 const MAP_NODE_MIN_DISTANCE: float = 118.0
+const MAP_WEB_ROOT_MAX_DEGREE: int = MAP_SPIDER_INITIAL_NODE_COUNT_MAX
+const MAP_WEB_NODE_MAX_DEGREE: int = 3
+const MAP_WEB_TERMINAL_MAX_DEGREE: int = 2
+const MAP_WEB_RELAY_MAX_DEGREE: int = 3
+const MAP_WEB_BRIDGE_MAX_DEGREE: int = 4
+const MAP_WEB_NEAREST_CANDIDATE_COUNT: int = 4
+const MAP_WEB_MIN_LOCAL_LINK_LENGTH: float = 132.0
+const MAP_WEB_MAX_LOCAL_LINK_LENGTH: float = 260.0
+const MAP_WEB_MIN_LINK_ANGLE: float = deg_to_rad(30.0)
 const MAP_POSITION_SEARCH_STEP: float = 28.0
 const MAP_POSITION_SEARCH_RINGS: int = 12
 const MAP_POSITION_SEARCH_SAMPLES: int = 24
-const MAP_BATTLE_NODE_COUNT: int = 17
-const MAP_EVENT_NODE_COUNT: int = 4
-const MAP_REWARD_NODE_COUNT: int = 3
+const MAP_BATTLE_NODE_COUNT: int = 30
+const MAP_EVENT_NODE_COUNT: int = 12
+const MAP_REWARD_NODE_COUNT: int = 6
 const BATTLE_NODE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "patrol_vanguard",
@@ -1884,6 +1926,8 @@ var equipped_auxiliaries: Array[String] = []
 var cleared_crisis_thresholds: Array[int] = []
 var pending_boss_threshold: int = 0
 var pending_crisis_broadcast: String = ""
+var last_crisis_alert_intro_threshold: int = 0
+var map_layout_seed: int = 0
 var pending_boss_scene: String = ""
 var last_boss_reward: Dictionary = {}
 var last_boss_completion_summary: Dictionary = {}
@@ -1922,6 +1966,8 @@ func start_new_run() -> void:
 	equipped_auxiliaries.clear()
 	cleared_crisis_thresholds.clear()
 	pending_boss_threshold = 0
+	last_crisis_alert_intro_threshold = 0
+	map_layout_seed = 0
 	pending_boss_scene = ""
 	last_boss_reward.clear()
 	last_boss_completion_summary.clear()
@@ -1947,6 +1993,8 @@ func cancel_run() -> void:
 	current_node_id = -1
 	current_room_mineral_mult = 1.0
 	pending_boss_threshold = 0
+	last_crisis_alert_intro_threshold = 0
+	map_layout_seed = 0
 	pending_boss_scene = ""
 	last_boss_reward.clear()
 	last_boss_completion_summary.clear()
@@ -1987,6 +2035,8 @@ func save_run() -> void:
 		"equipped_auxiliaries": equipped_auxiliaries,
 		"cleared_crisis_thresholds": cleared_crisis_thresholds,
 		"pending_boss_threshold": pending_boss_threshold,
+		"last_crisis_alert_intro_threshold": last_crisis_alert_intro_threshold,
+		"map_layout_seed": map_layout_seed,
 		"pending_boss_scene": pending_boss_scene,
 		"pending_boss_reward": pending_boss_reward,
 		"last_boss_reward": last_boss_reward,
@@ -2042,6 +2092,8 @@ func load_saved_run() -> bool:
 	equipped_auxiliaries.assign(data.get("equipped_auxiliaries", []))
 	cleared_crisis_thresholds.assign(data.get("cleared_crisis_thresholds", []))
 	pending_boss_threshold = int(data.get("pending_boss_threshold", 0))
+	last_crisis_alert_intro_threshold = int(data.get("last_crisis_alert_intro_threshold", 0))
+	map_layout_seed = int(data.get("map_layout_seed", 0))
 	pending_boss_scene = String(data.get("pending_boss_scene", ""))
 	pending_boss_reward = Dictionary(data.get("pending_boss_reward", {}))
 	last_boss_reward = data.get("last_boss_reward", {})
@@ -2084,6 +2136,30 @@ func is_formal_run_active() -> bool:
 
 func is_alert_active() -> bool:
 	return CRISIS_THRESHOLDS.has(crisis_level) and not cleared_crisis_thresholds.has(crisis_level)
+
+
+func consume_crisis_alert_intro() -> bool:
+	if not is_alert_active() or last_crisis_alert_intro_threshold == crisis_level:
+		return false
+	last_crisis_alert_intro_threshold = crisis_level
+	return true
+
+
+func get_alert_boss_family() -> String:
+	var preview: Dictionary = get_alert_boss_preview()
+	return String(preview.get("family", ""))
+
+
+func get_alert_boss_preview() -> Dictionary:
+	if not is_alert_active():
+		return {}
+	if pending_boss_scene.is_empty():
+		pending_boss_scene = _pick_crisis_boss_scene(get_alert_stage())
+	var preview: Dictionary = Dictionary(BOSS_ALERT_PREVIEWS.get(pending_boss_scene, {})).duplicate(true)
+	preview["scene"] = pending_boss_scene
+	preview["family"] = _get_boss_family_for_scene(pending_boss_scene)
+	preview["stage"] = get_alert_stage()
+	return preview
 
 
 func get_alert_stage() -> int:
@@ -2234,49 +2310,118 @@ func get_battle_profiles() -> Array:
 	return BATTLE_NODE_PROFILES.duplicate(true)
 
 
-func prepare_reward_cache_choices(node_id: int, seed: int = -1) -> Array:
+func prepare_reward_event_choices(node_id: int, seed: int = -1) -> Array:
 	var node := get_map_node(node_id)
 	if node.is_empty() or String(node.get("type", "")) != NODE_REWARD:
 		return []
 	node = _ensure_reward_profile_on_node(node)
 	map_nodes[node_id] = node
+	var tier := maxi(1, int(node.get("tier", 1)))
+	var family := String(node.get("cache_family_bias", node.get("family_bias", "")))
+	var rng := _make_rng(seed if seed >= 0 else Time.get_ticks_msec())
+	var mineral_amount := 36 + tier * 14 + rng.randi_range(0, 12)
+	var repair_amount := 16 + tier * 7
+	var item_id := EquipmentCatalogScript.get_random_family_loot_item_id(
+		equipment_inventory,
+		crisis_level,
+		family,
+		rng.randi()
+	)
+	if item_id.is_empty():
+		item_id = EquipmentCatalogScript.get_random_loot_item_id(equipment_inventory, crisis_level, family, rng.randi())
 	var choices: Array = [
-		_make_reward_cache_choice_data("minerals", node),
-		_make_reward_cache_choice_data("equipment", node),
-		_make_reward_cache_choice_data("family", node),
+		{
+			"choice_id": "reward_minerals_%d" % node_id,
+			"reward_type": "minerals",
+			"cache_type": "minerals",
+			"title": "回收星髓矿",
+			"description": "优先拆解完整的矿物密封仓。",
+			"preview": "获得 %d 星髓矿。" % mineral_amount,
+			"amount": mineral_amount,
+		},
+		{
+			"choice_id": "reward_repair_%d" % node_id,
+			"reward_type": "repair",
+			"cache_type": "repair",
+			"title": "启用维修组件",
+			"description": "把可用的纳米修复剂导入船体。",
+			"preview": "恢复 %d 点生命。" % repair_amount,
+			"amount": repair_amount,
+		},
+		{
+			"choice_id": "reward_equipment_%d" % node_id,
+			"reward_type": "equipment",
+			"cache_type": "equipment",
+			"title": "提取装备蓝图",
+			"description": "以当前航线偏好筛选一件可用的遗失装备。",
+			"preview": "获得装备：%s。" % EquipmentCatalogScript.get_display_name(item_id),
+			"item_id": item_id,
+		},
 	]
 	if seed >= 0 and choices.size() > 1:
 		choices = _rotate_reward_cache_choices(choices, seed)
 	return choices
 
 
-func start_reward_cache_choice(node_id: int, choice_id: String, seed: int = -1) -> Dictionary:
+func resolve_reward_event_choice(node_id: int, choice_id: String, seed: int = -1) -> Dictionary:
 	if not is_node_accessible(node_id):
 		return {"ok": false, "message": "节点尚不可访问。"}
 	var node := get_map_node(node_id)
 	if node.is_empty() or String(node.get("type", "")) != NODE_REWARD:
-		return {"ok": false, "message": "这不是奖励缓存节点。"}
-	var choices := prepare_reward_cache_choices(node_id, seed)
-	var selected_choice := _find_reward_cache_choice(choices, choice_id)
+		return {"ok": false, "message": "这不是奖励事件节点。"}
+	var selected_choice := _find_reward_cache_choice(prepare_reward_event_choices(node_id, seed), choice_id)
 	if selected_choice.is_empty():
-		return {"ok": false, "message": "奖励缓存方案已失效。"}
-	var apply_result := _apply_reward_cache_choice_to_node(node_id, selected_choice)
-	if not start_explore_node(node_id):
-		return {"ok": false, "message": "奖励缓存暂不可进入。"}
+		return {"ok": false, "message": "这份补给已经失效。"}
+	current_node_id = node_id
+	pending_room_loot = _empty_loot()
+	var reward_type := String(selected_choice.get("reward_type", ""))
 	var result := {
 		"ok": true,
-		"message": "奖励缓存已锁定：%s。" % String(selected_choice.get("title", "回收方案")),
 		"node_id": node_id,
 		"choice": selected_choice.duplicate(true),
-		"choice_id": String(selected_choice.get("choice_id", "")),
-		"cache_type": String(selected_choice.get("cache_type", "")),
-		"title": String(selected_choice.get("title", "")),
-		"preview": String(selected_choice.get("preview", "")),
-		"family_bias": String(selected_choice.get("family_bias", "")),
+		"choice_id": choice_id,
+		"reward_type": reward_type,
+		"title": String(selected_choice.get("title", "补给")),
+		"minerals_added": 0,
+		"healed": 0,
+		"equipment_name": "",
 	}
-	for key in apply_result.keys():
-		result[key] = apply_result[key]
+	match reward_type:
+		"minerals":
+			var amount := int(selected_choice.get("amount", 0))
+			minerals += amount
+			result["minerals_added"] = amount
+			result["message"] = "你从残骸中取回了 %d 星髓矿。" % amount
+		"repair":
+			var healed := int(selected_choice.get("amount", 0))
+			GameManager.player_hp = mini(GameManager.PLAYER_MAX_HP, GameManager.player_hp + healed)
+			result["healed"] = healed
+			result["message"] = "维修组件已接入，船体恢复 %d 点生命。" % healed
+		"equipment":
+			var item_id := String(selected_choice.get("item_id", ""))
+			if not item_id.is_empty() and EquipmentCatalogScript.has_item(item_id) and not equipment_inventory.has(item_id):
+				equipment_inventory.append(item_id)
+				result["equipment_name"] = EquipmentCatalogScript.get_display_name(item_id)
+				result["message"] = "已将 %s 收入装备库。" % String(result.get("equipment_name", ""))
+			else:
+				result["message"] = "这份蓝图已经归档，方舟未能提取新的装备。"
+		_:
+			return {"ok": false, "message": "未知奖励类型。"}
+	var completion := _complete_current_node(true)
+	for key in completion.keys():
+		if not result.has(key):
+			result[key] = completion[key]
 	return result
+
+
+# Compatibility aliases keep save tools and external content scripts working while reward nodes
+# transition from combat caches to direct-choice reward events.
+func prepare_reward_cache_choices(node_id: int, seed: int = -1) -> Array:
+	return prepare_reward_event_choices(node_id, seed)
+
+
+func start_reward_cache_choice(node_id: int, choice_id: String, seed: int = -1) -> Dictionary:
+	return resolve_reward_event_choice(node_id, choice_id, seed)
 
 
 func prepare_event_choices(node_id: int, seed: int = -1, choice_count: int = 3) -> Array:
@@ -2355,7 +2500,7 @@ func get_node_type_name(node_type: String) -> String:
 		NODE_EVENT:
 			return "事件信号"
 		NODE_REWARD:
-			return "奖励缓存"
+			return "奖励事件"
 		NODE_SPECIAL:
 			return "增益信标"
 	return "未知节点"
@@ -2393,7 +2538,7 @@ func start_explore_node(node_id: int) -> bool:
 	var node := get_map_node(node_id)
 	if node.is_empty() or String(node.get("type", "")) == NODE_BASE:
 		return false
-	if String(node.get("type", "")) == NODE_SPECIAL:
+	if String(node.get("type", "")) == NODE_SPECIAL or String(node.get("type", "")) == NODE_REWARD:
 		return false
 	node = _ensure_battle_profile_on_node(node)
 	node = _ensure_reward_profile_on_node(node)
@@ -2523,7 +2668,8 @@ func begin_crisis_boss() -> bool:
 	if not is_alert_active():
 		return false
 	pending_boss_threshold = crisis_level
-	pending_boss_scene = _pick_crisis_boss_scene(get_alert_stage())
+	if pending_boss_scene.is_empty():
+		pending_boss_scene = _pick_crisis_boss_scene(get_alert_stage())
 	if pending_boss_scene.is_empty():
 		return false
 	return true
@@ -2544,7 +2690,7 @@ func handle_boss_victory() -> bool:
 	for key in boss_aftershock.keys():
 		boss_completion_summary[key] = boss_aftershock[key]
 	last_boss_completion_summary = boss_completion_summary
-	get_tree().change_scene_to_file(WORLD_MAP_SCENE)
+	BossVictoryTransition.play_to_scene(WORLD_MAP_SCENE)
 	return true
 
 
@@ -3243,6 +3389,26 @@ func _add_crisis_with_alert_stop(amount: int) -> int:
 	if added > 0:
 		_queue_crisis_broadcast()
 	return added
+
+
+func debug_add_crisis(amount: int = 1) -> Dictionary:
+	if not is_formal_run_active():
+		return {"ok": false, "message": "当前没有进行中的正式航程，无法提升危机等级。"}
+	if is_alert_active():
+		return {"ok": false, "message": "危机等级 %d 已触发首领警报，请先处理中心节点。" % crisis_level}
+	var requested := clampi(amount, 1, 99)
+	var added := _add_crisis_with_alert_stop(requested)
+	if added <= 0:
+		return {"ok": false, "message": "危机等级未变化。"}
+	save_run()
+	var suffix := "已触发首领警报。" if is_alert_active() else ""
+	return {
+		"ok": true,
+		"added": added,
+		"crisis_level": crisis_level,
+		"alert_active": is_alert_active(),
+		"message": "危机等级 +%d，当前为 %d。%s" % [added, crisis_level, suffix],
+	}
 
 
 func _queue_crisis_broadcast() -> void:
@@ -4042,6 +4208,683 @@ func _merge_route_directive_reward_summary(total: Dictionary, reward: Dictionary
 
 
 func _generate_world_map() -> void:
+	if active_run_conditions.is_empty():
+		_select_run_conditions()
+	map_nodes.clear()
+	map_nodes.append({
+		"id": CENTER_ID,
+		"name": "方舟核心",
+		"type": NODE_BASE,
+		"position": MAP_CENTER,
+		"links": [],
+		"completed": true,
+	})
+	map_layout_seed = randi()
+	var rng: RandomNumberGenerator = _make_rng(map_layout_seed)
+	var layer_counts := _make_branching_layer_counts(rng)
+	var main_node_count := 0
+	for count in layer_counts:
+		main_node_count += int(count)
+	var reward_node_count := maxi(1, int(round(float(main_node_count) / 8.0)))
+	var type_deck := _make_branching_node_type_deck(main_node_count, reward_node_count)
+	var layers: Array[Array] = []
+	var occupied_positions: Array[Vector2] = [MAP_CENTER]
+	var root_angles := _make_branching_root_angles(rng, int(layer_counts[0]))
+	var reward_terminal_indices := _make_reward_terminal_indices(int(layer_counts.back()), reward_node_count)
+	for layer_index in range(layer_counts.size()):
+		var node_count := int(layer_counts[layer_index])
+		var specs: Array[Dictionary] = []
+		if layer_index == 0:
+			for node_index in range(node_count):
+				specs.append({"parent_index": -1, "slot": 0, "count": 1})
+		else:
+			specs = _make_branching_child_specs(layers[layer_index - 1].size(), node_count, rng)
+		var layer_ids: Array[int] = []
+		for node_index in range(node_count):
+			var spec: Dictionary = specs[node_index]
+			var parent_id := CENTER_ID
+			var angle := 0.0
+			var parent_radius := 0.0
+			if layer_index == 0:
+				angle = root_angles[node_index]
+			else:
+				parent_id = int(layers[layer_index - 1][int(spec["parent_index"])])
+				var parent: Dictionary = map_nodes[parent_id]
+				angle = float(parent.get("web_angle", 0.0))
+				angle += (float(spec["slot"]) - (float(spec["count"]) - 1.0) * 0.5) * deg_to_rad(42.0)
+				angle += rng.randf_range(-MAP_SPIDER_MAX_PATH_BEND, MAP_SPIDER_MAX_PATH_BEND)
+				parent_radius = (parent.get("position", MAP_CENTER) as Vector2).distance_to(MAP_CENTER)
+			var candidate_radius := MAP_SPIDER_MIN_RADIUS + MAP_SPIDER_RADIUS_STEP * float(layer_index) + rng.randf_range(-MAP_SPIDER_RADIUS_JITTER, MAP_SPIDER_RADIUS_JITTER)
+			var radius := candidate_radius if layer_index == 0 else maxf(candidate_radius, parent_radius + MAP_NODE_MIN_DISTANCE + 12.0)
+			var is_reward_terminal := layer_index == layer_counts.size() - 1 and reward_terminal_indices.has(node_index)
+			var profile_layer := mini(layer_index, 2)
+			var node_position := MAP_CENTER + Vector2.RIGHT.rotated(angle) * radius
+			while not _is_map_position_available(node_position, occupied_positions):
+				radius += MAP_NODE_MIN_DISTANCE + 8.0
+				node_position = MAP_CENTER + Vector2.RIGHT.rotated(angle) * radius
+			var node_id := map_nodes.size()
+			var node_type := NODE_REWARD if is_reward_terminal else _draw_node_type(type_deck)
+			var node := {
+				"id": node_id,
+				"name": "航路节点 %02d" % node_id,
+				"type": node_type,
+				"position": node_position,
+				"links": [],
+				"completed": false,
+				"ring_index": profile_layer,
+				"ring_node_index": node_index,
+				"web_layer": layer_index,
+				"web_order": node_index,
+				"web_parent_id": parent_id,
+				"web_angle": angle,
+				"is_path_terminal": is_reward_terminal,
+				"family_bias": _pick_family_bias(profile_layer, node_index),
+			}
+			_apply_progression_profile_to_node(node, profile_layer)
+			_apply_intel_profile_to_node(node, profile_layer, node_index)
+			_apply_modifier_profiles_to_node(node, profile_layer, node_index)
+			_apply_run_conditions_to_node(node)
+			_apply_opportunity_profile_to_node(node, profile_layer, node_index)
+			_apply_battle_profile_to_node(node, profile_layer, node_index)
+			_apply_reward_profile_to_node(node, profile_layer, node_index)
+			_apply_ore_source_bias_to_node(node, profile_layer, node_index)
+			_apply_route_plan_to_node(node)
+			map_nodes.append(node)
+			layer_ids.append(node_id)
+			occupied_positions.append(node_position)
+		layers.append(layer_ids)
+	_connect_branching_spider(layers)
+	_add_branching_lateral_relays(layers)
+	_add_planar_web_links()
+	_add_branching_beacon_nodes(layers, rng)
+	_insert_long_link_bridge_nodes()
+
+
+func _make_branching_layer_counts(rng: RandomNumberGenerator) -> Array[int]:
+	var root_count := rng.randi_range(MAP_SPIDER_INITIAL_NODE_COUNT_MIN, MAP_SPIDER_INITIAL_NODE_COUNT_MAX)
+	var main_node_count := MAP_SPIDER_MAIN_NODE_COUNT_MIN if root_count == MAP_SPIDER_INITIAL_NODE_COUNT_MIN else rng.randi_range(MAP_SPIDER_MAIN_NODE_COUNT_MIN, MAP_SPIDER_MAIN_NODE_COUNT_MAX)
+	for attempt in range(48):
+		var second_layer_count := rng.randi_range(root_count, root_count * 2)
+		var third_layer_count := rng.randi_range(second_layer_count, second_layer_count * 2)
+		var outer_layer_count := main_node_count - root_count - second_layer_count - third_layer_count
+		if outer_layer_count < third_layer_count or outer_layer_count > third_layer_count * 2:
+			continue
+		return [root_count, second_layer_count, third_layer_count, outer_layer_count]
+	# The fallback keeps the 3-root map at its maximum connected size (3 + 6 + 12 + 24).
+	return [MAP_SPIDER_INITIAL_NODE_COUNT_MIN, 6, 12, 24]
+
+
+func _make_reward_terminal_indices(layer_count: int, reward_count: int) -> Dictionary:
+	var indices := {}
+	for reward_index in range(mini(layer_count, reward_count)):
+		var index := int(floor(float(reward_index + 1) * float(layer_count) / float(reward_count + 1)))
+		indices[index] = true
+	return indices
+
+
+func _make_branching_node_type_deck(main_node_count: int, reward_node_count: int) -> Array[String]:
+	var deck: Array[String] = []
+	var event_count := int(round(float(main_node_count) / 4.0))
+	var battle_count := main_node_count - reward_node_count - event_count
+	_append_node_types(deck, NODE_BATTLE, battle_count)
+	_append_node_types(deck, NODE_EVENT, event_count)
+	return deck
+
+
+func _make_branching_root_angles(rng: RandomNumberGenerator, root_count: int) -> Array[float]:
+	var angles: Array[float] = []
+	var gaps: Array[float] = []
+	var total_gap := 0.0
+	var base_gap := TAU / float(root_count)
+	for index in range(root_count):
+		var gap := base_gap + rng.randf_range(-MAP_SPIDER_GAP_JITTER, MAP_SPIDER_GAP_JITTER)
+		gaps.append(gap)
+		total_gap += gap
+	var angle := rng.randf_range(-PI, PI)
+	for gap in gaps:
+		angles.append(angle)
+		angle += gap * TAU / total_gap
+	return angles
+
+
+func _make_branching_child_specs(parent_count: int, child_count: int, rng: RandomNumberGenerator) -> Array[Dictionary]:
+	var child_counts: Array[int] = []
+	for parent_index in range(parent_count):
+		child_counts.append(1)
+	for extra_index in range(maxi(0, child_count - parent_count)):
+		var available_parents: Array[int] = []
+		for parent_index in range(parent_count):
+			if child_counts[parent_index] < 2:
+				available_parents.append(parent_index)
+		if available_parents.is_empty():
+			break
+		var selected_parent := available_parents[rng.randi_range(0, available_parents.size() - 1)]
+		child_counts[selected_parent] += 1
+	var specs: Array[Dictionary] = []
+	for parent_index in range(parent_count):
+		for slot in range(child_counts[parent_index]):
+			specs.append({"parent_index": parent_index, "slot": slot, "count": child_counts[parent_index]})
+	return specs
+
+
+func _connect_branching_spider(layers: Array[Array]) -> void:
+	for root_id in layers[0]:
+		_add_branching_link_if_clear(CENTER_ID, int(root_id), true)
+	for layer_index in range(1, layers.size()):
+		for node_id in layers[layer_index]:
+			var node: Dictionary = map_nodes[int(node_id)]
+			var parent_candidates: Array[int] = [int(node.get("web_parent_id", CENTER_ID))]
+			for candidate_id in layers[layer_index - 1]:
+				if not parent_candidates.has(int(candidate_id)):
+					parent_candidates.append(int(candidate_id))
+			var connected := false
+			for parent_id in parent_candidates:
+				if _add_branching_link_if_clear(parent_id, int(node_id), true):
+					node["web_parent_id"] = parent_id
+					map_nodes[int(node_id)] = node
+					connected = true
+					break
+			if connected:
+				continue
+			# Connectivity is mandatory for the progression tree. If every strict
+			# candidate is rejected, retain the geometric safety checks and relax
+			# only degree/angle limits for the fallback parent search.
+			for parent_id in parent_candidates:
+				if _add_branching_link_if_clear(parent_id, int(node_id)):
+					node["web_parent_id"] = parent_id
+					map_nodes[int(node_id)] = node
+					connected = true
+					break
+			if not connected:
+				push_error("Unable to connect branching map node %d to the progression tree." % int(node_id))
+
+
+func _add_branching_lateral_relays(layers: Array[Array]) -> void:
+	var relay_type_deck: Array[String] = []
+	_append_node_types(relay_type_deck, NODE_BATTLE, 5)
+	_append_node_types(relay_type_deck, NODE_EVENT, 2)
+	_append_node_types(relay_type_deck, NODE_REWARD, 1)
+	var relay_pairs: Array[Dictionary] = []
+	for layer_index in range(1, layers.size()):
+		var layer_ids: Array = layers[layer_index]
+		for left_index in range(layer_ids.size() - 1):
+			for right_index in range(left_index + 1, layer_ids.size()):
+				var left_position: Vector2 = map_nodes[int(layer_ids[left_index])].get("position", MAP_CENTER)
+				var right_position: Vector2 = map_nodes[int(layer_ids[right_index])].get("position", MAP_CENTER)
+				if left_position.distance_to(right_position) >= MAP_NODE_MIN_DISTANCE * 2.0 + 12.0:
+					relay_pairs.append({"layer": layer_index, "left": int(layer_ids[left_index]), "right": int(layer_ids[right_index])})
+	for relay_index in range(relay_pairs.size()):
+		if relay_type_deck.is_empty():
+			break
+		var pair: Dictionary = relay_pairs[relay_index]
+		var left_id := int(pair["left"])
+		var right_id := int(pair["right"])
+		var left_position: Vector2 = map_nodes[left_id].get("position", MAP_CENTER)
+		var right_position: Vector2 = map_nodes[right_id].get("position", MAP_CENTER)
+		var midpoint := (left_position + right_position) * 0.5
+		var relay_position := midpoint
+		var occupied_positions: Array[Vector2] = []
+		for node in map_nodes:
+			occupied_positions.append(node.get("position", MAP_CENTER))
+		if not _is_map_position_available(relay_position, occupied_positions):
+			continue
+		var layer_index := int(pair["layer"])
+		var node_id := map_nodes.size()
+		var node_type := _draw_node_type(relay_type_deck)
+		var profile_layer := mini(layer_index, 2)
+		var relay := {
+			"id": node_id,
+			"name": "横向航路节点 %02d" % node_id,
+			"type": node_type,
+			"position": relay_position,
+			"links": [],
+			"completed": false,
+			"ring_index": profile_layer,
+			"ring_node_index": relay_index,
+			"web_layer": layer_index,
+			"web_order": relay_index,
+			"web_parent_id": left_id,
+			"web_relay": true,
+			"family_bias": _pick_family_bias(profile_layer, relay_index),
+		}
+		_apply_progression_profile_to_node(relay, profile_layer)
+		_apply_intel_profile_to_node(relay, profile_layer, relay_index)
+		_apply_modifier_profiles_to_node(relay, profile_layer, relay_index)
+		_apply_run_conditions_to_node(relay)
+		_apply_opportunity_profile_to_node(relay, profile_layer, relay_index)
+		_apply_battle_profile_to_node(relay, profile_layer, relay_index)
+		_apply_reward_profile_to_node(relay, profile_layer, relay_index)
+		_apply_ore_source_bias_to_node(relay, profile_layer, relay_index)
+		_apply_route_plan_to_node(relay)
+		map_nodes.append(relay)
+		if not _add_branching_link_if_clear(left_id, node_id, true):
+			map_nodes.pop_back()
+			continue
+		if not _add_branching_link_if_clear(node_id, right_id, true):
+			_remove_map_link(left_id, node_id)
+			map_nodes.pop_back()
+
+
+func _add_planar_web_links() -> void:
+	var candidate_pairs: Array[Dictionary] = []
+	var seen_pairs := {}
+	for raw_node in map_nodes:
+		var node: Dictionary = raw_node
+		var node_id := int(node.get("id", -1))
+		var layer := int(node.get("web_layer", -1))
+		if node_id <= CENTER_ID or layer < 0 or bool(node.get("is_path_terminal", false)):
+			continue
+		var nearby: Array[Dictionary] = []
+		var node_position: Vector2 = node.get("position", MAP_CENTER)
+		for raw_other in map_nodes:
+			var other: Dictionary = raw_other
+			var other_id := int(other.get("id", -1))
+			var other_layer := int(other.get("web_layer", -1))
+			if other_id <= CENTER_ID or other_id == node_id or other_layer < 0:
+				continue
+			if bool(other.get("is_path_terminal", false)) or abs(other_layer - layer) > 1:
+				continue
+			if node.get("links", []).has(other_id):
+				continue
+			var distance := node_position.distance_to(other.get("position", MAP_CENTER))
+			if distance < MAP_WEB_MIN_LOCAL_LINK_LENGTH or distance > MAP_WEB_MAX_LOCAL_LINK_LENGTH:
+				continue
+			nearby.append({"id": other_id, "distance": distance})
+		nearby.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return float(a["distance"]) < float(b["distance"])
+		)
+		for candidate_index in range(mini(MAP_WEB_NEAREST_CANDIDATE_COUNT, nearby.size())):
+			var other_id := int(nearby[candidate_index]["id"])
+			var key := "%d_%d" % [mini(node_id, other_id), maxi(node_id, other_id)]
+			if seen_pairs.has(key):
+				continue
+			seen_pairs[key] = true
+			candidate_pairs.append({
+				"from": node_id,
+				"to": other_id,
+				"distance": float(nearby[candidate_index]["distance"]),
+			})
+	candidate_pairs.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a["distance"]) < float(b["distance"])
+	)
+	for candidate in candidate_pairs:
+		_add_branching_link_if_clear(int(candidate["from"]), int(candidate["to"]), true)
+
+
+func _insert_long_link_bridge_nodes() -> void:
+	var long_links: Array[Dictionary] = []
+	var seen_links := {}
+	for node in map_nodes:
+		var from_id := int(node.get("id", -1))
+		for raw_to_id in node.get("links", []):
+			var to_id := int(raw_to_id)
+			var key := "%d_%d" % [mini(from_id, to_id), maxi(from_id, to_id)]
+			if seen_links.has(key):
+				continue
+			seen_links[key] = true
+			var from_position: Vector2 = get_map_node(from_id).get("position", MAP_CENTER)
+			var to_position: Vector2 = get_map_node(to_id).get("position", MAP_CENTER)
+			if from_position.distance_to(to_position) > MAP_LONG_LINK_LENGTH:
+				long_links.append({"from": from_id, "to": to_id})
+	var bridge_ids: Array[int] = []
+	var bridge_types: Array[String] = []
+	_append_node_types(bridge_types, NODE_BATTLE, 5)
+	_append_node_types(bridge_types, NODE_EVENT, 2)
+	_append_node_types(bridge_types, NODE_REWARD, 1)
+	for link in long_links:
+		var from_id := int(link["from"])
+		var to_id := int(link["to"])
+		if not get_map_node(from_id).get("links", []).has(to_id):
+			continue
+		var from_position: Vector2 = get_map_node(from_id).get("position", MAP_CENTER)
+		var to_position: Vector2 = get_map_node(to_id).get("position", MAP_CENTER)
+		var bridge_count := maxi(1, int(ceil(from_position.distance_to(to_position) / MAP_LONG_LINK_LENGTH)) - 1)
+		var occupied_positions: Array[Vector2] = []
+		for node in map_nodes:
+			occupied_positions.append(node.get("position", MAP_CENTER))
+		var bridge_positions: Array[Vector2] = []
+		for bridge_index in range(bridge_count):
+			var position := from_position.lerp(to_position, float(bridge_index + 1) / float(bridge_count + 1))
+			if not _is_map_position_available(position, occupied_positions):
+				bridge_positions.clear()
+				break
+			bridge_positions.append(position)
+			occupied_positions.append(position)
+		if bridge_positions.is_empty():
+			continue
+		_remove_map_link(from_id, to_id)
+		var previous_id := from_id
+		for bridge_index in range(bridge_positions.size()):
+			if bridge_types.is_empty():
+				_append_node_types(bridge_types, NODE_BATTLE, 5)
+				_append_node_types(bridge_types, NODE_EVENT, 2)
+				_append_node_types(bridge_types, NODE_REWARD, 1)
+			var node_id := map_nodes.size()
+			var profile_layer := mini(2, int(get_map_node(previous_id).get("ring_index", 1)))
+			var bridge := {
+				"id": node_id, "name": "航路中继 %02d" % node_id, "type": _draw_node_type(bridge_types),
+				"position": bridge_positions[bridge_index], "links": [], "completed": false,
+				"ring_index": profile_layer, "ring_node_index": bridge_index, "web_bridge": true,
+				"family_bias": _pick_family_bias(profile_layer, bridge_index),
+			}
+			_apply_progression_profile_to_node(bridge, profile_layer)
+			_apply_intel_profile_to_node(bridge, profile_layer, bridge_index)
+			_apply_modifier_profiles_to_node(bridge, profile_layer, bridge_index)
+			_apply_run_conditions_to_node(bridge)
+			_apply_opportunity_profile_to_node(bridge, profile_layer, bridge_index)
+			_apply_battle_profile_to_node(bridge, profile_layer, bridge_index)
+			_apply_reward_profile_to_node(bridge, profile_layer, bridge_index)
+			_apply_ore_source_bias_to_node(bridge, profile_layer, bridge_index)
+			_apply_route_plan_to_node(bridge)
+			map_nodes.append(bridge)
+			_add_link(previous_id, node_id)
+			previous_id = node_id
+			bridge_ids.append(node_id)
+		_add_link(previous_id, to_id)
+	for bridge_id in bridge_ids:
+		var bridge_position: Vector2 = get_map_node(bridge_id).get("position", MAP_CENTER)
+		var candidates: Array[Dictionary] = []
+		for node in map_nodes:
+			var node_id := int(node.get("id", -1))
+			if node_id <= CENTER_ID or node_id == bridge_id:
+				continue
+			if bool(node.get("web_bridge", false)) or String(node.get("type", "")) == NODE_SPECIAL or bool(node.get("is_path_terminal", false)):
+				continue
+			if get_map_node(bridge_id).get("links", []).has(node_id):
+				continue
+			var distance_squared := bridge_position.distance_squared_to(node.get("position", MAP_CENTER))
+			if distance_squared <= MAP_BRIDGE_NEIGHBOR_DISTANCE * MAP_BRIDGE_NEIGHBOR_DISTANCE:
+				candidates.append({"id": node_id, "distance_squared": distance_squared})
+		candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return float(a["distance_squared"]) < float(b["distance_squared"])
+		)
+		var added_connections := 0
+		for candidate in candidates:
+			if _add_branching_link_if_clear(bridge_id, int(candidate["id"]), true):
+				added_connections += 1
+				if added_connections >= 2:
+					break
+
+
+func _remove_map_link(a: int, b: int) -> void:
+	for node_id in [a, b]:
+		var node: Dictionary = map_nodes[node_id]
+		var links: Array = node.get("links", [])
+		links.erase(b if node_id == a else a)
+		node["links"] = links
+		map_nodes[node_id] = node
+
+
+func _add_branching_link_if_clear(from_id: int, to_id: int, enforce_web_constraints: bool = false) -> bool:
+	if enforce_web_constraints and not _can_add_web_link(from_id, to_id):
+		return false
+	var from_position: Vector2 = get_map_node(from_id).get("position", MAP_CENTER)
+	var to_position: Vector2 = get_map_node(to_id).get("position", MAP_CENTER)
+	for node in map_nodes:
+		var node_id := int(node.get("id", -1))
+		if node_id == from_id or node_id == to_id:
+			continue
+		var node_position: Vector2 = node.get("position", MAP_CENTER)
+		if _distance_squared_to_map_segment(node_position, from_position, to_position) < 52.0 * 52.0:
+			return false
+	var checked_links := {}
+	for node in map_nodes:
+		var existing_from := int(node.get("id", -1))
+		for raw_existing_to in node.get("links", []):
+			var existing_to := int(raw_existing_to)
+			var key := "%d_%d" % [mini(existing_from, existing_to), maxi(existing_from, existing_to)]
+			if checked_links.has(key):
+				continue
+			checked_links[key] = true
+			if from_id == existing_from or from_id == existing_to or to_id == existing_from or to_id == existing_to:
+				continue
+			var existing_from_position: Vector2 = get_map_node(existing_from).get("position", MAP_CENTER)
+			var existing_to_position: Vector2 = get_map_node(existing_to).get("position", MAP_CENTER)
+			if Geometry2D.segment_intersects_segment(from_position, to_position, existing_from_position, existing_to_position) != null:
+				return false
+	_add_link(from_id, to_id)
+	return true
+
+
+func _can_add_web_link(from_id: int, to_id: int) -> bool:
+	var from_node: Dictionary = get_map_node(from_id)
+	var to_node: Dictionary = get_map_node(to_id)
+	if from_node.is_empty() or to_node.is_empty() or from_node.get("links", []).has(to_id):
+		return false
+	if from_node.get("links", []).size() >= _get_web_node_degree_limit(from_id):
+		return false
+	if to_node.get("links", []).size() >= _get_web_node_degree_limit(to_id):
+		return false
+	return _has_web_link_angle_clear(from_id, to_id) and _has_web_link_angle_clear(to_id, from_id)
+
+
+func _get_web_node_degree_limit(node_id: int) -> int:
+	if node_id == CENTER_ID:
+		return MAP_WEB_ROOT_MAX_DEGREE
+	var node: Dictionary = get_map_node(node_id)
+	if bool(node.get("is_path_terminal", false)):
+		return MAP_WEB_TERMINAL_MAX_DEGREE
+	if bool(node.get("web_relay", false)):
+		return MAP_WEB_RELAY_MAX_DEGREE
+	if bool(node.get("web_bridge", false)):
+		return MAP_WEB_BRIDGE_MAX_DEGREE
+	return MAP_WEB_NODE_MAX_DEGREE
+
+
+func _has_web_link_angle_clear(node_id: int, other_id: int) -> bool:
+	var node: Dictionary = get_map_node(node_id)
+	var node_position: Vector2 = node.get("position", MAP_CENTER)
+	var target_position: Vector2 = get_map_node(other_id).get("position", MAP_CENTER)
+	var candidate_angle := node_position.angle_to_point(target_position)
+	for raw_linked_id in node.get("links", []):
+		var linked_position: Vector2 = get_map_node(int(raw_linked_id)).get("position", MAP_CENTER)
+		var linked_angle := node_position.angle_to_point(linked_position)
+		if absf(wrapf(candidate_angle - linked_angle, -PI, PI)) < MAP_WEB_MIN_LINK_ANGLE:
+			return false
+	return true
+
+
+func _distance_squared_to_map_segment(point: Vector2, segment_start: Vector2, segment_end: Vector2) -> float:
+	var segment := segment_end - segment_start
+	var length_squared := segment.length_squared()
+	if length_squared <= 0.0001:
+		return point.distance_squared_to(segment_start)
+	var progress := clampf((point - segment_start).dot(segment) / length_squared, 0.0, 1.0)
+	return point.distance_squared_to(segment_start + segment * progress)
+
+
+func _add_branching_beacon_nodes(layers: Array[Array], rng: RandomNumberGenerator) -> void:
+	if layers.is_empty() or SPECIAL_BONUS_PROFILES.size() < MAP_BEACON_PATH_COUNT:
+		return
+	var leaves: Array = layers.back()
+	for index in range(MAP_BEACON_PATH_COUNT):
+		var anchor_id := int(leaves[index * (leaves.size() - 1)])
+		var anchor: Dictionary = map_nodes[anchor_id]
+		var anchor_position: Vector2 = anchor.get("position", MAP_CENTER)
+		var angle := MAP_CENTER.angle_to_point(anchor_position) + rng.randf_range(-MAP_SPIDER_NODE_ANGLE_JITTER, MAP_SPIDER_NODE_ANGLE_JITTER)
+		var radius := anchor_position.distance_to(MAP_CENTER) + MAP_NODE_MIN_DISTANCE + 12.0
+		var occupied_positions: Array[Vector2] = []
+		for node in map_nodes:
+			occupied_positions.append(node.get("position", MAP_CENTER))
+		var special_position := MAP_CENTER + Vector2.RIGHT.rotated(angle) * radius
+		while not _is_map_position_available(special_position, occupied_positions):
+			radius += MAP_NODE_MIN_DISTANCE + 8.0
+			special_position = MAP_CENTER + Vector2.RIGHT.rotated(angle) * radius
+		var special_id := map_nodes.size()
+		var profile := SPECIAL_BONUS_PROFILES[index]
+		map_nodes.append({
+			"id": special_id,
+			"name": String(profile.get("name", "增益信标")),
+			"type": NODE_SPECIAL,
+			"position": special_position,
+			"links": [],
+			"completed": false,
+			"web_layer": layers.size(),
+			"web_order": index,
+			"web_parent_id": anchor_id,
+			"is_path_terminal": true,
+			"bonus_id": String(profile.get("bonus_id", "")),
+			"bonus_name": String(profile.get("bonus_name", "")),
+			"bonus_description": String(profile.get("bonus_description", "")),
+			"family_bias": String(profile.get("family_bias", "")),
+		})
+		_add_branching_link_if_clear(anchor_id, special_id)
+
+
+func _generate_compact_spider_map() -> void:
+	if active_run_conditions.is_empty():
+		_select_run_conditions()
+	map_nodes.clear()
+	map_nodes.append({
+		"id": CENTER_ID,
+		"name": "方舟核心",
+		"type": NODE_BASE,
+		"position": MAP_CENTER,
+		"links": [],
+		"completed": true,
+	})
+	map_layout_seed = randi()
+	var layout_rng: RandomNumberGenerator = _make_rng(map_layout_seed)
+	var path_angles: Array[float] = _make_spider_path_angles(layout_rng)
+	var node_type_deck := _make_spider_node_type_deck()
+	var paths: Array[Array] = []
+	for path_index in range(MAP_SPIDER_PATH_COUNT):
+		var path_ids: Array[int] = []
+		var path_bend := layout_rng.randf_range(-MAP_SPIDER_MAX_PATH_BEND, MAP_SPIDER_MAX_PATH_BEND)
+		var previous_radius := 0.0
+		var normal_node_count := 3 if path_index < MAP_REWARD_PATH_COUNT else 5
+		for path_depth in range(normal_node_count):
+			var is_reward_terminal := path_index < MAP_REWARD_PATH_COUNT and path_depth == normal_node_count - 1
+			var progression_ring_index := mini(path_depth, 2)
+			var node_angle := path_angles[path_index] + path_bend * float(path_depth) / float(normal_node_count)
+			if path_depth > 0:
+				node_angle += layout_rng.randf_range(-MAP_SPIDER_NODE_ANGLE_JITTER, MAP_SPIDER_NODE_ANGLE_JITTER)
+			var candidate_radius := MAP_SPIDER_MIN_RADIUS + MAP_SPIDER_RADIUS_STEP * float(path_depth)
+			if path_depth > 0:
+				candidate_radius += layout_rng.randf_range(-MAP_SPIDER_RADIUS_JITTER, MAP_SPIDER_RADIUS_JITTER)
+			var node_radius := candidate_radius if path_depth == 0 else maxf(candidate_radius, previous_radius + MAP_NODE_MIN_DISTANCE + 8.0)
+			var node_id := map_nodes.size()
+			var node_type := NODE_REWARD if is_reward_terminal else _draw_node_type(node_type_deck)
+			var node := {
+				"id": node_id,
+				"name": "航路节点 %02d" % node_id,
+				"type": node_type,
+				"position": MAP_CENTER + Vector2.RIGHT.rotated(node_angle) * node_radius,
+				"links": [],
+				"completed": false,
+				"ring_index": progression_ring_index,
+				"ring_node_index": path_index,
+				"path_index": path_index,
+				"path_depth": path_depth,
+				"is_path_terminal": is_reward_terminal,
+				"family_bias": _pick_family_bias(progression_ring_index, path_index),
+			}
+			_apply_progression_profile_to_node(node, progression_ring_index)
+			_apply_intel_profile_to_node(node, progression_ring_index, path_index)
+			_apply_modifier_profiles_to_node(node, progression_ring_index, path_index)
+			_apply_run_conditions_to_node(node)
+			_apply_opportunity_profile_to_node(node, progression_ring_index, path_index)
+			_apply_battle_profile_to_node(node, progression_ring_index, path_index)
+			_apply_reward_profile_to_node(node, progression_ring_index, path_index)
+			_apply_ore_source_bias_to_node(node, progression_ring_index, path_index)
+			_apply_route_plan_to_node(node)
+			map_nodes.append(node)
+			path_ids.append(node_id)
+			previous_radius = node_radius
+		paths.append(path_ids)
+	_connect_spider_paths(paths, layout_rng)
+	_add_spider_beacon_nodes(paths, layout_rng)
+
+
+func _make_spider_node_type_deck() -> Array[String]:
+	var deck: Array[String] = []
+	for group_index in range(MAP_REWARD_NODE_COUNT):
+		_append_node_types(deck, NODE_BATTLE, 5)
+		_append_node_types(deck, NODE_EVENT, 2)
+	return deck
+
+
+func _make_spider_path_angles(rng: RandomNumberGenerator) -> Array[float]:
+	var gaps: Array[float] = []
+	var total_gap := 0.0
+	var base_gap := TAU / float(MAP_SPIDER_PATH_COUNT)
+	for path_index in range(MAP_SPIDER_PATH_COUNT):
+		var gap := base_gap + rng.randf_range(-MAP_SPIDER_GAP_JITTER, MAP_SPIDER_GAP_JITTER)
+		gaps.append(gap)
+		total_gap += gap
+	var scale := TAU / total_gap
+	var angle := rng.randf_range(-PI, PI)
+	var angles: Array[float] = []
+	for gap in gaps:
+		angles.append(angle)
+		angle += gap * scale
+	return angles
+
+
+func _connect_spider_paths(paths: Array[Array], rng: RandomNumberGenerator) -> void:
+	for path_ids in paths:
+		if path_ids.is_empty():
+			continue
+		_add_link(CENTER_ID, int(path_ids[0]))
+		for path_depth in range(1, path_ids.size()):
+			_add_link(int(path_ids[path_depth - 1]), int(path_ids[path_depth]))
+	for path_depth in range(MAP_SPIDER_LATERAL_DEPTH_COUNT):
+		var lateral_link_count := 0
+		var chance := 0.72 if path_depth == 0 else 0.48
+		for path_index in range(paths.size()):
+			if rng.randf() > chance:
+				continue
+			var current_path: Array = paths[path_index]
+			var next_path: Array = paths[(path_index + 1) % paths.size()]
+			if current_path.size() <= path_depth or next_path.size() <= path_depth:
+				continue
+			_add_link(int(current_path[path_depth]), int(next_path[path_depth]))
+			lateral_link_count += 1
+		if lateral_link_count == 0:
+			var current_path: Array = paths[0]
+			var next_path: Array = paths[1]
+			_add_link(int(current_path[path_depth]), int(next_path[path_depth]))
+
+
+func _add_spider_beacon_nodes(paths: Array[Array], rng: RandomNumberGenerator) -> void:
+	if paths.size() != MAP_SPIDER_PATH_COUNT or SPECIAL_BONUS_PROFILES.size() < MAP_BEACON_PATH_COUNT:
+		push_error("Spider map terminal configuration is inconsistent.")
+		return
+	for index in range(MAP_BEACON_PATH_COUNT):
+		var profile := SPECIAL_BONUS_PROFILES[index]
+		var path_index := MAP_REWARD_PATH_COUNT + index
+		var path_ids: Array = paths[path_index]
+		if path_ids.is_empty():
+			continue
+		var anchor_id := int(path_ids.back())
+		var anchor: Dictionary = map_nodes[anchor_id]
+		var anchor_position: Vector2 = anchor.get("position", MAP_CENTER)
+		var anchor_depth := int(anchor.get("path_depth", 4))
+		var angle := MAP_CENTER.angle_to_point(anchor_position) + rng.randf_range(-MAP_SPIDER_NODE_ANGLE_JITTER, MAP_SPIDER_NODE_ANGLE_JITTER)
+		var radius := maxf(
+			anchor_position.distance_to(MAP_CENTER) + MAP_NODE_MIN_DISTANCE + 8.0,
+			MAP_SPIDER_MIN_RADIUS + MAP_SPIDER_RADIUS_STEP * 4.0 + rng.randf_range(-MAP_SPIDER_RADIUS_JITTER, MAP_SPIDER_RADIUS_JITTER)
+		)
+		var special_id := map_nodes.size()
+		map_nodes.append({
+			"id": special_id,
+			"name": String(profile.get("name", "增益信标")),
+			"type": NODE_SPECIAL,
+			"position": MAP_CENTER + Vector2.RIGHT.rotated(angle) * radius,
+			"links": [],
+			"completed": false,
+			"path_index": path_index,
+			"path_depth": anchor_depth + 1,
+			"is_path_terminal": true,
+			"bonus_id": String(profile.get("bonus_id", "")),
+			"bonus_name": String(profile.get("bonus_name", "")),
+			"bonus_description": String(profile.get("bonus_description", "")),
+			"family_bias": String(profile.get("family_bias", "")),
+		})
+		_add_link(anchor_id, special_id)
+
+
+func _generate_legacy_world_map() -> void:
 	if active_run_conditions.is_empty():
 		_select_run_conditions()
 	map_nodes.clear()

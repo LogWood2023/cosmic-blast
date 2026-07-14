@@ -24,6 +24,8 @@ const FAMILY_OPTIONS: Array[Dictionary] = [
 @onready var family_focus_option: OptionButton = $Panel/ControlsBar/FamilyFocusOption
 @onready var reroll_button: Button = $Panel/ControlsBar/RerollButton
 
+var _is_closing := false
+
 
 func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
@@ -156,8 +158,13 @@ func _refresh_shop_guidance(run_manager: Node) -> void:
 
 
 func _on_close_pressed() -> void:
-	closed.emit()
-	queue_free()
+	if _is_closing:
+		return
+	_is_closing = true
+	CombatUiMotion.animate_first_panel_exit(self, func() -> void:
+		closed.emit()
+		queue_free()
+	)
 
 
 func _on_shade_gui_input(event: InputEvent) -> void:

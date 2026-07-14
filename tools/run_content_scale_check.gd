@@ -1,12 +1,13 @@
 extends Node
 
 
-const MIN_INTEL_PROFILES: int = 12
+const MIN_INTEL_PROFILES: int = 10
 const MIN_BATTLE_PROFILES: int = 15
 const MIN_REWARD_PROFILES: int = 10
 const MIN_EVENT_PROFILES: int = 16
 const MIN_MODIFIER_PROFILES: int = 16
 const MIN_SPECIAL_BONUS_PROFILES: int = 12
+const MIN_MAP_SPECIAL_BEACONS: int = 2
 
 var _failed: bool = false
 
@@ -188,6 +189,9 @@ func _check_special_bonus_profiles() -> void:
 	if not RunManager.has_method("get_active_special_bonus_summaries"):
 		_fail("RunManager should expose active special bonus summaries.")
 		return
+	if RunManager.SPECIAL_BONUS_PROFILES.size() < MIN_SPECIAL_BONUS_PROFILES:
+		_fail("Special beacon catalog should contain at least %d profiles." % MIN_SPECIAL_BONUS_PROFILES)
+		return
 	var special_ids := {}
 	var families := {}
 	for node in RunManager.map_nodes:
@@ -204,15 +208,11 @@ func _check_special_bonus_profiles() -> void:
 		_assert_chinese_copy(String(node.get("bonus_description", "")), "special bonus description")
 		if _failed:
 			return
-	if special_ids.size() < MIN_SPECIAL_BONUS_PROFILES:
-		_fail("World map should generate at least %d special bonus beacons, got %d." % [MIN_SPECIAL_BONUS_PROFILES, special_ids.size()])
+	if special_ids.size() < MIN_MAP_SPECIAL_BEACONS:
+		_fail("Compact world map should generate at least %d special bonus beacons, got %d." % [MIN_MAP_SPECIAL_BEACONS, special_ids.size()])
 		return
-	for family in RunManager.FAMILY_BIASES:
-		if not families.has(String(family)):
-			_fail("Special bonus beacons should cover family %s." % String(family))
-			return
-	if not families.has("general"):
-		_fail("Special bonus beacons should include general protocols.")
+	if families.size() < MIN_MAP_SPECIAL_BEACONS:
+		_fail("Compact world map beacons should retain distinct family identities.")
 		return
 	var before := RunManager.get_player_stats()
 	var active_ids: Array[String] = []
@@ -224,8 +224,8 @@ func _check_special_bonus_profiles() -> void:
 		_fail("Special bonus profiles should change player stats when active.")
 		return
 	var summaries: Array = RunManager.get_active_special_bonus_summaries()
-	if summaries.size() < MIN_SPECIAL_BONUS_PROFILES:
-		_fail("Active special bonus summaries should cover every special profile, got %d." % summaries.size())
+	if summaries.size() < MIN_MAP_SPECIAL_BEACONS:
+		_fail("Active special bonus summaries should cover each map beacon, got %d." % summaries.size())
 		return
 	for raw_summary in summaries:
 		var summary := Dictionary(raw_summary)

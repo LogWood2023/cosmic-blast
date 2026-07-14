@@ -21,6 +21,8 @@ SettingsManager="*res://scripts/core/SettingsManager.gd"
 GameManager="*res://scripts/core/GameManager.gd"
 RunManager="*res://scripts/core/RunManager.gd"
 CameraFeedback="*res://scripts/fx/CameraFeedback.gd"
+DebugCommandConsole="*res://scripts/core/DebugCommandConsole.gd"
+BossVictoryTransition="*res://scripts/ui/BossVictoryTransition.gd"
 
 [display]
 

@@ -20,23 +20,21 @@ var _pending_boss_reward_popup_summary: Dictionary = {}
 var _pending_special_bonus_popup_summary: Dictionary = {}
 var _startup_popup_queue: Array[Callable] = []
 
-@onready var title_label: Label = $TopBar/TitleLabel
-@onready var stats_label: Label = $TopBar/StatsLabel
+@onready var crisis_segments: HBoxContainer = $TopBar/CrisisSegments
+@onready var crisis_warning_tape: Control = $CrisisWarningMask/CrisisWarningTape
+@onready var crisis_alert_overlay: Control = $CrisisAlertOverlay
 @onready var map_viewport: Control = $MapViewport
 @onready var details_panel: Panel = $DetailsPanel
 @onready var details_title: Label = $DetailsPanel/DetailsTitle
 @onready var details_body: RichTextLabel = $DetailsPanel/DetailsBody
-@onready var enemy_family_weight_title: Label = $DetailsPanel/EnemyFamilyWeightTitle
-@onready var enemy_family_weight_pie = $DetailsPanel/EnemyFamilyWeightPie
-@onready var enemy_family_weight_hint: Label = $DetailsPanel/EnemyFamilyWeightHint
 @onready var route_directive_rows: Array[HBoxContainer] = [
 	$DetailsPanel/RouteDirectivePanel/Row1,
 	$DetailsPanel/RouteDirectivePanel/Row2,
 	$DetailsPanel/RouteDirectivePanel/Row3,
 ]
 @onready var action_button: Button = $DetailsPanel/ActionButton
-@onready var shop_button: Button = $DetailsPanel/ShopButton
-@onready var hangar_button: Button = $DetailsPanel/HangarButton
+@onready var shop_button: Button = $ShopButton
+@onready var hangar_button: Button = $HangarButton
 @onready var message_label: Label = $MessageLabel
 @onready var settings_button: Button = $SettingsButton
 
@@ -45,6 +43,9 @@ func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
 	if not RunManager.is_formal_run_active():
 		RunManager.start_new_run()
+	var alert_intro_family: String = ""
+	if RunManager.has_method("consume_crisis_alert_intro") and RunManager.call("consume_crisis_alert_intro"):
+		alert_intro_family = String(RunManager.call("get_alert_boss_family"))
 	# 回到世界地图即为一个干净的存档点，写盘保存本局进度
 	RunManager.save_run()
 	_consume_node_completion_feedback()
@@ -52,22 +53,30 @@ func _ready() -> void:
 	shop_button.pressed.connect(_show_shop)
 	hangar_button.pressed.connect(_show_hangar)
 	settings_button.pressed.connect(_show_settings)
-	enemy_family_weight_pie.slice_hovered.connect(_on_enemy_family_weight_slice_hovered)
-	enemy_family_weight_pie.slice_unhovered.connect(_on_enemy_family_weight_slice_unhovered)
 	map_viewport.connect("node_selected", _on_map_node_selected)
 	map_viewport.call("reset_view")
 	_refresh_all()
+	if not alert_intro_family.is_empty():
+		call_deferred("_play_crisis_alert_intro", alert_intro_family)
 	# 入场弹窗排队依次展示；此前三个同帧打开会互相 queue_free，玩家只看到最后一个
 	if not _pending_special_bonus_popup_summary.is_empty():
 		_startup_popup_queue.append(_show_pending_special_bonus_popup)
-	if not _pending_boss_reward_popup_summary.is_empty():
-		_startup_popup_queue.append(_show_pending_boss_reward_popup)
-	elif RunManager.has_method("get_pending_boss_reward_summary"):
-		_pending_boss_reward_popup_summary = Dictionary(RunManager.get_pending_boss_reward_summary())
+	# BossVictoryTransition keeps its cover up and owns the reward picker until a
+	# choice is made. Other entries (such as a resumed save) still use the map UI.
+	if not BossVictoryTransition.is_waiting_for_boss_reward():
 		if not _pending_boss_reward_popup_summary.is_empty():
 			_startup_popup_queue.append(_show_pending_boss_reward_popup)
-	if not _startup_popup_queue.is_empty():
+		elif RunManager.has_method("get_pending_boss_reward_summary"):
+			_pending_boss_reward_popup_summary = Dictionary(RunManager.get_pending_boss_reward_summary())
+			if not _pending_boss_reward_popup_summary.is_empty():
+				_startup_popup_queue.append(_show_pending_boss_reward_popup)
+	if not _startup_popup_queue.is_empty() and not BossVictoryTransition.is_waiting_for_boss_reward():
 		call_deferred("_show_next_startup_popup")
+
+
+func _play_crisis_alert_intro(family: String) -> void:
+	if crisis_alert_overlay.has_method("play_alert"):
+		crisis_alert_overlay.call("play_alert", family)
 
 
 func _consume_node_completion_feedback() -> void:
@@ -132,7 +141,8 @@ func _consume_boss_completion_feedback() -> String:
 	var summary := Dictionary(RunManager.call("consume_last_boss_completion_summary"))
 	if summary.is_empty() or not bool(summary.get("ok", false)):
 		return ""
-	_pending_boss_reward_popup_summary = summary.duplicate(true)
+	if not BossVictoryTransition.is_waiting_for_boss_reward():
+		_pending_boss_reward_popup_summary = summary.duplicate(true)
 	return _make_boss_completion_feedback(summary)
 
 
@@ -303,25 +313,64 @@ func _refresh_route_directives() -> void:
 
 
 func _refresh_top_bar() -> void:
-	title_label.text = "方舟核心航图"
-	var stat_parts: Array[String] = []
-	stat_parts.append("危机 %d" % RunManager.crisis_level)
-	stat_parts.append("算力 %d/%d" % [RunManager.get_used_compute(), RunManager.compute_capacity])
-	stat_parts.append("星髓矿 %d" % RunManager.minerals)
-	stat_parts.append("已探索 %d" % RunManager.completed_node_count)
-	var active_protocol_count := _get_active_special_bonus_count()
-	if active_protocol_count > 0:
-		stat_parts.append("接入协议 %d" % active_protocol_count)
-	var active_beacon_resonance_count := _get_active_special_beacon_resonance_count()
-	if active_beacon_resonance_count > 0:
-		stat_parts.append("信标共鸣 %d" % active_beacon_resonance_count)
-	var active_contract_count := _get_active_event_contract_count()
-	if active_contract_count > 0:
-		stat_parts.append("航路契约 %d" % active_contract_count)
-	var run_condition_count := _get_active_run_condition_count()
-	if run_condition_count > 0:
-		stat_parts.append("航域态势 %d" % run_condition_count)
-	stats_label.text = "  ".join(stat_parts)
+	_refresh_crisis_segments()
+
+
+func _refresh_crisis_segments() -> void:
+	var thresholds: Array[int] = RunManager.CRISIS_THRESHOLDS
+	var previous_threshold := 0
+	for threshold in thresholds:
+		var alert_is_pending := RunManager.crisis_level == threshold and not RunManager.cleared_crisis_thresholds.has(threshold)
+		if RunManager.crisis_level < threshold or alert_is_pending:
+			var span: int = maxi(1, threshold - previous_threshold)
+			var filled_segments := clampi(RunManager.crisis_level - previous_threshold, 0, span)
+			_update_crisis_segments(span, filled_segments, alert_is_pending)
+			_set_crisis_warning_active(RunManager.is_alert_active())
+			return
+		previous_threshold = threshold
+	_update_crisis_segments(1, 1, true)
+	_set_crisis_warning_active(RunManager.is_alert_active())
+
+
+func _set_crisis_warning_active(is_active: bool) -> void:
+	if crisis_warning_tape.has_method("set_alert_active"):
+		crisis_warning_tape.call("set_alert_active", is_active)
+
+
+func _update_crisis_segments(segment_count: int, filled_segments: int, alert_is_pending: bool) -> void:
+	if crisis_segments.get_child_count() != segment_count:
+		for child in crisis_segments.get_children():
+			crisis_segments.remove_child(child)
+			child.queue_free()
+		for _index in segment_count:
+			var segment := Panel.new()
+			segment.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			segment.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			crisis_segments.add_child(segment)
+	for index in segment_count:
+		var segment := crisis_segments.get_child(index) as Panel
+		segment.add_theme_stylebox_override("panel", _make_crisis_segment_style(index < filled_segments, alert_is_pending))
+
+
+func _make_crisis_segment_style(is_filled: bool, alert_is_pending: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	if is_filled:
+		style.bg_color = Color(1.0, 0.12, 0.12, 0.98) if alert_is_pending else Color(0.84, 0.07, 0.11, 0.96)
+		style.border_color = Color(1.0, 0.68, 0.48, 1.0)
+		style.shadow_color = Color(1.0, 0.03, 0.05, 0.36)
+		style.shadow_size = 5
+	else:
+		style.bg_color = Color(0.075, 0.012, 0.025, 0.96)
+		style.border_color = Color(0.55, 0.12, 0.14, 0.72)
+	return style
 
 
 func _get_active_special_bonus_count() -> int:
@@ -377,20 +426,18 @@ func _refresh_details() -> void:
 		"",
 		_node_flavor_text(node, node_type),
 	]
-	var is_battle := node_type == RunManager.NODE_BATTLE
-	enemy_family_weight_title.visible = is_battle
-	enemy_family_weight_pie.visible = is_battle
-	enemy_family_weight_hint.visible = is_battle
-	if is_battle:
-		enemy_family_weight_pie.set_weights(RunManager.get_node_enemy_family_weights(_selected_node_id))
-		enemy_family_weight_hint.text = "将鼠标移至扇区，查看敌人系列与权重占比。"
-	details_body.text = "\n".join(lines)
 	var is_base := _selected_node_id == RunManager.CENTER_ID
+	if is_base and RunManager.is_alert_active() and RunManager.has_method("get_alert_boss_preview"):
+		var boss_preview: Dictionary = Dictionary(RunManager.call("get_alert_boss_preview"))
+		if not boss_preview.is_empty():
+			var boss_name: String = String(boss_preview.get("name", "未知执行体"))
+			details_title.text = "危机警报 // %s" % boss_name
+			lines.append("")
+			lines.append("[color=#ff4f6a][b]执行体锁定：%s[/b][/color]" % boss_name)
+			lines.append(String(boss_preview.get("test_text", "测试通告：未知执行体正在接近。")))
+	details_body.text = "\n".join(lines)
 	action_button.visible = true
 	action_button.disabled = false
-	# 商店和机库是方舟的常驻管理入口；选择航图节点时仍需与“进入节点”同时可用。
-	shop_button.visible = true
-	hangar_button.visible = true
 	if is_base:
 		action_button.text = "进入执行体战斗"
 		action_button.visible = RunManager.is_alert_active()
@@ -407,7 +454,7 @@ func _node_intro_type_name(node_type: String) -> String:
 		RunManager.NODE_BATTLE:
 			return "战斗"
 		RunManager.NODE_REWARD:
-			return "奖励"
+			return "奖励事件"
 		RunManager.NODE_EVENT:
 			return "事件"
 		RunManager.NODE_SPECIAL:
@@ -422,7 +469,7 @@ func _node_flavor_text(node: Dictionary, node_type: String) -> String:
 		RunManager.NODE_BATTLE:
 			return String(node.get("battle_description", "敌方巡逻信号活跃。"))
 		RunManager.NODE_REWARD:
-			return String(node.get("reward_description", "高价值资源缓存。"))
+			return String(node.get("reward_description", "发现一批可立即回收的遗失补给。"))
 		RunManager.NODE_EVENT:
 			return String(node.get("intel_description", "异常信号等待处置。"))
 		RunManager.NODE_SPECIAL:
@@ -430,14 +477,6 @@ func _node_flavor_text(node: Dictionary, node_type: String) -> String:
 		RunManager.NODE_BASE:
 			return "方舟核心维系未明星域中的航线与补给。"
 	return "尚未识别的空间残片。"
-
-
-func _on_enemy_family_weight_slice_hovered(detail: String) -> void:
-	enemy_family_weight_hint.text = detail
-
-
-func _on_enemy_family_weight_slice_unhovered() -> void:
-	enemy_family_weight_hint.text = "将鼠标移至扇区，查看敌人系列与权重占比。"
 
 
 func _append_route_plan_lines(lines: Array[String], node: Dictionary) -> void:
@@ -670,7 +709,7 @@ func _node_description(node_type: String) -> String:
 		RunManager.NODE_EVENT:
 			return "旧时代记录或异常协议。选择一个处置方案后，航路会立刻封存。"
 		RunManager.NODE_REWARD:
-			return "资源缓存区。敌人和陷阱更少，宝箱与矿脉更多。"
+			return "遗失补给事件。选择一项补给后，航路会立刻封存。"
 		RunManager.NODE_SPECIAL:
 			return "航路增益信标。打通相邻连线后，会为本局提供持续加成。"
 	return "尚未识别的空间残片。"
@@ -705,7 +744,7 @@ func _on_enter_pressed() -> void:
 		_show_event_choices(_selected_node_id)
 		return
 	if node_type == RunManager.NODE_REWARD:
-		_show_reward_cache_choices(_selected_node_id)
+		_show_reward_event_choices(_selected_node_id)
 		return
 	if RunManager.start_explore_node(_selected_node_id):
 		get_tree().change_scene_to_file(RunManager.EXPLORE_ROOM_SCENE)
@@ -723,9 +762,16 @@ func _show_shop() -> void:
 
 func _show_hangar() -> void:
 	var popup := _open_popup(HANGAR_POPUP_SCENE)
-	popup.connect("message_requested", _set_message)
+	popup.connect("message_requested", _set_hangar_message)
 	popup.connect("inventory_changed", _refresh_all)
 	popup.call("setup")
+
+
+func _set_hangar_message(message: String) -> void:
+	if message.begins_with("已装配辅助机："):
+		_set_message("")
+		return
+	_set_message(message)
 
 
 func _show_pending_boss_reward_popup() -> void:
@@ -764,12 +810,12 @@ func _show_event_choices(node_id: int) -> void:
 	popup.call("setup", RunManager.get_map_node(node_id), choices)
 
 
-func _show_reward_cache_choices(node_id: int) -> void:
+func _show_reward_event_choices(node_id: int) -> void:
 	_pending_reward_node_id = node_id
 	_pending_reward_seed = Time.get_ticks_msec()
-	var choices := RunManager.prepare_reward_cache_choices(node_id, _pending_reward_seed)
+	var choices := RunManager.prepare_reward_event_choices(node_id, _pending_reward_seed)
 	if choices.is_empty():
-		_message = "奖励缓存读取失败。"
+		_message = "奖励事件读取失败。"
 		_refresh_all()
 		return
 	var popup := _open_popup(REWARD_CACHE_CHOICE_POPUP_SCENE)
@@ -780,13 +826,16 @@ func _show_reward_cache_choices(node_id: int) -> void:
 func _on_reward_cache_choice_selected(choice_id: String) -> void:
 	if _pending_reward_node_id <= 0:
 		return
-	var result := RunManager.start_reward_cache_choice(_pending_reward_node_id, choice_id, _pending_reward_seed)
+	var result := RunManager.resolve_reward_event_choice(_pending_reward_node_id, choice_id, _pending_reward_seed)
 	_pending_reward_node_id = -1
 	_pending_reward_seed = -1
 	if bool(result.get("ok", false)):
-		get_tree().change_scene_to_file(RunManager.EXPLORE_ROOM_SCENE)
+		_message = String(result.get("message", "奖励已领取。"))
+		_refresh_all()
+		if is_instance_valid(_active_popup) and _active_popup.has_method("show_result"):
+			_active_popup.call("show_result", result)
 		return
-	_message = String(result.get("message", "奖励缓存暂不可进入。"))
+	_message = String(result.get("message", "奖励事件暂不可完成。"))
 	_refresh_all()
 
 
@@ -810,12 +859,20 @@ func _on_boss_reward_selected(item_id: String) -> void:
 	_set_message("已收入机库：%s。" % String(result.get("item_name", "未知装备")))
 	if is_instance_valid(_active_popup) and _active_popup.has_method("finish_selection"):
 		_active_popup.call("finish_selection")
+		await get_tree().create_timer(0.3, true).timeout
 	if bool(result.get("is_final", false)):
 		RunManager.finish_run(true)
 		get_tree().change_scene_to_file(RunManager.GAME_OVER_SCENE)
 		return
 	RunManager.save_run()
 	_refresh_all()
+
+
+func on_boss_reward_claimed(result: Dictionary) -> void:
+	_set_message("已收入机库：%s。" % String(result.get("item_name", "未知装备")))
+	_refresh_all()
+	if not _startup_popup_queue.is_empty():
+		call_deferred("_show_next_startup_popup")
 
 
 func _show_next_startup_popup() -> void:
@@ -851,4 +908,21 @@ func _set_message(message: String) -> void:
 
 
 func _show_settings() -> void:
-	_open_popup(SETTINGS_POPUP_SCENE)
+	if is_instance_valid(_active_popup):
+		_active_popup.queue_free()
+	_active_popup = SETTINGS_POPUP_SCENE.instantiate() as Control
+	_active_popup.call("configure_for_world_map")
+	add_child(_active_popup)
+	_active_popup.connect("closed", _on_popup_closed.bind(_active_popup))
+	_active_popup.connect("save_and_exit_requested", _on_settings_save_and_exit)
+	_active_popup.connect("save_and_main_menu_requested", _on_settings_save_and_main_menu)
+
+
+func _on_settings_save_and_exit() -> void:
+	RunManager.save_run()
+	get_tree().quit()
+
+
+func _on_settings_save_and_main_menu() -> void:
+	RunManager.save_run()
+	get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")

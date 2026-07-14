@@ -1,18 +1,29 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/explore/ExploreObjectivesHUD.gd" id="1"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBox_objectives"]
-bg_color = Color(0.02, 0.035, 0.06, 0.9)
-border_width_left = 3
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.321569, 0.909804, 1, 0.5)
+[sub_resource type="StyleBoxEmpty" id="StyleBox_panel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_header"]
+bg_color = Color(0.035, 0.12, 0.23, 0.78)
 corner_radius_top_left = 2
-corner_radius_top_right = 10
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 10
+corner_radius_top_right = 12
+
+[sub_resource type="StyleBoxEmpty" id="StyleBox_arrow"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_task_section"]
+bg_color = Color(0.04, 0.11, 0.2, 0.7)
+border_width_left = 3
+border_color = Color(0.24, 0.82, 1, 0.9)
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_resource_section"]
+bg_color = Color(0.055, 0.075, 0.14, 0.72)
+border_width_left = 3
+border_color = Color(1, 0.69, 0.26, 0.9)
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
 
 [node name="ExploreObjectivesHUD" type="Control"]
 layout_mode = 3
@@ -26,51 +37,164 @@ script = ExtResource("1")
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 1
-offset_left = 32.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -492.0
 offset_top = 30.0
-offset_right = 420.0
-offset_bottom = 172.0
+offset_right = -32.0
+offset_bottom = 450.0
+grow_horizontal = 0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBox_objectives")
+theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="Margin" type="MarginContainer" parent="Panel"]
+[node name="Layout" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="Panel/Layout"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_header")
+
+[node name="Margin" type="MarginContainer" parent="Panel/Layout/Header"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_right = 14
+
+[node name="Row" type="HBoxContainer" parent="Panel/Layout/Header/Margin"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="Panel/Layout/Header/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "详情"
+vertical_alignment = 1
+
+[node name="CollapseButton" type="Button" parent="Panel/Layout/Header/Margin/Row"]
+custom_minimum_size = Vector2(48, 38)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.38, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBox_arrow")
+theme_override_styles/hover = SubResource("StyleBox_arrow")
+theme_override_styles/pressed = SubResource("StyleBox_arrow")
+text = "▼"
+
+[node name="Divider" type="ColorRect" parent="Panel/Layout"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.24, 0.75, 0.96, 0.45)
+
+[node name="Content" type="MarginContainer" parent="Panel/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
 mouse_filter = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_bottom = 18
 
-[node name="Stack" type="VBoxContainer" parent="Panel/Margin"]
+[node name="Details" type="VBoxContainer" parent="Panel/Layout/Content"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="Caption" type="Label" parent="Panel/Margin/Stack"]
+[node name="TaskSection" type="PanelContainer" parent="Panel/Layout/Content/Details"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.321569, 0.909804, 1, 1)
+theme_override_styles/panel = SubResource("StyleBox_task_section")
+
+[node name="Margin" type="MarginContainer" parent="Panel/Layout/Content/Details/TaskSection"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="Stack" type="VBoxContainer" parent="Panel/Layout/Content/Details/TaskSection/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="TaskCaption" type="Label" parent="Panel/Layout/Content/Details/TaskSection/Margin/Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35, 0.84, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "任务"
+
+[node name="Divider" type="ColorRect" parent="Panel/Layout/Content/Details/TaskSection/Margin/Stack"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.3, 0.8, 1, 0.3)
+
+[node name="TaskValue" type="Label" parent="Panel/Layout/Content/Details/TaskSection/Margin/Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.84, 0.93, 1, 1)
 theme_override_font_sizes/font_size = 18
-text = "当前任务"
-
-[node name="TaskValue" type="Label" parent="Panel/Margin/Stack"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
-theme_override_font_sizes/font_size = 17
-text = "搜索资源并撤离"
+text = "暂无巡航指令"
 autowrap_mode = 2
 
-[node name="OreValue" type="Label" parent="Panel/Margin/Stack"]
+[node name="ResourceSection" type="PanelContainer" parent="Panel/Layout/Content/Details"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.5, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "剩余矿脉：0"
+theme_override_styles/panel = SubResource("StyleBox_resource_section")
 
-[node name="ChestValue" type="Label" parent="Panel/Margin/Stack"]
+[node name="Margin" type="MarginContainer" parent="Panel/Layout/Content/Details/ResourceSection"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.78, 0.36, 1)
-theme_override_font_sizes/font_size = 16
-text = "剩余宝箱：0"
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="Stack" type="VBoxContainer" parent="Panel/Layout/Content/Details/ResourceSection/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="ResourceCaption" type="Label" parent="Panel/Layout/Content/Details/ResourceSection/Margin/Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.32, 1)
+theme_override_font_sizes/font_size = 26
+text = "资源"
+
+[node name="Divider" type="ColorRect" parent="Panel/Layout/Content/Details/ResourceSection/Margin/Stack"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+color = Color(1, 0.7, 0.28, 0.3)
+
+[node name="OreValue" type="Label" parent="Panel/Layout/Content/Details/ResourceSection/Margin/Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.46, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 19
+text = "剩余矿脉：0/0"
+
+[node name="ChestValue" type="Label" parent="Panel/Layout/Content/Details/ResourceSection/Margin/Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.76, 0.35, 1)
+theme_override_font_sizes/font_size = 19
+text = "剩余宝箱：0/0"
+
+[node name="EliteValue" type="Label" parent="Panel/Layout/Content/Details/ResourceSection/Margin/Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.49, 0.66, 1)
+theme_override_font_sizes/font_size = 19
+text = "剩余精英：0/0"

@@ -8,6 +8,8 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 @onready var body_label: RichTextLabel = $Panel/BodyLabel
 @onready var close_button: Button = $Panel/CloseButton
 
+var _is_closing := false
+
 
 func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
@@ -101,5 +103,10 @@ func _string_array(values: Array) -> Array[String]:
 
 
 func _on_close_pressed() -> void:
-	closed.emit()
-	queue_free()
+	if _is_closing:
+		return
+	_is_closing = true
+	CombatUiMotion.animate_first_panel_exit(self, func() -> void:
+		closed.emit()
+		queue_free()
+	)

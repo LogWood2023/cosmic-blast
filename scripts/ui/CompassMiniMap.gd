@@ -18,7 +18,6 @@ const CIRCLE_MASK_SHADER := preload("res://assets/shaders/circle_mask.gdshader")
 @export var map_ui_path: NodePath
 @export var player_path: NodePath
 @export var chest_map_icon: Texture2D
-@export var ore_vein_map_icon: Texture2D
 @export var debug_logging: bool = false
 
 var _space_rocks: Node2D
@@ -319,7 +318,10 @@ func _draw_rewards(center: Vector2, player_pos: Vector2) -> void:
 		if not is_instance_valid(reward):
 			continue
 		var reward_type = int(reward.get_reward_type()) if reward.has_method("get_reward_type") else 0
-		var tex: Texture2D = chest_map_icon if reward_type == 0 else ore_vein_map_icon
+		# 指南针只标记宝箱；星髓矿等矿脉不再以宝箱图标占用小地图。
+		if reward_type != 0:
+			continue
+		var tex: Texture2D = chest_map_icon
 		if not tex and reward.has_method("get_reward_sprite_texture"):
 			tex = reward.get_reward_sprite_texture()
 		if not tex:

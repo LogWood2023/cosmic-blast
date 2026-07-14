@@ -31,8 +31,9 @@ const TURRET_MAX_COUNT: int = 40
 const TURRET_MAX_ATTEMPTS: int = 10
 const TURRET_SURFACE_INSET: float = 48.0
 const TURRET_MIN_DISTANCE: float = 1000.0
-const REWARD_MIN_DISTANCE: float = 2000.0
-const REWARD_MAX_ATTEMPTS: int = 10
+# 奖励需要保持可辨识的间距，但不能大到让同一颗大型太空石无法承载多个矿脉。
+const REWARD_MIN_DISTANCE: float = 200.0
+const REWARD_MAX_ATTEMPTS: int = 1200
 const REWARD_BAND_CLEARANCE: float = 180.0
 const TRAP_REWARD_CLEARANCE: float = 500.0
 const CLUTTER_MIN_COUNT: int = 20
@@ -107,7 +108,6 @@ const EXPLORE_REWARD_SCENE := preload("res://scenes/gameplay/explore/ExploreRewa
 const SPACE_CLUTTER_SCENE := preload("res://scenes/gameplay/explore/SpaceClutter.tscn")
 const EVACUATION_POINT_SCENE := preload("res://scenes/gameplay/explore/EvacuationPoint.tscn")
 const EVACUATION_SUCCESS_HUD_SCENE := preload("res://scenes/ui/EvacuationSuccessHUD.tscn")
-const COMMAND_CONSOLE_POPUP_SCENE := preload("res://scenes/ui/explore/CommandConsolePopup.tscn")
 const DESIGNED_ENEMY_SCENE := preload("res://scenes/entities/designed_enemies/DesignedEnemy.tscn")
 const DesignedEnemyScript = preload("res://scripts/entities/designed_enemies/DesignedEnemy.gd")
 const DesignedEnemyCatalog = preload("res://scripts/entities/designed_enemies/DesignedEnemyCatalog.gd")
@@ -198,13 +198,6 @@ var _large_attempts: int = 0
 var _large_rock_target_count: int = 0
 var _small_parent_index: int = 0
 var _small_rock_spawn_queue: Array[Node2D] = []
-var _command_layer: Control
-var _command_dialog_panel: Control
-var _command_dialog_label: RichTextLabel
-var _command_input_panel: Control
-var _command_input_edit: LineEdit
-var _command_dialog_tween: Tween
-var _command_history: Array[String] = []
 var _patrol_paths: Node2D
 var _enemies: Node2D
 var _patrol_path_points: Array[PackedVector2Array] = []
@@ -244,14 +237,11 @@ func _ready() -> void:
 	camera.make_current()
 	randomize()
 	player.visible = false
-	_setup_command_ui()
 	_start_room_setup()
 
 
 func _exit_tree() -> void:
 	_room_setup_cancelled = true
-	if _command_dialog_tween and _command_dialog_tween.is_running():
-		_command_dialog_tween.kill()
 	_clear_patrol_runtime()
 	_clear_enemy_effects_root()
 	DesignedEnemyScript.release_static_runtime_resources()
@@ -414,17 +404,10 @@ func _process(_delta: float) -> void:
 	_update_debug_enemy_cycle(_delta)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if GameManager.command_console_open:
-			get_viewport().set_input_as_handled()
-			return
 		if event.keycode == KEY_TAB:
 			map_ui.toggle()
-			get_viewport().set_input_as_handled()
-			return
-		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-			_toggle_command_console()
 			get_viewport().set_input_as_handled()
 
 
@@ -536,50 +519,6 @@ func _segment_intersects_rect(start: Vector2, end: Vector2, rect: Rect2) -> bool
 	return false
 
 
-func _setup_command_ui() -> void:
-	if _command_layer:
-		return
-	_command_layer = COMMAND_CONSOLE_POPUP_SCENE.instantiate() as Control
-	ui_layer.add_child(_command_layer)
-
-	_command_dialog_panel = _command_layer.call("get_dialog_panel")
-	_command_dialog_label = _command_layer.call("get_dialog_label")
-	_command_input_panel = _command_layer.call("get_input_panel")
-	_command_input_edit = _command_layer.call("get_input_edit")
-	_command_input_edit.text_submitted.connect(_on_command_text_submitted)
-
-	_command_layer.visible = true
-
-
-func _toggle_command_console() -> void:
-	if GameManager.command_console_open:
-		_submit_command(_command_input_edit.text)
-		return
-	if _command_dialog_tween and _command_dialog_tween.is_running():
-		_command_dialog_tween.kill()
-	GameManager.command_console_open = true
-	_command_input_panel.visible = true
-	_command_dialog_panel.visible = true
-	_command_dialog_panel.modulate.a = 1.0
-	_refresh_command_dialog()
-	_command_input_edit.text = ""
-	_command_input_edit.grab_focus()
-
-
-func _on_command_text_submitted(text: String) -> void:
-	_submit_command(text)
-
-
-func _submit_command(text: String) -> void:
-	var command = text.strip_edges()
-	if command.is_empty():
-		_close_command_console(true)
-		return
-	var response = _execute_command(command)
-	_close_command_console()
-	_append_command_dialog(command, response)
-
-
 func _execute_command(command: String) -> String:
 	if not command.begins_with("/"):
 		return "指令必须以 / 开头。输入 /help 查看可用指令。"
@@ -648,43 +587,6 @@ func _is_engineering_command(command: String) -> bool:
 		or command.begins_with("/刷精英")
 		or command.begins_with("/刷敌")
 	)
-
-
-func _refresh_command_dialog() -> void:
-	if _command_history.is_empty():
-		_command_dialog_label.text = ""
-		return
-	_command_dialog_label.text = "\n\n".join(_command_history)
-	_command_dialog_label.call_deferred("scroll_to_line", max(0, _command_dialog_label.get_line_count() - 1))
-
-
-func _append_command_dialog(command: String, response: String) -> void:
-	if _command_dialog_tween and _command_dialog_tween.is_running():
-		_command_dialog_tween.kill()
-	_command_dialog_panel.visible = true
-	_command_dialog_panel.modulate.a = 1.0
-	_command_history.append("> %s\n%s" % [command, response])
-	while _command_history.size() > 8:
-		_command_history.pop_front()
-	_refresh_command_dialog()
-	_command_dialog_tween = create_tween()
-	_command_dialog_tween.tween_interval(1.0)
-	_command_dialog_tween.tween_property(_command_dialog_panel, "modulate:a", 0.0, 1.0)
-	_command_dialog_tween.tween_callback(func(): _command_dialog_panel.visible = false)
-
-
-func _close_command_console(hide_dialog: bool = false) -> void:
-	GameManager.command_console_open = false
-	if is_instance_valid(_command_input_panel):
-		_command_input_panel.visible = false
-	if is_instance_valid(_command_input_edit):
-		_command_input_edit.release_focus()
-		_command_input_edit.text = ""
-	if hide_dialog and is_instance_valid(_command_dialog_panel):
-		if _command_dialog_tween and _command_dialog_tween.is_running():
-			_command_dialog_tween.kill()
-		_command_dialog_panel.visible = false
-		_command_dialog_panel.modulate.a = 0.0
 
 
 func _spawn_debug_enemy_command(parts: PackedStringArray) -> String:
@@ -806,7 +708,7 @@ func _update_debug_enemy_cycle(delta: float) -> void:
 	if _debug_enemy_cycle_index >= DesignedEnemyCatalog.ENEMIES.size():
 		_debug_enemy_cycle_active = false
 		_clear_debug_spawned_enemies(false)
-		_append_command_dialog("/轮测敌", "敌人轮测已完成。")
+		DebugCommandConsole.show_response("/轮测敌", "敌人轮测已完成。")
 		return
 	_spawn_debug_cycle_enemy()
 
@@ -817,7 +719,7 @@ func _spawn_debug_cycle_enemy() -> void:
 	var pos := _find_debug_enemy_spawn_position(player.global_position + Vector2.RIGHT.rotated(player.rotation) * 620.0)
 	var enemy := _spawn_debug_enemy(behavior, pos)
 	if is_instance_valid(enemy):
-		_append_command_dialog("/轮测敌", "当前测试：%s" % _get_debug_enemy_name(behavior))
+		DebugCommandConsole.show_response("/轮测敌", "当前测试：%s" % _get_debug_enemy_name(behavior))
 	_debug_enemy_cycle_timer = _debug_enemy_cycle_interval
 
 
@@ -1335,12 +1237,17 @@ func _spawn_defense_turrets(large_rocks: Array[Node2D]) -> void:
 func _spawn_rewards(large_rocks: Array[Node2D]) -> void:
 	var placed: Array[Vector2] = []
 	var reward_counts = _get_reward_target_counts(large_rocks)
-	_spawn_chests(placed, reward_counts.x)
-	_spawn_ore_veins(large_rocks, placed, reward_counts.y)
+	set_meta(&"explore_reward_targets", {"chests": reward_counts.x, "ore_veins": reward_counts.y})
+	var spawned_chests := _spawn_chests(placed, reward_counts.x)
+	var spawned_ore_veins := _spawn_ore_veins(large_rocks, placed, reward_counts.y)
+	set_meta(&"explore_reward_totals", {"chests": spawned_chests, "ore_veins": spawned_ore_veins})
+	if spawned_chests != reward_counts.x or spawned_ore_veins != reward_counts.y:
+		push_error("ExploreRoom reward generation incomplete. Expected chests=%d, ore_veins=%d; spawned chests=%d, ore_veins=%d." % [reward_counts.x, reward_counts.y, spawned_chests, spawned_ore_veins])
 
 
-func _spawn_chests(placed: Array[Vector2], count: int) -> void:
+func _spawn_chests(placed: Array[Vector2], count: int) -> int:
 	var margin = ROOM_SIZE * CHEST_EDGE_EXCLUSION_RATIO
+	var spawned_count := 0
 	for _i in range(count):
 		for _attempt in range(REWARD_MAX_ATTEMPTS):
 			var pos = Vector2(
@@ -1351,12 +1258,15 @@ func _spawn_chests(placed: Array[Vector2], count: int) -> void:
 				continue
 			_create_reward(pos, 0, randf_range(0.0, TAU), null, _chest_textures.pick_random() if not _chest_textures.is_empty() else null)
 			placed.append(pos)
+			spawned_count += 1
 			break
+	return spawned_count
 
 
-func _spawn_ore_veins(large_rocks: Array[Node2D], placed: Array[Vector2], count: int) -> void:
+func _spawn_ore_veins(large_rocks: Array[Node2D], placed: Array[Vector2], count: int) -> int:
 	if large_rocks.is_empty():
-		return
+		return 0
+	var spawned_count := 0
 	for _i in range(count):
 		for _attempt in range(REWARD_MAX_ATTEMPTS):
 			var rock = large_rocks.pick_random()
@@ -1379,7 +1289,9 @@ func _spawn_ore_veins(large_rocks: Array[Node2D], placed: Array[Vector2], count:
 				_pick_ore_source_profile()
 			)
 			placed.append(pos)
+			spawned_count += 1
 			break
+	return spawned_count
 
 
 func _create_reward(pos: Vector2, reward_type: int, rotation_angle: float = 0.0, follow_target: Node2D = null, p_texture: Texture2D = null, ore_source_profile: Dictionary = {}) -> void:
@@ -2076,6 +1988,7 @@ func _spawn_elite_chest_replacement_enemies() -> void:
 	chests.shuffle()
 	_ensure_enemy_container()
 	var target_count = mini(randi_range(elite_replacement_min_count, maxi(elite_replacement_min_count, elite_replacement_max_count)), chests.size())
+	set_meta(&"explore_elite_total", target_count)
 	var spawned_count = 0
 	for i in range(target_count):
 		var chest = chests[i]
@@ -2087,6 +2000,7 @@ func _spawn_elite_chest_replacement_enemies() -> void:
 		var behavior = behaviors.pick_random()
 		var tex = DesignedEnemyScript.poll_behavior_texture(behavior)
 		var enemy = DESIGNED_ENEMY_SCENE.instantiate()
+		enemy.set_meta(&"explore_elite", true)
 		enemy.behavior = behavior
 		enemy.global_position = spawn_pos
 		if enemy.has_method("setup_explore_room_idle"):

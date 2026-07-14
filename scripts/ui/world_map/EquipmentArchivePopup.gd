@@ -34,6 +34,7 @@ const TYPE_FILTER_OPTIONS: Array[Dictionary] = [
 
 var _active_family_filter: String = ""
 var _active_type_filter: String = TYPE_ALL
+var _is_closing := false
 
 
 func _ready() -> void:
@@ -175,8 +176,13 @@ func _on_row_pressed(item_id: String) -> void:
 
 
 func _on_close_pressed() -> void:
-	closed.emit()
-	queue_free()
+	if _is_closing:
+		return
+	_is_closing = true
+	CombatUiMotion.animate_first_panel_exit(self, func() -> void:
+		closed.emit()
+		queue_free()
+	)
 
 
 func _get_run_manager() -> Node:

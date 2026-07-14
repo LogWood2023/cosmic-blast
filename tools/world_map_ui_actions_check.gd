@@ -22,11 +22,16 @@ func _run() -> void:
 		_fail("World map should provide an accessible non-core node.")
 		return
 	world_map.call("_on_map_node_selected", selected_node_id)
-	for path in ["DetailsPanel/ActionButton", "DetailsPanel/ShopButton", "DetailsPanel/HangarButton"]:
+	await get_tree().process_frame
+	for path in ["DetailsPanel/ActionButton", "ShopButton", "HangarButton", "SettingsButton"]:
 		var button := world_map.get_node(path) as Button
 		if not button.visible:
-			_fail("World map node entry, shop and hangar should be visible together: %s" % path)
+			_fail("World map action and navigation button should be visible: %s" % path)
 			return
+	var action_button := world_map.get_node("DetailsPanel/ActionButton") as Button
+	if action_button.disabled or not action_button.modulate.is_equal_approx(Color.WHITE):
+		_fail("Accessible world map node action should be enabled and use its normal color.")
+		return
 	var map_viewport := world_map.get_node("MapViewport") as Control
 	if not _check_map_link_routes(map_viewport):
 		return

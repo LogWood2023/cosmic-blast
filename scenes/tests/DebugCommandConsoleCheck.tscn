@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/debug_command_console_check.gd" id="1_dccc"]
+
+[node name="DebugCommandConsoleCheck" type="Node"]
+script = ExtResource("1_dccc")
