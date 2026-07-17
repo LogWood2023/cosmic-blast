@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RewardPoolData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/rewards/RewardPoolData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+pool_id = "mechanic_amplifier"
+title = "机制放大器"
+description = "向已有启动器提供匹配的放大能力。"
+weight = 1.0
+reward_types = PackedStringArray("equipment")
+tags = PackedStringArray("equipment", "amplifier")

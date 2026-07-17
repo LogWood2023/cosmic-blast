@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CalibrationData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/CalibrationData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+calibration_id = "emergency_bulkhead"
+display_name = "应急隔舱"
+description = "每局一次，生命首次降至 20 以下时恢复 20 并获得短暂无敌；开局矿物债务 25。"
+unlock_condition = "到达第二 Boss"
+effects = {"emergency_heal_threshold": 20, "emergency_heal_amount": 20, "starting_mineral_debt": 25}

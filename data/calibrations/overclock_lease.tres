@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CalibrationData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/CalibrationData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+calibration_id = "overclock_lease"
+display_name = "算力租约"
+description = "初始算力 +2；商店价格 +8%。"
+unlock_condition = "击败第一 Boss"
+effects = {"starting_compute_bonus": 2, "shop_price_mult": 1.08}

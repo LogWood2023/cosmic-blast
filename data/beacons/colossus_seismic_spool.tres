@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script=ExtResource("1")
+beacon_id="colossus_seismic_spool"
+title="地震卷轴信标"
+family_tag="colossus"
+category="family"
+rule_key="dash_delayed_aftershock"
+mechanic_hook="on_dash_end"

@@ -19,7 +19,7 @@ func _run() -> void:
 	game_manager.add_frenzy(1.0)
 	assert(game_manager.frenzy_active)
 	assert(is_equal_approx(game_manager.frenzy_timer, game_manager.FRENZY_DURATION))
-	assert(game_manager.get_incoming_damage_after_frenzy(9) == 5)
+	assert(game_manager.get_incoming_damage_after_frenzy(9) == 6)
 	assert(is_equal_approx(game_manager.get_fire_rate_multiplier(), game_manager.FRENZY_FIRE_RATE_MULT))
 	game_manager._process(2.5)
 	assert(game_manager.frenzy_active)

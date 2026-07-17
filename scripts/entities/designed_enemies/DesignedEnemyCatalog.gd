@@ -28,9 +28,70 @@ const ENEMIES: Array[Dictionary] = [
 	{"id":"DivineOraclePhantom","name":"神谕幻影","family":"神明使者","behavior":24,"hp":1300,"damage":12,"size":Vector2(216,224),"color":Color(0.78,0.9,1,1),"accent":Color(1,0.88,0.38,1),"pos":Vector2(960,160),"mechanic":"倾向占据背侧航路，并周期性唤出蓝色圣羽幻影。幻影无法被击落，却会立刻锁定目标完成一次预兆突袭。"}
 ]
 
+const NORMAL_BEHAVIOR_COUNT: int = 3
+const NORMAL_BASE_EHP: int = 240
+const STAGE_MULTIPLIERS: PackedFloat32Array = [1.0, 2.1, 4.3]
+const ELITE_EHP: PackedInt32Array = [4800, 9600, 20400]
+const BOSS_EHP: PackedInt32Array = [5600, 14500, 36000]
+const FAMILY_BOSS_EHP_MULTIPLIERS: Dictionary = {
+	"星间巨构": 1.10,
+	"天堂号": 0.94,
+	"扭曲星核": 1.00,
+	"地狱之眼": 0.96,
+	"神明使者": 1.04,
+}
+
 
 static func get_enemy(id: String) -> Dictionary:
 	for enemy in ENEMIES:
 		if enemy.id == id:
 			return enemy
 	return {}
+
+
+static func get_budgeted_enemy(behavior: int, stage: int, advanced_crisis: Dictionary = {}) -> Dictionary:
+	if behavior < 0 or behavior >= ENEMIES.size():
+		return {}
+	var enemy: Dictionary = Dictionary(ENEMIES[behavior]).duplicate(true)
+	var normalized_stage := clampi(stage, 1, 3)
+	var within_family_index := behavior % 5
+	if within_family_index < NORMAL_BEHAVIOR_COUNT:
+		var behavior_factor: float = [0.8, 1.0, 1.35][within_family_index]
+		enemy["tier"] = "normal"
+		enemy["ehp"] = int(round(float(NORMAL_BASE_EHP) * STAGE_MULTIPLIERS[normalized_stage - 1] * behavior_factor))
+		enemy["damage_category"] = "normal" if within_family_index == 0 else "dangerous"
+		enemy["damage"] = 5 if within_family_index == 0 else 10
+	else:
+		enemy["tier"] = "elite"
+		var enemy_modifiers := Dictionary(advanced_crisis.get("enemy", advanced_crisis))
+		enemy["ehp"] = int(round(float(ELITE_EHP[normalized_stage - 1]) * float(enemy_modifiers.get("elite_ehp_mult", 1.0))))
+		enemy["family_affix_count"] = int(enemy_modifiers.get("elite_family_affix_count", 0))
+		enemy["damage_category"] = "dangerous"
+		enemy["damage"] = 12
+	enemy["hp"] = enemy["ehp"]
+	enemy["stage"] = normalized_stage
+	return enemy
+
+
+static func get_boss_budget(family: String, stage: int, advanced_crisis: Dictionary = {}) -> Dictionary:
+	var normalized_stage := clampi(stage, 1, 3)
+	var family_mult := float(FAMILY_BOSS_EHP_MULTIPLIERS.get(family, 1.0))
+	var boss_modifiers := Dictionary(advanced_crisis.get("boss", advanced_crisis))
+	return {
+		"family": family,
+		"stage": normalized_stage,
+		"ehp": int(round(float(BOSS_EHP[normalized_stage - 1]) * family_mult * float(boss_modifiers.get("ehp_mult", 1.0)))),
+		"normal_damage": 5,
+		"dangerous_damage": 12,
+		"heavy_damage": 40,
+		"phase_count": 3 + int(boss_modifiers.get("phase_enrage_count", 0)),
+		"phase_enrage_threshold": float(boss_modifiers.get("phase_enrage_threshold", 0.0)),
+		"phase_enrage_count": int(boss_modifiers.get("phase_enrage_count", 0)),
+		"cooldown_mult": float(boss_modifiers.get("cooldown_mult", 1.0)),
+		"family_variant_count": int(boss_modifiers.get("family_variant_count", 0)),
+	}
+
+
+static func get_crisis_modifier(level: int) -> Dictionary:
+	var normalized_level := clampi(level, 0, 10)
+	return {"crisis_level": normalized_level, "ehp_multiplier": 1.0 + float(normalized_level) * 0.04, "damage_multiplier": 1.0 + float(normalized_level) * 0.02}

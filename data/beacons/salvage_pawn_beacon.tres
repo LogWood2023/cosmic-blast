@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+beacon_id = "salvage_pawn_beacon"
+title = "残件典当信标"
+description = "商店可拆解一件装备并保证角色替代品。"
+category = "economy"
+rule_key = "shop_salvage_replace"
+route_echo = {"nodes": 3}

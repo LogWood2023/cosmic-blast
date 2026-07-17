@@ -4,6 +4,7 @@ extends Node2D
 
 @export var body_tex: Texture2D
 @export var cannon_tex: Texture2D
+const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
 const BOSS_BGM = preload("res://assets/audio/paradise_bgm.mp3")
 
 enum Dock { TOP, LEFT, RIGHT }
@@ -116,6 +117,7 @@ var _skill_tweens: Array[Tween] = []
 
 func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
+	BossBudgetApplicator.apply_to(self, "paradise")
 	boss_hp = max_hp
 	for i in CANNON_COUNT:
 		cannon_hp[i] = max_hp / 4.0
@@ -1191,7 +1193,8 @@ func apply_damage(amount: int) -> void:
 		return
 	var old_hp := boss_hp
 	boss_hp -= amount
-	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
+	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
+	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()

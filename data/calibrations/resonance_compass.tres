@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CalibrationData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/CalibrationData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+calibration_id = "resonance_compass"
+display_name = "共振罗盘"
+description = "选择一个家族；前四次装备候选提高该家族权重。"
+unlock_condition = "初始"
+effects = {"family_weight_mult": 2.0, "family_weight_draws": 4, "general_weight_mult": 0.7}

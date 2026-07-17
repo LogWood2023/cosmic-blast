@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "accept"
+title = "接受悬赏"
+description = "在两次战斗内寻找被标记的精英。"
+preview_text = "签订装备悬赏协议。"
+duration_nodes = 2
+effects = [{"action": "add_event_contract", "payload": {"id": "marked_bounty", "effect_type": "elite_equipment"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "sell"
+title = "出售标记"
+description = "将精英识别码出售给回收商。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(20, 30, 44)}]
+[resource]
+script = ExtResource("1")
+event_id = "marked_bounty"
+title = "标记悬赏"
+narrative = "一个精英单位的信号被标上了高价。"
+category = "risk"
+theme_tags = PackedStringArray("contract", "equipment")
+options = [SubResource("A"), SubResource("B")]

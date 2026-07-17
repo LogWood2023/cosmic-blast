@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 const SETTINGS_POPUP_SCENE := preload("res://scenes/ui/main_menu/SettingsPopup.tscn")
+const META_PREFLIGHT_POPUP_SCENE := preload("res://scenes/ui/main_menu/MetaPreflightPopup.tscn")
 const CombatUiTheme := preload("res://scripts/ui/theme/CombatUiTheme.gd")
 const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
@@ -25,6 +26,7 @@ var _hovered_menu_index := -1
 var _menu_tween: Tween
 var _hover_highlight: ColorRect
 var _settings_popup: Control
+var _meta_preflight_popup: MetaPreflightPopup
 
 func _ready() -> void:
 	_setup_menu_buttons()
@@ -262,6 +264,19 @@ func _get_base_gap(upper_index: int, lower_index: int) -> float:
 
 
 func _on_start_pressed() -> void:
+	if is_instance_valid(_meta_preflight_popup):
+		return
+	_meta_preflight_popup = META_PREFLIGHT_POPUP_SCENE.instantiate() as MetaPreflightPopup
+	add_child(_meta_preflight_popup)
+	_meta_preflight_popup.closed.connect(_on_meta_preflight_popup_closed)
+	_meta_preflight_popup.launch_requested.connect(_begin_new_run)
+
+
+func _on_meta_preflight_popup_closed() -> void:
+	_meta_preflight_popup = null
+
+
+func _begin_new_run() -> void:
 	RunManager.clear_saved_run()  # 开新局丢弃旧存档
 	GameManager.reset_run_state()
 	RunManager.start_new_run()

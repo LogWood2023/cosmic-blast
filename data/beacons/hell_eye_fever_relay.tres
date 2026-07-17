@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script=ExtResource("1")
+beacon_id="hell_eye_fever_relay"
+title="热病中继信标"
+family_tag="hell_eye"
+category="family"
+rule_key="heavy_hit_frenzy"
+mechanic_hook="on_heavy_hit"

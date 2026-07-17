@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+beacon_id = "reverse_auction_beacon"
+title = "逆向拍卖信标"
+description = "商店标记槽位会随节点完成降价。"
+category = "economy"
+rule_key = "shop_markdown"
+route_echo = {"nodes": 3}

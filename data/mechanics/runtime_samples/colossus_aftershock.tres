@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MechanicEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mechanics/MechanicEffectData.gd" id="1_effect"]
+
+[resource]
+script = ExtResource("1_effect")
+effect_id = "colossus_aftershock"
+trigger = "on_dash_hit"
+action = "area_damage"
+rule_key = "dash_aftershock"
+proc_coefficient = 0.35
+cooldown_seconds = 0.4
+max_triggers_per_second = 2
+parameters = {"damage_mult": 0.8, "radius": 110.0}

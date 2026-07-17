@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RewardPoolData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/rewards/RewardPoolData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+pool_id = "mechanic_starter"
+title = "机制启动器"
+description = "为当前航程提供可独立运转的启动来源。"
+weight = 1.0
+reward_types = PackedStringArray("equipment")
+tags = PackedStringArray("equipment", "starter")

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "prepay"
+title = "预付远期单"
+description = "锁定下一商店的折扣接口。"
+preview_text = "支付星髓矿，签订商店协议。"
+costs = [{"kind": "minerals", "amount_by_stage": PackedInt32Array(30, 45, 65)}]
+duration_nodes = 3
+effects = [{"action": "add_event_contract", "payload": {"id": "procurement_future", "effect_type": "shop_discount"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "sell"
+title = "出售远期单"
+description = "将订单资格换成现货。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(18, 28, 40)}]
+[resource]
+script = ExtResource("1")
+event_id = "procurement_future"
+title = "采购远期单"
+narrative = "一个旧采购系统仍愿意接受预付款。"
+category = "risk"
+theme_tags = PackedStringArray("shop", "contract")
+options = [SubResource("A"), SubResource("B")]

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "open"
+title = "开启量子货箱"
+description = "接受可见概率的随机回收结果。"
+preview_text = "55% 装备、35% 星髓、10% 伏击。"
+duration_nodes = 1
+effects = [{"action": "add_event_contract", "payload": {"id": "quantum_crate", "effect_type": "quantum_roll"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "secure"
+title = "安全回收"
+description = "不打开货箱，拆下外层稳定器。"
+preview_text = "获得保底星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(24, 36, 52)}]
+[resource]
+script = ExtResource("1")
+event_id = "quantum_crate"
+title = "量子货箱"
+narrative = "货箱同时显示了三种互斥的回收记录。"
+category = "gamble"
+theme_tags = PackedStringArray("gamble", "equipment")
+options = [SubResource("A"), SubResource("B")]

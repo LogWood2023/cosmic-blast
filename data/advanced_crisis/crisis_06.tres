@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 6
+crisis_id = "crisis_06_hazard_remnants"
+display_name = "危险残区"
+description = "陷阱数量增加，陷阱伤害类别保持不变。"
+modifiers = {"exploration": {"trap_count_mult": 1.2, "trap_damage_mult": 1.0}}

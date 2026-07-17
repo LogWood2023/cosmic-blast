@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RewardPoolData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/rewards/RewardPoolData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+pool_id = "stable_supply"
+title = "稳定补给"
+description = "矿物、修复与混合维护的稳定来源。"
+weight = 1.4
+reward_types = PackedStringArray("minerals", "heal")
+tags = PackedStringArray("safe", "survival")

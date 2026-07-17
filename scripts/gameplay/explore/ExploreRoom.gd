@@ -222,6 +222,10 @@ var _debug_enemy_cycle_interval: float = 5.0
 var _engineering_console_unlocked: bool = false
 var _room_setup_cancelled: bool = false
 var _loading_context_tip_text: String = ""
+var _advanced_trap_count_mult: float = 1.0
+var _advanced_crisis_enemy: Dictionary = {}
+var _run_stage: int = 1
+var _advanced_mixed_family_wave_chance: float = 0.0
 
 
 func _ready() -> void:
@@ -295,6 +299,17 @@ func setup_room_config(config: Dictionary) -> void:
 		enemy_spawn_interval = maxf(0.1, float(config["enemy_spawn_interval"]))
 	if config.has("max_patrol_enemy_count"):
 		max_patrol_enemy_count = maxi(0, int(config["max_patrol_enemy_count"]))
+	if config.has("advanced_patrol_interval_mult"):
+		enemy_spawn_interval = maxf(0.1, enemy_spawn_interval * maxf(0.0, float(config["advanced_patrol_interval_mult"])))
+	if config.has("advanced_patrol_enemy_cap_bonus"):
+		max_patrol_enemy_count = maxi(0, max_patrol_enemy_count + int(config["advanced_patrol_enemy_cap_bonus"]))
+	if config.has("advanced_trap_count_mult"):
+		_advanced_trap_count_mult = maxf(0.0, float(config["advanced_trap_count_mult"]))
+	if config.has("advanced_crisis_enemy"):
+		_advanced_crisis_enemy = Dictionary(config["advanced_crisis_enemy"]).duplicate(true)
+		_advanced_mixed_family_wave_chance = clampf(float(_advanced_crisis_enemy.get("mixed_family_wave_chance", 0.0)), 0.0, 1.0)
+	if config.has("run_stage"):
+		_run_stage = clampi(int(config["run_stage"]), 1, 3)
 	if config.has("modifier_tip_text"):
 		_loading_context_tip_text = String(config["modifier_tip_text"]).strip_edges()
 	if config.has("ore_source_weights"):
@@ -315,6 +330,10 @@ func get_room_config() -> Dictionary:
 		"divine_family_weight": divine_family_weight,
 		"enemy_spawn_interval": enemy_spawn_interval,
 		"max_patrol_enemy_count": max_patrol_enemy_count,
+		"advanced_trap_count_mult": _advanced_trap_count_mult,
+		"advanced_crisis_enemy": _advanced_crisis_enemy.duplicate(true),
+		"advanced_mixed_family_wave_chance": _advanced_mixed_family_wave_chance,
+		"run_stage": _run_stage,
 		"patrol_path_min_count": patrol_path_min_count,
 		"patrol_path_max_count": patrol_path_max_count,
 		"elite_replacement_min_count": elite_replacement_min_count,
@@ -962,6 +981,7 @@ func _load_room_async() -> void:
 	await get_tree().process_frame
 	if _is_room_setup_cancelled():
 		return
+	_finalize_explore_objective_totals()
 	camera.position = player.position
 	camera.global_position = player.global_position
 	_update_background_position()
@@ -1154,7 +1174,7 @@ func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
 		return
 	# 只有显式配置 trap_count=0（无陷阱房）才禁用电击带；
 	# 此前任何带 battle_trap_pressure 的配置都会把电击带清零，高压力房反而没有电击陷阱
-	var target_count = 0 if trap_count == 0 else randi_range(ELECTRIC_ISOLATION_BAND_MIN_COUNT, ELECTRIC_ISOLATION_BAND_MAX_COUNT)
+	var target_count = 0 if trap_count == 0 else int(ceil(float(randi_range(ELECTRIC_ISOLATION_BAND_MIN_COUNT, ELECTRIC_ISOLATION_BAND_MAX_COUNT)) * _advanced_trap_count_mult))
 	print("[电击隔离带] 目标生成数量: %d" % target_count)
 	var connected: Array[String] = []
 	for _i in range(target_count):
@@ -1201,7 +1221,7 @@ func _spawn_electric_isolation_bands(large_rocks: Array[Node2D]) -> void:
 func _spawn_defense_turrets(large_rocks: Array[Node2D]) -> void:
 	if large_rocks.is_empty():
 		return
-	var count = _configured_or_random_count(trap_count, TURRET_MIN_COUNT, TURRET_MAX_COUNT)
+	var count = int(ceil(float(_configured_or_random_count(trap_count, TURRET_MIN_COUNT, TURRET_MAX_COUNT)) * _advanced_trap_count_mult))
 	var placed_turrets: Array[Vector2] = []
 	for _i in range(count):
 		for _attempt in range(TURRET_MAX_ATTEMPTS):
@@ -2012,11 +2032,36 @@ func _spawn_elite_chest_replacement_enemies() -> void:
 			"family": family,
 			"behavior": behavior,
 		})
+		chest.set_meta(&"reward_depleted", true)
 		chest.queue_free()
 		spawned_count += 1
 	if map_ui and map_ui.has_method("set_static_enemy_icons"):
 		map_ui.set_static_enemy_icons(_static_enemy_map_icons)
 	print("[宝箱替换敌人] 已生成数量: %d" % spawned_count)
+
+
+func _finalize_explore_objective_totals() -> void:
+	var final_totals := {"chests": 0, "ore_veins": 0}
+	var quota := SalvageQuotaController.new()
+	add_child(quota)
+	for reward in rewards.get_children():
+		if not is_instance_valid(reward) or reward.is_queued_for_deletion() or not reward.has_method("get_reward_type"):
+			continue
+		if int(reward.get_reward_type()) == 0:
+			final_totals["chests"] = int(final_totals["chests"]) + 1
+			quota.register_value(100)
+		else:
+			final_totals["ore_veins"] = int(final_totals["ore_veins"]) + 1
+			quota.register_value(50)
+		if reward.has_signal("reward_depleted"):
+			reward.reward_depleted.connect(func(reward_type: int) -> void: quota.collect_value(100 if reward_type == 0 else 50))
+	quota.evacuation_unlocked.connect(func() -> void: set_meta(&"explore_evacuation_unlocked", true))
+	set_meta(&"salvage_quota", quota)
+	set_meta(&"explore_reward_totals", final_totals)
+	set_meta(&"explore_objective_totals_finalized", true)
+	var objectives_hud := get_node_or_null("UILayer/ExploreObjectivesHUD")
+	if objectives_hud and objectives_hud.has_method("reset_resource_totals"):
+		objectives_hud.call("reset_resource_totals")
 
 
 func _update_static_enemy_icon_textures(delta: float) -> void:
@@ -2360,6 +2405,10 @@ func _update_patrol_enemy_spawning(delta: float) -> void:
 	for i in range(_patrol_path_points.size()):
 		var family = _patrol_path_families[i] if i < _patrol_path_families.size() else _pick_patrol_enemy_family()
 		_queue_patrol_enemy_wave(_patrol_path_points[i], family)
+		if _advanced_mixed_family_wave_chance > 0.0 and randf() < _advanced_mixed_family_wave_chance:
+			var mixed_family := _pick_patrol_enemy_family()
+			if mixed_family != family:
+				_queue_patrol_enemy_wave(_patrol_path_points[i], mixed_family)
 
 
 func _queue_patrol_enemy_wave(path_points: PackedVector2Array, family: String) -> void:
@@ -2464,6 +2513,8 @@ func _spawn_pooled_patrol_enemy(spawn_data: Dictionary) -> void:
 			PATROL_ENEMY_DESPAWN_MARGIN,
 			spawn_pos
 		)
+	if enemy.has_method("apply_budgeted_profile"):
+		enemy.apply_budgeted_profile(_run_stage, _advanced_crisis_enemy)
 
 
 func _acquire_pooled_patrol_enemy(behavior: int) -> Node2D:

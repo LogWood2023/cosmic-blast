@@ -1,5 +1,7 @@
 extends Node2D
 
+const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
+
 enum Dock { HOME, LEFT, RIGHT, BOTTOM }
 
 # ═══════════ 基本属性 ═══════════
@@ -301,7 +303,8 @@ func apply_damage(amount: int) -> void:
 		return
 	var old_hp := boss_hp
 	boss_hp -= amount
-	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
+	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
+	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()
@@ -1418,6 +1421,7 @@ func _ready() -> void:
 		has_skill_6 = true
 	mask_rotation_deg = randf_range(0.0, 360.0)
 	max_hp = 1000
+	BossBudgetApplicator.apply_to(self, "hell_eye")
 	boss_hp = max_hp
 	bgm_player = AudioStreamPlayer.new()
 	bgm_player.bus = &"Music"

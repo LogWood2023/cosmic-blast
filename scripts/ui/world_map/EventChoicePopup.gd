@@ -24,6 +24,8 @@ func _ready() -> void:
 
 func setup(node: Dictionary, choices: Array) -> void:
 	title_label.text = String(node.get("intel_title", "异常信号")).strip_edges()
+	if not choices.is_empty():
+		title_label.text = String(Dictionary(choices[0]).get("event_title", title_label.text)).strip_edges()
 	if title_label.text.is_empty():
 		title_label.text = "异常信号"
 	meta_label.text = "第 %d 阶层 · %s · %s" % [
@@ -32,6 +34,8 @@ func setup(node: Dictionary, choices: Array) -> void:
 		"选择一项回应",
 	]
 	story_label.text = String(node.get("intel_description", "方舟捕获到一段无法归档的深空回声。它似乎正在等待你给出回应。")).strip_edges()
+	if not choices.is_empty():
+		story_label.text = String(Dictionary(choices[0]).get("narrative", story_label.text)).strip_edges()
 	if story_label.text.is_empty():
 		story_label.text = "方舟捕获到一段无法归档的深空回声。它似乎正在等待你给出回应。"
 	for child in choices_list.get_children():
@@ -49,7 +53,8 @@ func _add_choice_button(choice: Dictionary) -> void:
 	button.custom_minimum_size = Vector2(0.0, 108.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_ALL
-	button.tooltip_text = ""
+	button.disabled = not String(choice.get("disabled_reason", "")).is_empty()
+	button.tooltip_text = String(choice.get("disabled_reason", ""))
 	button.add_theme_stylebox_override("normal", _make_choice_style(Color(0.10, 0.49, 0.53, 0.90), Color(0.42, 0.93, 0.93, 0.78)))
 	button.add_theme_stylebox_override("hover", _make_choice_style(Color(0.15, 0.64, 0.66, 0.96), Color(0.74, 1.0, 0.96, 1.0)))
 	button.add_theme_stylebox_override("pressed", _make_choice_style(Color(0.07, 0.35, 0.39, 0.98), Color(0.90, 0.73, 0.28, 1.0)))

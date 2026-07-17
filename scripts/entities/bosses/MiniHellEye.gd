@@ -302,7 +302,7 @@ func _on_body_area_entered(area: Area2D) -> void:
 	if area.get(&"atk") != null:
 		var old_hp := _hp
 		_hp -= area.atk
-		GameManager.add_frenzy(maxi(0, mini(old_hp, area.atk)))
+		GameManager.report_frenzy_hit(1.0, false)
 		_health_bar.take_hit(_hp)
 		if is_instance_valid(area):
 			_destroy_projectile(area)

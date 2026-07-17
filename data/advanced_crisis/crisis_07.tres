@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 7
+crisis_id = "crisis_07_sparse_repairs"
+display_name = "修复匮乏"
+description = "所有治疗降低至 75%，但单次最低恢复 1。"
+modifiers = {"healing": {"mult": 0.75, "minimum": 1}}

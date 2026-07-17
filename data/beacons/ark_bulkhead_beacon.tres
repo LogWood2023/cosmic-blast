@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+beacon_id = "ark_bulkhead_beacon"
+title = "方舟隔舱信标"
+description = "每房首次重击伤害封顶并获得短暂无敌。"
+category = "defense"
+rule_key = "first_heavy_hit_cap"
+mechanic_hook = "on_heavy_hit"
+route_echo = {"nodes": 3}

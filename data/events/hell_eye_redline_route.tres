@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "commit"
+title = "签署赤线"
+description = "让狂热结束时保留一段高热量。"
+preview_text = "失去生命、危机上升，签订热病航线。"
+costs = [{"kind": "hp", "amount": 6}]
+duration_nodes = 3
+effects = [{"action": "add_crisis", "amount": 1}, {"action": "add_event_contract", "payload": {"id": "hell_eye_redline_route", "effect_type": "frenzy_heat_bank"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "extract"
+title = "提取热样"
+description = "把热样压成可出售燃料。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(20, 32, 46)}]
+[resource]
+script = ExtResource("1")
+event_id = "hell_eye_redline_route"
+title = "赤线热病签"
+narrative = "热病签要求将战斗节奏推过安全线。"
+category = "route"
+family_tag = "hell_eye"
+theme_tags = PackedStringArray("family", "frenzy")
+options = [SubResource("A"), SubResource("B")]

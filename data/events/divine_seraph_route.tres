@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "commit"
+title = "发布护航令"
+description = "让僚机命中周期性复制基础弹。"
+preview_text = "支付星髓矿，签订神使航线。"
+costs = [{"kind": "minerals", "amount_by_stage": PackedInt32Array(16, 24, 34)}]
+duration_nodes = 3
+effects = [{"action": "add_event_contract", "payload": {"id": "divine_seraph_route", "effect_type": "drone_copy_shot"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "repair"
+title = "回收僚机核心"
+description = "把护航核心接入维修接口。"
+preview_text = "恢复船体生命。"
+effects = [{"action": "heal", "amount_by_stage": PackedInt32Array(22, 30, 38)}]
+[resource]
+script = ExtResource("1")
+event_id = "divine_seraph_route"
+title = "圣羽护航令"
+narrative = "失落护航编队在等待新的领航指令。"
+category = "route"
+family_tag = "divine"
+theme_tags = PackedStringArray("family", "drone")
+options = [SubResource("A"), SubResource("B")]

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 5
+crisis_id = "crisis_05_first_judgement"
+display_name = "首轮裁决"
+description = "Boss EHP 提高 10%，生命 60% 时追加强化机制。"
+modifiers = {"boss": {"ehp_mult": 1.1, "phase_enrage_threshold": 0.6, "phase_enrage_count": 1}}

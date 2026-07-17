@@ -1,6 +1,9 @@
 extends Area2D
 ## 玩家 —— HP 制，键盘移动 + 鼠标瞄准射击
 
+signal dash_charges_changed(current_charges: int, maximum_charges: int)
+signal combat_event_dispatched(trigger: String, payload: Dictionary)
+
 @export var speed: float = 300.0
 @export var rotation_speed: float = 8.0
 @export var bullet_scene: PackedScene
@@ -68,12 +71,18 @@ var _pre_dash_collision_mask: int = 0
 var _pre_dash_monitoring: bool = true
 var _pre_dash_monitorable: bool = true
 var _last_input_dir: Vector2 = Vector2.UP
+var _dash_charges: int = 2
+var _dash_recharge_timer: float = 0.0
+var _dash_input_buffered: bool = false
+var _was_frenzy_active: bool = false
 
 const OBSTACLE_CACHE_INTERVAL: float = 0.45
 const OBSTACLE_QUERY_EXTRA_MARGIN: float = 180.0
 const DASH_DISTANCE: float = 420.0
 const DASH_SPEED: float = 2400.0
-const DASH_COOLDOWN: float = 0.28
+const DASH_MAX_CHARGES: int = 2
+const DASH_CHARGE_RECOVERY_SECONDS: float = 1.8
+const DASH_BASE_DAMAGE_MULT: float = 0.75
 const DASH_STEP_DISTANCE: float = 44.0
 const DASH_START_CLEARANCE_DISTANCE: float = 64.0
 const DASH_OBSTACLE_EXTRA_MARGIN: float = 8.0
@@ -210,6 +219,7 @@ const GRAPPLE_ICON_FRAME_RECTS: Array[Rect2] = [
 ]
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var mechanic_runtime: MechanicRuntime = $MechanicRuntime
 
 const SHOOT_SOUND = preload("res://assets/audio/shoot.wav")
 const HURT_SOUND = preload("res://assets/audio/player_hurt.wav")
@@ -226,9 +236,19 @@ func _ready() -> void:
 	add_to_group(&"player")
 	collision_layer = 1
 	collision_mask = 6     # 检测 Boss 组件 (2) + ExploreReward (4)
+	_dash_charges = DASH_MAX_CHARGES
+	mechanic_runtime.effect_triggered.connect(_on_mechanic_effect_triggered)
+	dash_charges_changed.emit(_dash_charges, DASH_MAX_CHARGES)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"dash") and not _is_mouse_over_map():
+		_dash_input_buffered = true
+		get_viewport().set_input_as_handled()
 
 
 func _process(delta: float) -> void:
+	_observe_frenzy_transition()
 	_update_external_slow(delta)
 	_update_hell_eye_effects(delta)
 	_update_gravity_claw_camera(delta)
@@ -276,7 +296,8 @@ func _process(delta: float) -> void:
 		input_dir = -input_dir
 	if input_dir.length() > 0.01:
 		_last_input_dir = input_dir.normalized()
-	if Input.is_action_just_pressed("dash") and not _is_mouse_over_map():
+	if _dash_input_buffered or (Input.is_action_just_pressed(&"dash") and not _is_mouse_over_map()):
+		_dash_input_buffered = false
 		_start_dash(input_dir)
 		if _dash_active:
 			return
@@ -291,7 +312,7 @@ func _process(delta: float) -> void:
 	_clamp_to_movement_bounds()
 
 	# ── 朝向 ──
-	var is_shooting: bool = (Input.is_action_pressed("shoot") or SettingsManager.auto_fire) and not _is_mouse_over_map()
+	var is_shooting: bool = Input.is_action_pressed(&"shoot") and not _is_mouse_over_map()
 	var target_angle: float
 	if is_shooting:
 		var mp = get_global_mouse_position()
@@ -332,6 +353,7 @@ func _shoot() -> void:
 	for r in range(_run_bullet_ring_count):
 		var ring_angle := TAU * float(r + 1) / float(_run_bullet_ring_count + 1)
 		_spawn_player_bullet(forward.rotated(ring_angle))
+	dispatch_combat_event("on_shoot", {"position": global_position, "direction": forward, "damage": atk, "proc_coefficient": 1.0})
 	_play_sfx(SHOOT_SOUND)
 
 
@@ -391,6 +413,8 @@ func _spawn_player_bullet(direction: Vector2) -> void:
 	bullet.position = global_position + 50 * forward
 	bullet.rotation = forward.angle()
 	bullet.z_index = -80            # 子弹层
+	if bullet.has_method("configure_mechanic_context"):
+		bullet.configure_mechanic_context(mechanic_runtime, 0, [], 1.0)
 	get_tree().current_scene.add_child(bullet)
 
 
@@ -481,7 +505,6 @@ func take_damage_from(area: Area2D) -> void:
 	dmg = _apply_player_damage_taken(dmg)
 
 	_play_sfx(HURT_SOUND)
-	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
 
 	if _check_player_death():
@@ -499,7 +522,6 @@ func take_damage_from_boss(dmg: int) -> void:
 		return
 	dmg = _apply_player_damage_taken(dmg)
 	_play_sfx(HURT_SOUND)
-	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
 	if _check_player_death():
 		return
@@ -659,7 +681,6 @@ func _apply_external_direct_damage(dmg: int) -> void:
 		return
 	dmg = _apply_player_damage_taken(dmg)
 	_play_sfx(HURT_SOUND)
-	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
 	if _check_player_death():
 		return
@@ -675,7 +696,6 @@ func take_knockback_damage(dmg: int, spd: float, dur: float, dir: Vector2 = Vect
 		return
 	dmg = _apply_player_damage_taken(dmg)
 	_play_sfx(HURT_SOUND)
-	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
 	if _check_player_death():
 		return
@@ -1318,7 +1338,6 @@ func _apply_gravity_claw_damage(dmg: int, bypass_invincible: bool = false) -> vo
 		return
 	dmg = _apply_player_damage_taken(dmg)
 	_play_sfx(HURT_SOUND)
-	GameManager.add_frenzy(dmg)
 	GameManager.player_hp -= dmg
 	if _check_player_death():
 		return
@@ -1430,16 +1449,35 @@ func _get_effective_fire_rate() -> float:
 func _apply_player_damage_taken(dmg: int) -> int:
 	# 装甲晶格：受击减伤
 	var reduced := int(round(float(dmg) * _run_damage_taken_mult))
-	return GameManager.get_incoming_damage_after_frenzy(maxi(1, reduced))
+	var final_damage := GameManager.get_incoming_damage_after_frenzy(maxi(1, reduced))
+	GameManager.report_frenzy_damage_taken(final_damage)
+	if final_damage >= 34:
+		dispatch_combat_event("on_heavy_hit", {"position": global_position, "damage": final_damage, "proc_coefficient": 1.0})
+	return final_damage
+
+
+func _observe_frenzy_transition() -> void:
+	if GameManager.frenzy_active and not _was_frenzy_active:
+		RunManager.balance_telemetry.record("frenzy_started", {"hp": GameManager.player_hp})
+		dispatch_combat_event("on_frenzy_start", {"position": global_position, "proc_coefficient": 1.0})
+	_was_frenzy_active = GameManager.frenzy_active
 
 
 func _update_dash_cooldown(delta: float) -> void:
-	if _dash_cooldown_timer > 0.0:
-		_dash_cooldown_timer = maxf(0.0, _dash_cooldown_timer - delta)
+	if _dash_charges >= DASH_MAX_CHARGES:
+		_dash_recharge_timer = 0.0
+		return
+	_dash_recharge_timer = maxf(0.0, _dash_recharge_timer - delta)
+	if _dash_recharge_timer > 0.0:
+		return
+	_dash_charges = mini(DASH_MAX_CHARGES, _dash_charges + 1)
+	dash_charges_changed.emit(_dash_charges, DASH_MAX_CHARGES)
+	if _dash_charges < DASH_MAX_CHARGES:
+		_dash_recharge_timer = DASH_CHARGE_RECOVERY_SECONDS
 
 
 func _start_dash(input_dir: Vector2) -> void:
-	if _dash_active or _dash_cooldown_timer > 0.0:
+	if _dash_active or _dash_charges <= 0:
 		return
 	var dir := input_dir.normalized()
 	if dir == Vector2.ZERO:
@@ -1449,7 +1487,10 @@ func _start_dash(input_dir: Vector2) -> void:
 	_dash_velocity = dir.normalized() * DASH_SPEED * _run_dash_speed_mult
 	_dash_remaining_distance = DASH_DISTANCE * _run_dash_distance_mult
 	_dash_distance_traveled = 0.0
-	_dash_cooldown_timer = DASH_COOLDOWN
+	_dash_charges -= 1
+	if _dash_recharge_timer <= 0.0:
+		_dash_recharge_timer = DASH_CHARGE_RECOVERY_SECONDS
+	dash_charges_changed.emit(_dash_charges, DASH_MAX_CHARGES)
 	_dash_afterimage_timer = 0.0
 	_dash_hit_targets.clear()
 	_dash_chain_left = _run_dash_chain
@@ -1467,6 +1508,8 @@ func _start_dash(input_dir: Vector2) -> void:
 	invincible_timer = maxf(invincible_timer, _dash_remaining_distance / maxf(_dash_velocity.length(), 1.0) + 0.05)
 	current_velocity = _dash_velocity
 	_spawn_dash_afterimage()
+	RunManager.balance_telemetry.record("dash_started", {"charges_after": _dash_charges})
+	dispatch_combat_event("on_dash", {"position": global_position, "direction": _dash_velocity.normalized(), "proc_coefficient": 1.0})
 
 
 func _update_dash(delta: float) -> void:
@@ -1636,11 +1679,13 @@ func _apply_dash_impact_damage(target: Node) -> void:
 	if _dash_hit_targets.has(target):
 		return
 	# 折返强化：每次反弹提升本次撞击伤害
-	var mult := _run_dash_damage_mult * (1.0 + _run_dash_rebound_bonus * float(_dash_rebound_stacks))
-	var amount := maxi(1, int(round(float(atk * DASH_REFLECT_DAMAGE_MULT) * mult)))
+	var mult := DASH_BASE_DAMAGE_MULT * _run_dash_damage_mult * (1.0 + _run_dash_rebound_bonus * float(_dash_rebound_stacks))
+	var amount := maxi(1, int(round(float(atk) * mult)))
 	_dash_hit_targets.append(target)
 	_apply_damage_to_dash_target(target, amount)
 	_apply_dash_aftershock(target, amount)
+	RunManager.balance_telemetry.record("dash_hit", {"damage": amount, "target": target.name})
+	dispatch_combat_event("on_dash_hit", {"position": global_position, "direction": _dash_velocity.normalized(), "target": target, "damage": amount, "proc_coefficient": 1.0})
 	# 撞击护盾：命中敌人后获得短暂无敌
 	if _run_dash_shield_duration > 0.0:
 		invincible = true
@@ -1648,12 +1693,89 @@ func _apply_dash_impact_damage(target: Node) -> void:
 
 
 func _dash_reflect_off(hit_node: Node) -> void:
+	if _run_dash_chain <= 0:
+		_dash_remaining_distance = 0.0
+		return
 	var hit_normal := (global_position - _get_node_world_position(hit_node)).normalized()
 	if hit_normal == Vector2.ZERO:
 		hit_normal = -_dash_velocity.normalized()
 	_dash_velocity = _dash_velocity.bounce(hit_normal).normalized() * DASH_SPEED * _run_dash_speed_mult
 	_dash_remaining_distance *= 0.72
 	_dash_rebound_stacks += 1
+
+
+func get_dash_charges() -> int:
+	return _dash_charges
+
+
+func configure_mechanic_effects(effects: Array[MechanicEffectData], active_rule_keys: PackedStringArray = []) -> void:
+	mechanic_runtime.set_effects(effects)
+	mechanic_runtime.set_active_rule_keys(active_rule_keys)
+
+
+func dispatch_combat_event(trigger: String, payload: Dictionary) -> void:
+	var event := payload.duplicate(true)
+	event["generation"] = int(event.get("generation", 0))
+	event["lineage_effect_ids"] = event.get("lineage_effect_ids", []).duplicate()
+	event["proc_coefficient"] = float(event.get("proc_coefficient", 1.0))
+	mechanic_runtime.dispatch(trigger, event)
+	combat_event_dispatched.emit(trigger, event)
+
+
+func _on_mechanic_effect_triggered(_effect_id: String, event: Dictionary) -> void:
+	RunManager.balance_telemetry.record_mechanic_effect(_effect_id, event)
+	var parameters: Dictionary = event.get("parameters", {})
+	match String(event.get("action", "")):
+		"spawn_projectile":
+			_spawn_runtime_projectiles(event, parameters)
+		"apply_mark":
+			var target: Node = event.get("target", null)
+			if is_instance_valid(target):
+				target.set_meta(&"warped_mark_bonus", float(parameters.get("bonus", 0.2)))
+				target.set_meta(&"warped_mark_until", Time.get_ticks_msec() + int(parameters.get("duration_msec", 2500)))
+		"area_damage":
+			_apply_runtime_area_damage(event, parameters)
+		"modify_cooldown":
+			var refund := clampi(int(parameters.get("dash_charge_refund", 0)), 0, DASH_MAX_CHARGES - _dash_charges)
+			if refund > 0:
+				_dash_charges += refund
+				dash_charges_changed.emit(_dash_charges, DASH_MAX_CHARGES)
+		"add_heat":
+			GameManager.report_frenzy_mechanic_heat(float(parameters.get("heat", 0.0)) * float(event.get("proc_coefficient", 1.0)))
+		"drone_action":
+			for drone in get_tree().get_nodes_in_group(&"player_support_drones"):
+				if drone.get("owner_player") == self and drone.has_method("trigger_mechanic_action"):
+					drone.call("trigger_mechanic_action", event)
+
+
+func _spawn_runtime_projectiles(event: Dictionary, parameters: Dictionary) -> void:
+	if bullet_scene == null:
+		return
+	var count := clampi(int(parameters.get("count", 1)), 1, 6)
+	var base_direction: Vector2 = event.get("direction", _get_current_shoot_direction())
+	var spread := deg_to_rad(float(parameters.get("spread_degrees", 0.0)))
+	var damage := maxi(1, int(round(float(event.get("damage", atk)) * float(parameters.get("damage_mult", 1.0)) * float(event.get("proc_coefficient", 1.0)))))
+	for index in range(count):
+		var offset := 0.0 if count == 1 else lerpf(-spread * 0.5, spread * 0.5, float(index) / float(count - 1))
+		var bullet = bullet_scene.instantiate()
+		bullet.direction = base_direction.normalized().rotated(offset)
+		bullet.atk = damage
+		bullet.global_position = event.get("position", global_position) + bullet.direction * 24.0
+		bullet.rotation = bullet.direction.angle()
+		bullet.z_index = -80
+		if bullet.has_method("configure_mechanic_context"):
+			bullet.configure_mechanic_context(mechanic_runtime, int(event.get("generation", 0)), event.get("lineage_effect_ids", []), float(event.get("proc_coefficient", 1.0)))
+		get_tree().current_scene.add_child(bullet)
+
+
+func _apply_runtime_area_damage(event: Dictionary, parameters: Dictionary) -> void:
+	var center: Vector2 = event.get("position", global_position)
+	var radius := maxf(1.0, float(parameters.get("radius", 80.0)))
+	var damage := maxi(1, int(round(float(event.get("damage", atk)) * float(parameters.get("damage_mult", 1.0)) * float(event.get("proc_coefficient", 1.0)))))
+	for group_name in [&"enemies", &"boss", &"defense_turrets"]:
+		for target in get_tree().get_nodes_in_group(group_name):
+			if is_instance_valid(target) and not target.is_queued_for_deletion() and center.distance_to(_get_node_world_position(target)) <= radius:
+				_apply_damage_to_dash_target(target, damage)
 
 
 func _find_dash_chain_target(exclude: Node) -> Node:

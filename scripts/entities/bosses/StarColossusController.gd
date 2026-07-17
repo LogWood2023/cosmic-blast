@@ -4,6 +4,7 @@ extends Node2D
 @export var body_tex: Texture2D = preload("res://assets/images/boss/boss_colossus_body_cutout.png")
 @export var arm_tex: Texture2D = preload("res://assets/images/boss/boss_colossus_arm_cutout.png")
 @export var arm_r_tex: Texture2D = preload("res://assets/images/boss/boss_colossus_arm_r_cutout.png")
+const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
 const ArmScript = preload("res://scripts/entities/bosses/StarColossusArm.gd")
 const BodyScript = preload("res://scripts/entities/bosses/StarColossusBody.gd")
 const BOSS_BGM = preload("res://assets/audio/colossus_bgm.mp3")
@@ -82,6 +83,7 @@ var arm_right: Area2D
 
 func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
+	BossBudgetApplicator.apply_to(self, "colossus")
 	boss_hp = max_hp
 	_setup_bgm()
 	_build_parts()
@@ -828,7 +830,8 @@ func apply_damage(amount: int) -> void:
 		return
 	var old_hp := boss_hp
 	boss_hp -= amount
-	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
+	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
+	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
 		_die()
 	else:

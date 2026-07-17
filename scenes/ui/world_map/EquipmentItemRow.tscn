@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/world_map/EquipmentItemRow.gd" id="1"]
 
@@ -52,12 +52,37 @@ corner_radius_bottom_right = 2
 
 [sub_resource type="StyleBoxEmpty" id="StyleBox_card_click"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_card_hover"]
+bg_color = Color(0.05, 0.18, 0.22, 0.18)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.321569, 0.909804, 1, 0.92)
+corner_radius_top_left = 4
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_card_pressed"]
+bg_color = Color(1, 0.309804, 0.415686, 0.18)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.721569, 0.301961, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 4
+
 [node name="EquipmentItemRow" type="HBoxContainer"]
 custom_minimum_size = Vector2(0, 150)
 anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 150.0
 grow_horizontal = 2
+clip_contents = true
 theme_override_constants/separation = 14
 script = ExtResource("1")
 
@@ -140,6 +165,17 @@ theme_override_font_sizes/font_size = 15
 text = "状态"
 horizontal_alignment = 2
 
+[node name="FeedbackFlash" type="ColorRect" parent="InfoPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.04, 0.08, 0)
+
 [node name="CardButton" type="Button" parent="InfoPanel"]
 layout_mode = 1
 anchors_preset = 15
@@ -149,11 +185,11 @@ grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
-flat = true
+flat = false
 theme_override_styles/normal = SubResource("StyleBox_card_click")
-theme_override_styles/hover = SubResource("StyleBox_card_click")
-theme_override_styles/pressed = SubResource("StyleBox_card_click")
-theme_override_styles/focus = SubResource("StyleBox_card_click")
+theme_override_styles/hover = SubResource("StyleBox_card_hover")
+theme_override_styles/pressed = SubResource("StyleBox_card_pressed")
+theme_override_styles/focus = SubResource("StyleBox_card_hover")
 
 [node name="ActionButton" type="Button" parent="."]
 custom_minimum_size = Vector2(138, 54)

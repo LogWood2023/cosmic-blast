@@ -73,6 +73,7 @@ func _check_map_layout() -> void:
 
 func _check_branching_spider_topology() -> void:
 	var layer_counts := {}
+	var layer_type_counts := {}
 	var type_counts := {RunManager.NODE_BATTLE: 0, RunManager.NODE_EVENT: 0, RunManager.NODE_REWARD: 0}
 	var child_counts := {}
 	var special_count := 0
@@ -117,6 +118,9 @@ func _check_branching_spider_topology() -> void:
 			continue
 		type_counts[node_type] = int(type_counts.get(node_type, 0)) + 1
 		layer_counts[layer] = int(layer_counts.get(layer, 0)) + 1
+		var types_in_layer: Dictionary = Dictionary(layer_type_counts.get(layer, {}))
+		types_in_layer[node_type] = int(types_in_layer.get(node_type, 0)) + 1
+		layer_type_counts[layer] = types_in_layer
 		if layer == 0:
 			if parent_id != RunManager.CENTER_ID or not _has_connection_via_bridges(RunManager.CENTER_ID, node_id):
 				_fail("Each initial branching-spider node must connect directly to the core.")
@@ -141,6 +145,10 @@ func _check_branching_spider_topology() -> void:
 		var layer_count := int(layer_counts.get(layer, 0))
 		if layer_count <= 0:
 			_fail("Branching spider layer %d should contain at least one node." % layer)
+			return
+		var types_in_layer: Dictionary = Dictionary(layer_type_counts.get(layer, {}))
+		if int(types_in_layer.get(RunManager.NODE_BATTLE, 0)) <= 0 or int(types_in_layer.get(RunManager.NODE_EVENT, 0)) <= 0:
+			_fail("Branching spider layer %d should mix battle and event nodes." % layer)
 			return
 		main_node_count += layer_count
 		if layer > 0:

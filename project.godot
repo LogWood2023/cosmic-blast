@@ -23,6 +23,7 @@ RunManager="*res://scripts/core/RunManager.gd"
 CameraFeedback="*res://scripts/fx/CameraFeedback.gd"
 DebugCommandConsole="*res://scripts/core/DebugCommandConsole.gd"
 BossVictoryTransition="*res://scripts/ui/BossVictoryTransition.gd"
+MetaProgressionState="*res://scripts/core/MetaProgression.gd"
 
 [display]
 

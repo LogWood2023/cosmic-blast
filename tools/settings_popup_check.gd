@@ -9,13 +9,19 @@ func _ready() -> void:
 
 func _run() -> void:
 	var original := SettingsManager.get_settings_snapshot()
+	if original.has("auto_fire"):
+		_fail("Removed auto-fire setting must not remain in settings snapshots.", original)
+		return
 	var popup := SETTINGS_POPUP_SCENE.instantiate()
 	add_child(popup)
 	await get_tree().process_frame
+	if _has_control_text(popup, "自动开火"):
+		_fail("Removed auto-fire setting must not remain in the settings UI.", original)
+		return
 
-	popup._draft["auto_fire"] = not bool(original["auto_fire"])
+	popup._draft["reduced_effects"] = not bool(original["reduced_effects"])
 	popup._update_dirty_state()
-	if SettingsManager.auto_fire != bool(original["auto_fire"]):
+	if SettingsManager.reduced_effects != bool(original["reduced_effects"]):
 		_fail("Editing a draft setting must not apply it immediately.", original)
 		return
 
@@ -26,10 +32,12 @@ func _run() -> void:
 
 	popup._dismiss_unsaved_dialog()
 	popup._save_draft()
-	if SettingsManager.auto_fire != bool(popup._draft["auto_fire"]):
+	if SettingsManager.reduced_effects != bool(popup._draft["reduced_effects"]):
 		_fail("Saving settings must apply the draft.", original)
 		return
-	if not popup.is_queued_for_deletion():
+	await popup.closed
+	await get_tree().process_frame
+	if is_instance_valid(popup) and not popup.is_queued_for_deletion():
 		_fail("Saving settings must close the popup.", original)
 		return
 
@@ -43,7 +51,9 @@ func _run() -> void:
 	var exit_requested := [false]
 	map_popup.save_and_exit_requested.connect(func() -> void: exit_requested[0] = true)
 	map_popup._save_and_exit()
-	if not exit_requested[0] or not map_popup.is_queued_for_deletion():
+	await map_popup.save_and_exit_requested
+	await get_tree().process_frame
+	if not exit_requested[0] or (is_instance_valid(map_popup) and not map_popup.is_queued_for_deletion()):
 		_fail("Save and exit must save, emit its action, and close the popup.", original)
 		return
 
@@ -54,7 +64,9 @@ func _run() -> void:
 	var main_menu_requested := [false]
 	menu_popup.save_and_main_menu_requested.connect(func() -> void: main_menu_requested[0] = true)
 	menu_popup._save_and_main_menu()
-	if not main_menu_requested[0] or not menu_popup.is_queued_for_deletion():
+	await menu_popup.save_and_main_menu_requested
+	await get_tree().process_frame
+	if not main_menu_requested[0] or (is_instance_valid(menu_popup) and not menu_popup.is_queued_for_deletion()):
 		_fail("Save and main menu must save, emit its action, and close the popup.", original)
 		return
 
@@ -72,5 +84,14 @@ func _fail(message: String, original: Dictionary) -> void:
 func _has_button(popup: Control, text: String) -> bool:
 	for child in popup.find_children("*", "Button", true, false):
 		if (child as Button).text == text:
+			return true
+	return false
+
+
+func _has_control_text(popup: Control, text: String) -> bool:
+	for child in popup.find_children("*", "Control", true, false):
+		if child is Label and (child as Label).text == text:
+			return true
+		if child is Button and (child as Button).text == text:
 			return true
 	return false

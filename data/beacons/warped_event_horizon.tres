@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script=ExtResource("1")
+beacon_id="warped_event_horizon"
+title="事件视界信标"
+family_tag="warped"
+category="family"
+rule_key="marked_death_gravity_well"
+mechanic_hook="on_kill"

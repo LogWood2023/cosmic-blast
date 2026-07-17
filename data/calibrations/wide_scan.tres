@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CalibrationData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/CalibrationData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+calibration_id = "wide_scan"
+display_name = "宽域扫描"
+description = "显示未来两层节点的完整情报。"
+unlock_condition = "初始"
+effects = {"map_intel_layers": 2}

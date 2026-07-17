@@ -3,6 +3,11 @@ extends Node
 
 const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd")
 const DesignedEnemyCatalog := preload("res://scripts/entities/designed_enemies/DesignedEnemyCatalog.gd")
+const RunContentContextScript := preload("res://scripts/core/run_content/RunContentContext.gd")
+const RunContentFacadeScript := preload("res://scripts/core/run_content/RunContentFacade.gd")
+const RunMutationSetScript := preload("res://scripts/core/run_content/RunMutationSet.gd")
+const BalanceTelemetryScript := preload("res://scripts/core/BalanceTelemetry.gd")
+const AdvancedCrisisResolverScript := preload("res://scripts/core/AdvancedCrisisResolver.gd")
 
 const WORLD_MAP_SCENE: String = "res://scenes/app/WorldMap.tscn"
 const EXPLORE_ROOM_SCENE: String = "res://scenes/gameplay/explore/ExploreRoom.tscn"
@@ -51,7 +56,7 @@ const CRISIS_LOCK_BROADCASTS: Dictionary = {
 	21: "【危机警报 · 等级 21】\n中心节点最终锁定，星域停止了对你的一切让步。\n派来的是一份判决——协议为无法归类的变量保留的那一条。\n引导之声：这是这条回声能抵达的最远处。飞过去，或者把记忆留给下一个。\n天穹协议：五席之力都无法容纳它，执行最终否决。",
 }
 const SAVE_PATH := "user://run_save.dat"
-const SAVE_VERSION := 1
+const SAVE_VERSION := 3
 const CENTER_ID: int = 0
 const MAP_CENTER: Vector2 = Vector2(700.0, 590.0)
 const FAMILY_BIASES: Array[String] = [
@@ -1914,8 +1919,19 @@ var run_finished: bool = false
 var run_victory: bool = false
 var map_nodes: Array[Dictionary] = []
 var crisis_level: int = 0
+var advanced_crisis_level: int = 0
 var compute_capacity: int = 5
-var minerals: int = 0
+var _minerals: int = 0
+var minerals: int:
+	get:
+		return _minerals
+	set(value):
+		var requested := maxi(0, value)
+		if requested > _minerals and calibration_mineral_debt > 0:
+			var repayment := mini(calibration_mineral_debt, requested - _minerals)
+			calibration_mineral_debt -= repayment
+			requested -= repayment
+		_minerals = requested
 var completed_node_count: int = 0
 var current_node_id: int = -1
 var current_room_mineral_mult: float = 1.0
@@ -1947,14 +1963,38 @@ var shop_beacon_family: String = ""
 var shop_beacon_bonus_name: String = ""
 var shop_ore_source_focus: String = ""
 var shop_ore_source_focus_text: String = ""
+var calibration_snapshot: Dictionary = {}
+var calibration_shop_price_mult: float = 1.0
+var calibration_mineral_mult: float = 1.0
+var calibration_mineral_debt: int = 0
+var calibration_resonance_family: String = ""
+var calibration_resonance_offer_remaining: int = 0
+var crisis_modifier_snapshot: Dictionary = {}
+var content_state_version: int = 0
+var _committed_mutation_ids: Dictionary = {}
+var _run_content_facade: RunContentFacade
+var balance_telemetry: BalanceTelemetry = BalanceTelemetryScript.new()
+
+
+func _ready() -> void:
+	_ensure_run_content_facade()
 
 
 func start_new_run() -> void:
 	randomize()
+	var selected_advanced_crisis_level := 0
+	if MetaProgressionState != null:
+		selected_advanced_crisis_level = clampi(int(MetaProgressionState.selected_crisis_level), 0, int(MetaProgressionState.unlocked_crisis_level))
+	content_state_version = 1
+	_committed_mutation_ids.clear()
+	balance_telemetry.clear()
 	run_active = true
 	run_finished = false
 	run_victory = false
 	crisis_level = 0
+	advanced_crisis_level = selected_advanced_crisis_level
+	crisis_modifier_snapshot = AdvancedCrisisResolverScript.new().resolve(advanced_crisis_level)
+	balance_telemetry.record("run_started", {"crisis_level": crisis_level, "advanced_crisis_level": advanced_crisis_level})
 	compute_capacity = 5
 	minerals = 0
 	completed_node_count = 0
@@ -1980,13 +2020,71 @@ func start_new_run() -> void:
 	force_next_event_id = ""
 	_reset_shop_state()
 	pending_boss_reward.clear()
+	_apply_preflight_calibration()
 	_select_run_conditions()
 	_generate_world_map()
+	_apply_preflight_intel_to_map()
 	_generate_route_directives()
+
+
+func _apply_preflight_calibration() -> void:
+	calibration_snapshot.clear()
+	calibration_shop_price_mult = 1.0
+	calibration_mineral_mult = 1.0
+	calibration_mineral_debt = 0
+	calibration_resonance_family = ""
+	calibration_resonance_offer_remaining = 0
+	GameManager.configure_preflight_modifiers({})
+	if MetaProgressionState == null:
+		return
+	calibration_snapshot = MetaProgressionState.get_selected_calibration_snapshot()
+	if calibration_snapshot.is_empty():
+		return
+	var calibration_id := String(calibration_snapshot.get("id", ""))
+	var effects := Dictionary(calibration_snapshot.get("effects", {}))
+	GameManager.configure_preflight_modifiers(effects)
+	compute_capacity += maxi(0, int(effects.get("starting_compute_bonus", 0)))
+	calibration_shop_price_mult = maxf(1.0, float(effects.get("shop_price_mult", 1.0)))
+	calibration_mineral_mult = maxf(1.0, float(effects.get("mineral_mult", 1.0)))
+	calibration_mineral_debt = maxi(0, int(effects.get("starting_mineral_debt", 0)))
+	if int(effects.get("free_shop_rerolls", 0)) > 0:
+		active_event_contracts.append({
+			"id": "calibration_procurement_voucher",
+			"title": String(calibration_snapshot.get("display_name", "采购凭证")),
+			"free_shop_rerolls": int(effects.get("free_shop_rerolls", 0)),
+			"free_shop_rerolls_used": 0,
+			"remaining_nodes": 999,
+		})
+	if calibration_id == "resonance_compass":
+		calibration_resonance_family = _normalize_shop_family(String(calibration_snapshot.get("family", "")))
+		calibration_resonance_offer_remaining = maxi(0, int(effects.get("family_weight_draws", 0)))
+	if bool(effects.get("grant_random_common_auxiliary", false)):
+		for attempt in range(20):
+			var item_id := EquipmentCatalogScript.get_random_loot_item_id(equipment_inventory, crisis_level, shop_preferred_family, randi())
+			if item_id.is_empty() or item_id == "pulse_cannon" or EquipmentCatalogScript.get_rarity(item_id) != "common":
+				continue
+			equipment_inventory.append(item_id)
+			calibration_snapshot["granted_item_id"] = item_id
+			break
+	if int(effects.get("map_intel_layers", 0)) > 0:
+		calibration_snapshot["map_intel_layers"] = int(effects.get("map_intel_layers", 0))
+
+
+func _apply_preflight_intel_to_map() -> void:
+	var visible_layers := int(calibration_snapshot.get("map_intel_layers", 0))
+	if visible_layers <= 0:
+		return
+	for index in range(map_nodes.size()):
+		var node := map_nodes[index]
+		if int(node.get("web_layer", 999)) < visible_layers:
+			node["preflight_intel_revealed"] = true
+			map_nodes[index] = node
 
 
 func cancel_run() -> void:
 	run_active = false
+	content_state_version = 0
+	_committed_mutation_ids.clear()
 	run_finished = false
 	run_victory = false
 	last_result_summary.clear()
@@ -2022,8 +2120,10 @@ func save_run() -> void:
 		return
 	var data := {
 		"version": SAVE_VERSION,
+		"content_state_version": content_state_version,
 		"map_nodes": map_nodes,
 		"crisis_level": crisis_level,
+		"advanced_crisis_level": advanced_crisis_level,
 		"compute_capacity": compute_capacity,
 		"minerals": minerals,
 		"completed_node_count": completed_node_count,
@@ -2053,6 +2153,13 @@ func save_run() -> void:
 		"shop_beacon_bonus_name": shop_beacon_bonus_name,
 		"shop_ore_source_focus": shop_ore_source_focus,
 		"shop_ore_source_focus_text": shop_ore_source_focus_text,
+		"calibration_snapshot": calibration_snapshot,
+		"calibration_shop_price_mult": calibration_shop_price_mult,
+		"calibration_mineral_mult": calibration_mineral_mult,
+		"calibration_mineral_debt": calibration_mineral_debt,
+		"calibration_resonance_family": calibration_resonance_family,
+		"calibration_resonance_offer_remaining": calibration_resonance_offer_remaining,
+		"crisis_modifier_snapshot": crisis_modifier_snapshot,
 		"player_hp": GameManager.player_hp,
 		"score": GameManager.score,
 	}
@@ -2072,16 +2179,24 @@ func load_saved_run() -> bool:
 		return false
 	var data = f.get_var(true)
 	f.close()
-	if typeof(data) != TYPE_DICTIONARY or int(data.get("version", 0)) != SAVE_VERSION:
-		clear_saved_run()  # 版本不符的旧存档直接作废，避免反复加载失败
+	if typeof(data) != TYPE_DICTIONARY:
+		clear_saved_run()
+		return false
+	var saved_version := int(data.get("version", 0))
+	if saved_version < 1 or saved_version > SAVE_VERSION:
+		clear_saved_run()
 		return false
 	run_active = true
 	run_finished = false
 	run_victory = false
+	content_state_version = maxi(1, int(data.get("content_state_version", 1)))
+	_committed_mutation_ids.clear()
 	# 类型化数组必须用 assign() 从读回的无类型数组恢复，直接赋值会报类型错误
 	map_nodes.assign(data.get("map_nodes", []))
 	crisis_level = int(data.get("crisis_level", 0))
+	advanced_crisis_level = int(data.get("advanced_crisis_level", 0)) if saved_version >= 3 else 0
 	compute_capacity = int(data.get("compute_capacity", 5))
+	calibration_mineral_debt = 0
 	minerals = int(data.get("minerals", 0))
 	completed_node_count = int(data.get("completed_node_count", 0))
 	current_node_id = int(data.get("current_node_id", -1))
@@ -2120,6 +2235,15 @@ func load_saved_run() -> bool:
 	shop_beacon_bonus_name = String(data.get("shop_beacon_bonus_name", ""))
 	shop_ore_source_focus = String(data.get("shop_ore_source_focus", ""))
 	shop_ore_source_focus_text = String(data.get("shop_ore_source_focus_text", ""))
+	calibration_snapshot = Dictionary(data.get("calibration_snapshot", {})).duplicate(true)
+	calibration_shop_price_mult = maxf(1.0, float(data.get("calibration_shop_price_mult", 1.0)))
+	calibration_mineral_mult = maxf(1.0, float(data.get("calibration_mineral_mult", 1.0)))
+	calibration_mineral_debt = maxi(0, int(data.get("calibration_mineral_debt", 0)))
+	calibration_resonance_family = String(data.get("calibration_resonance_family", ""))
+	calibration_resonance_offer_remaining = maxi(0, int(data.get("calibration_resonance_offer_remaining", 0)))
+	crisis_modifier_snapshot = Dictionary(data.get("crisis_modifier_snapshot", {})).duplicate(true)
+	if crisis_modifier_snapshot.is_empty():
+		crisis_modifier_snapshot = AdvancedCrisisResolverScript.new().resolve(advanced_crisis_level)
 	GameManager.player_hp = clampi(int(data.get("player_hp", GameManager.PLAYER_MAX_HP)), 1, GameManager.PLAYER_MAX_HP)
 	GameManager.score = int(data.get("score", 0))
 	return true
@@ -2132,6 +2256,199 @@ func clear_saved_run() -> void:
 
 func is_formal_run_active() -> bool:
 	return run_active and not run_finished
+
+
+func get_run_content_context() -> RunContentContext:
+	return RunContentContextScript.from_snapshot({
+		"state_version": content_state_version,
+		"map_nodes": map_nodes.duplicate(true),
+		"crisis_level": crisis_level,
+		"compute_capacity": compute_capacity,
+		"minerals": minerals,
+		"player_hp": GameManager.player_hp,
+		"equipment_inventory": equipment_inventory.duplicate(),
+		"equipped_weapon": equipped_weapon,
+		"equipped_auxiliaries": equipped_auxiliaries.duplicate(),
+		"active_rules": get_active_rule_snapshot(),
+	})
+
+
+func prepare_choices(node_id: int, context: RunContentContext = null, seed: int = -1) -> Array[Dictionary]:
+	_ensure_run_content_facade()
+	var safe_context := context if context != null else get_run_content_context()
+	return _run_content_facade.prepare_choices(node_id, safe_context, seed)
+
+
+func resolve_choice(node_id: int, choice_id: String, context: RunContentContext = null, seed: int = -1) -> RunMutationSet:
+	_ensure_run_content_facade()
+	var safe_context := context if context != null else get_run_content_context()
+	return _run_content_facade.resolve_choice(node_id, choice_id, safe_context, seed)
+
+
+func validate_mutation(context: RunContentContext, mutation: RunMutationSet) -> PackedStringArray:
+	_ensure_run_content_facade()
+	var errors := _run_content_facade.validate_mutation(context, mutation, _allowed_content_actions())
+	if mutation != null and not mutation.metadata.is_empty() and String(mutation.metadata.get("legacy_kind", "")).is_empty() == false:
+		var legacy_kind := String(mutation.metadata.get("legacy_kind", ""))
+		if not [NODE_EVENT, NODE_REWARD].has(legacy_kind):
+			errors.append(RunMutationSet.ERROR_INVALID)
+	elif mutation != null:
+		for entry in mutation.actions:
+			if not _is_content_action_payload_valid(Dictionary(entry)):
+				errors.append(RunMutationSet.ERROR_INVALID)
+	return errors
+
+
+func commit_mutation(mutation: RunMutationSet) -> Dictionary:
+	var context := get_run_content_context()
+	var errors := validate_mutation(context, mutation)
+	if mutation != null and _committed_mutation_ids.has(mutation.mutation_id):
+		errors.append(RunMutationSet.ERROR_DUPLICATE)
+	if not errors.is_empty():
+		return {"ok": false, "error_codes": errors, "message": "内容结算未通过校验。"}
+	var result: Dictionary = {}
+	var legacy_kind := String(mutation.metadata.get("legacy_kind", ""))
+	if not legacy_kind.is_empty():
+		var choice_id := String(mutation.metadata.get("choice_id", ""))
+		var seed := int(mutation.metadata.get("seed", -1))
+		if legacy_kind == NODE_EVENT:
+			result = resolve_event_choice(mutation.node_id, choice_id, seed)
+		else:
+			result = resolve_reward_event_choice(mutation.node_id, choice_id, seed)
+		if not bool(result.get("ok", false)):
+			return result
+	else:
+		_apply_mutation_costs(mutation)
+		for action_entry in mutation.actions:
+			_apply_content_action(Dictionary(action_entry))
+		result = {"ok": true, "node_id": mutation.node_id, "message": "内容结算已提交。"}
+	_committed_mutation_ids[mutation.mutation_id] = true
+	content_state_version += 1
+	balance_telemetry.record("mutation_committed", {"source_id": mutation.source_id, "node_id": mutation.node_id, "actions": mutation.actions.duplicate(true)})
+	result["state_version"] = content_state_version
+	return result
+
+
+func get_active_rule_snapshot() -> Dictionary:
+	return {
+		"special_bonus_ids": active_special_bonus_ids.duplicate(),
+		"event_contracts": get_active_event_contracts(),
+		"route_directives": get_route_directive_summaries(),
+		"run_conditions": active_run_conditions.duplicate(true),
+		"calibration": calibration_snapshot.duplicate(true),
+		"advanced_crisis_level": advanced_crisis_level,
+		"advanced_crisis": crisis_modifier_snapshot.duplicate(true),
+	}
+
+
+func _get_advanced_crisis_domain(domain: String) -> Dictionary:
+	return Dictionary(crisis_modifier_snapshot.get(domain, {})).duplicate(true)
+
+
+func _get_current_stage() -> int:
+	if crisis_level < CRISIS_THRESHOLDS[0]:
+		return 1
+	if crisis_level < CRISIS_THRESHOLDS[1]:
+		return 2
+	return 3
+
+
+func _ensure_run_content_facade() -> void:
+	if _run_content_facade != null:
+		return
+	_run_content_facade = RunContentFacadeScript.new()
+	_run_content_facade.set_legacy_adapters(
+		Callable(self, "_prepare_legacy_content_choices"),
+		Callable(self, "_resolve_legacy_content_choice")
+	)
+
+
+func _prepare_legacy_content_choices(node_id: int, seed: int) -> Array:
+	var node := get_map_node(node_id)
+	match String(node.get("type", "")):
+		NODE_EVENT:
+			return prepare_event_choices(node_id, seed)
+		NODE_REWARD:
+			return prepare_reward_event_choices(node_id, seed)
+		_:
+			return []
+
+
+func _resolve_legacy_content_choice(node_id: int, choice_id: String, state_version: int, seed: int) -> RunMutationSet:
+	var node := get_map_node(node_id)
+	var node_type := String(node.get("type", ""))
+	if not [NODE_EVENT, NODE_REWARD].has(node_type):
+		return null
+	var mutation := RunMutationSetScript.create(
+		"legacy:%s:%s:%d" % [node_type, choice_id, state_version],
+		"legacy_%s" % node_type,
+		node_id,
+		state_version
+	)
+	mutation.metadata = {"legacy_kind": node_type, "choice_id": choice_id, "seed": seed}
+	return mutation
+
+
+func _allowed_content_actions() -> PackedStringArray:
+	return PackedStringArray([
+		"grant_minerals", "heal", "damage", "grant_compute", "grant_equipment",
+		"add_event_contract", "activate_special_bonus", "add_crisis",
+	])
+
+
+func _apply_mutation_costs(mutation: RunMutationSet) -> void:
+	minerals -= mutation.mineral_cost
+	GameManager.player_hp -= mutation.hp_cost
+
+
+func _is_content_action_payload_valid(entry: Dictionary) -> bool:
+	var action := String(entry.get("action", ""))
+	var payload := Dictionary(entry.get("payload", {}))
+	match action:
+		"grant_minerals", "heal", "damage", "grant_compute", "add_crisis":
+			return int(payload.get("amount", -1)) >= 0
+		"grant_equipment":
+			return EquipmentCatalogScript.has_item(String(payload.get("item_id", "")))
+		"add_event_contract":
+			return not String(payload.get("id", "")).is_empty()
+		"activate_special_bonus":
+			return not _get_special_bonus_profile(String(payload.get("bonus_id", ""))).is_empty()
+		_:
+			return false
+
+
+func _apply_content_action(entry: Dictionary) -> void:
+	var action := String(entry.get("action", ""))
+	var payload := Dictionary(entry.get("payload", {}))
+	match action:
+		"grant_minerals":
+			minerals += maxi(0, int(payload.get("amount", 0)))
+		"heal":
+			var healing := _get_advanced_crisis_domain("healing")
+			var calibration_effects := Dictionary(calibration_snapshot.get("effects", {}))
+			var amount := maxi(0, int(payload.get("amount", 0)))
+			var scaled_amount := int(round(float(amount) * float(healing.get("mult", 1.0)) * float(calibration_effects.get("healing_mult", 1.0))))
+			if amount > 0:
+				scaled_amount = maxi(int(healing.get("minimum", 0)), scaled_amount)
+			GameManager.player_hp = mini(GameManager.PLAYER_MAX_HP, GameManager.player_hp + scaled_amount)
+		"damage":
+			GameManager.player_hp = maxi(1, GameManager.player_hp - maxi(0, int(payload.get("amount", 0))))
+		"grant_compute":
+			compute_capacity += maxi(0, int(payload.get("amount", 0)))
+		"grant_equipment":
+			var item_id := String(payload.get("item_id", ""))
+			if EquipmentCatalogScript.has_item(item_id) and not equipment_inventory.has(item_id):
+				equipment_inventory.append(item_id)
+		"add_event_contract":
+			var contract := payload.duplicate(true)
+			if not String(contract.get("id", "")).is_empty():
+				active_event_contracts.append(contract)
+		"activate_special_bonus":
+			var bonus_id := String(payload.get("bonus_id", ""))
+			if not _get_special_bonus_profile(bonus_id).is_empty() and not active_special_bonus_ids.has(bonus_id):
+				active_special_bonus_ids.append(bonus_id)
+		"add_crisis":
+			_add_crisis_with_alert_stop(maxi(0, int(payload.get("amount", 0))))
 
 
 func is_alert_active() -> bool:
@@ -2166,6 +2483,15 @@ func get_alert_stage() -> int:
 	if not is_alert_active():
 		return 0
 	return CRISIS_THRESHOLDS.find(crisis_level) + 1
+
+
+func get_formal_boss_budget(family: String) -> Dictionary:
+	if not is_formal_run_active():
+		return {}
+	var stage := get_alert_stage()
+	if stage <= 0:
+		stage = _get_current_stage()
+	return DesignedEnemyCatalog.get_boss_budget(family, stage, crisis_modifier_snapshot)
 
 
 func is_node_completed(node_id: int) -> bool:
@@ -2582,6 +2908,13 @@ func start_explore_node(node_id: int) -> bool:
 	_apply_reward_cache_route_calibration_to_room_config(room_config, node)
 	_apply_boss_aftershock_to_room_config(room_config, node)
 	_apply_loading_context_to_room_config(room_config, node)
+	var exploration_crisis := _get_advanced_crisis_domain("exploration")
+	room_config["advanced_patrol_interval_mult"] = float(exploration_crisis.get("patrol_interval_mult", 1.0))
+	room_config["advanced_patrol_enemy_cap_bonus"] = int(exploration_crisis.get("patrol_enemy_cap_bonus", 0))
+	room_config["advanced_trap_count_mult"] = float(exploration_crisis.get("trap_count_mult", 1.0))
+	room_config["advanced_crisis_enemy"] = _get_advanced_crisis_domain("enemy")
+	room_config["advanced_crisis_boss"] = _get_advanced_crisis_domain("boss")
+	room_config["run_stage"] = _get_current_stage()
 	var latest_node := get_map_node(node_id)
 	_apply_ore_source_bias_to_room_config(room_config, latest_node if not latest_node.is_empty() else node)
 	# 词缀/局势写的是裸键，GameManager 白名单只认 battle_ 前缀，这里统一转换（取更强值）
@@ -2594,7 +2927,7 @@ func start_explore_node(node_id: int) -> bool:
 			int(room_config.get("battle_patrol_path_max_count", 0)), int(room_config["patrol_path_max_count"]))
 		room_config.erase("patrol_path_max_count")
 	# 进房后 GameManager 的配置会被 consume 清空，倍率必须在这里缓存供拾取时读取
-	current_room_mineral_mult = maxf(0.0, float(room_config.get("reward_mineral_mult", 1.0)))
+	current_room_mineral_mult = maxf(0.0, float(room_config.get("reward_mineral_mult", 1.0))) * calibration_mineral_mult
 	GameManager.set_next_explore_room_config(room_config)
 	return true
 
@@ -2667,6 +3000,8 @@ func abandon_current_room() -> void:
 func begin_crisis_boss() -> bool:
 	if not is_alert_active():
 		return false
+	if MetaProgressionState != null and MetaProgressionState.record_boss_reached(get_alert_stage()):
+		MetaProgressionState.save_to_disk()
 	pending_boss_threshold = crisis_level
 	if pending_boss_scene.is_empty():
 		pending_boss_scene = _pick_crisis_boss_scene(get_alert_stage())
@@ -2685,6 +3020,8 @@ func handle_boss_victory() -> bool:
 	pending_boss_scene = ""
 	if not cleared_crisis_thresholds.has(threshold):
 		cleared_crisis_thresholds.append(threshold)
+	if MetaProgressionState != null and MetaProgressionState.record_boss_defeated(get_alert_stage()):
+		MetaProgressionState.save_to_disk()
 	var boss_aftershock := _apply_boss_aftershock(pending_boss_reward)
 	var boss_completion_summary := _make_boss_completion_summary(threshold)
 	for key in boss_aftershock.keys():
@@ -2709,7 +3046,13 @@ func finish_run(victory: bool) -> void:
 		"equipment_count": equipment_inventory.size(),
 		"cleared_boss_count": cleared_crisis_thresholds.size(),
 		"last_boss_reward": last_boss_reward.duplicate(true),
+		"mechanic_telemetry": balance_telemetry.get_mechanic_statistics(),
 	}
+	if victory and MetaProgressionState != null:
+		MetaProgressionState.record_run_victory(advanced_crisis_level)
+		MetaProgressionState.save_to_disk()
+	balance_telemetry.record("run_finished", last_result_summary)
+	balance_telemetry.flush()
 	abandon_current_room()
 	clear_saved_run()  # 一局结束（通关或阵亡），存档作废
 
@@ -2725,7 +3068,8 @@ func get_shop_offer_ids() -> Array[String]:
 func get_shop_reroll_cost() -> int:
 	if _get_free_shop_reroll_count() > 0:
 		return 0
-	return SHOP_REROLL_BASE_COST + shop_reroll_count * SHOP_REROLL_COST_STEP
+	var economy := _get_advanced_crisis_domain("economy")
+	return SHOP_REROLL_BASE_COST + _get_current_stage() * 10 + shop_reroll_count * 14 + int(economy.get("reroll_base_bonus", 0))
 
 
 func get_free_shop_reroll_summary() -> Dictionary:
@@ -2746,6 +3090,8 @@ func get_effective_shop_price(item_id: String) -> int:
 	var base_price := EquipmentCatalogScript.get_price(item_id)
 	if base_price <= 0:
 		return 0
+	var economy := _get_advanced_crisis_domain("economy")
+	base_price = int(ceil(float(base_price) * calibration_shop_price_mult * float(economy.get("shop_price_mult", 1.0))))
 	var discount_rate := _get_active_shop_discount_rate()
 	if discount_rate <= 0.0:
 		return base_price
@@ -3854,9 +4200,30 @@ func _build_shop_offer_ids(preferred_family: String = "") -> Array[String]:
 		SHOP_OFFER_COUNT,
 		offer_seed
 	)
+	_apply_calibration_resonance_candidates(offers, offer_seed + 2089)
 	_reinforce_shop_family_focus(offers, family, offer_seed + 4099)
 	_reinforce_shop_ore_source_focus(offers, family, offer_seed + 7127)
 	return offers
+
+
+func _apply_calibration_resonance_candidates(offers: Array[String], seed: int) -> void:
+	if calibration_resonance_offer_remaining <= 0 or calibration_resonance_family.is_empty():
+		return
+	var candidates: Array[String] = []
+	for item_id in EquipmentCatalogScript.get_shop_offer_item_ids(equipment_inventory, crisis_level, calibration_resonance_family, 80, seed):
+		if EquipmentCatalogScript.get_family(item_id) == calibration_resonance_family and not offers.has(item_id):
+			candidates.append(item_id)
+	if candidates.is_empty():
+		return
+	var replacements := 0
+	for index in range(offers.size()):
+		if replacements >= calibration_resonance_offer_remaining or candidates.is_empty():
+			break
+		if EquipmentCatalogScript.get_family(offers[index]) == calibration_resonance_family:
+			continue
+		offers[index] = candidates.pop_front()
+		replacements += 1
+	calibration_resonance_offer_remaining -= replacements
 
 
 func _make_shop_offer_seed(preferred_family: String) -> int:
@@ -4226,13 +4593,18 @@ func _generate_world_map() -> void:
 	for count in layer_counts:
 		main_node_count += int(count)
 	var reward_node_count := maxi(1, int(round(float(main_node_count) / 8.0)))
-	var type_deck := _make_branching_node_type_deck(main_node_count, reward_node_count)
+	var type_deck := _make_branching_node_type_deck(main_node_count, reward_node_count, rng)
 	var layers: Array[Array] = []
 	var occupied_positions: Array[Vector2] = [MAP_CENTER]
 	var root_angles := _make_branching_root_angles(rng, int(layer_counts[0]))
 	var reward_terminal_indices := _make_reward_terminal_indices(int(layer_counts.back()), reward_node_count)
 	for layer_index in range(layer_counts.size()):
 		var node_count := int(layer_counts[layer_index])
+		var remaining_non_reward_nodes := node_count
+		if layer_index == layer_counts.size() - 1:
+			remaining_non_reward_nodes -= reward_terminal_indices.size()
+		var layer_battle_count := 0
+		var layer_event_count := 0
 		var specs: Array[Dictionary] = []
 		if layer_index == 0:
 			for node_index in range(node_count):
@@ -4263,7 +4635,21 @@ func _generate_world_map() -> void:
 				radius += MAP_NODE_MIN_DISTANCE + 8.0
 				node_position = MAP_CENTER + Vector2.RIGHT.rotated(angle) * radius
 			var node_id := map_nodes.size()
-			var node_type := NODE_REWARD if is_reward_terminal else _draw_node_type(type_deck)
+			var node_type := NODE_REWARD
+			if not is_reward_terminal:
+				remaining_non_reward_nodes -= 1
+				var required_type := ""
+				if layer_battle_count == 0 and layer_event_count == 0 and remaining_non_reward_nodes == 0:
+					required_type = NODE_BATTLE
+				elif layer_battle_count == 0 and remaining_non_reward_nodes == 0:
+					required_type = NODE_BATTLE
+				elif layer_event_count == 0 and remaining_non_reward_nodes == 0:
+					required_type = NODE_EVENT
+				node_type = _draw_branching_node_type(type_deck, required_type)
+				if node_type == NODE_BATTLE:
+					layer_battle_count += 1
+				elif node_type == NODE_EVENT:
+					layer_event_count += 1
 			var node := {
 				"id": node_id,
 				"name": "航路节点 %02d" % node_id,
@@ -4322,13 +4708,29 @@ func _make_reward_terminal_indices(layer_count: int, reward_count: int) -> Dicti
 	return indices
 
 
-func _make_branching_node_type_deck(main_node_count: int, reward_node_count: int) -> Array[String]:
+func _make_branching_node_type_deck(main_node_count: int, reward_node_count: int, rng: RandomNumberGenerator) -> Array[String]:
 	var deck: Array[String] = []
 	var event_count := int(round(float(main_node_count) / 4.0))
 	var battle_count := main_node_count - reward_node_count - event_count
 	_append_node_types(deck, NODE_BATTLE, battle_count)
 	_append_node_types(deck, NODE_EVENT, event_count)
+	for index in range(deck.size() - 1, 0, -1):
+		var swap_index := rng.randi_range(0, index)
+		var swapped_type := deck[index]
+		deck[index] = deck[swap_index]
+		deck[swap_index] = swapped_type
 	return deck
+
+
+func _draw_branching_node_type(deck: Array[String], required_type: String = "") -> String:
+	if required_type.is_empty():
+		return _draw_node_type(deck)
+	var type_index := deck.find(required_type)
+	if type_index < 0:
+		return _draw_node_type(deck)
+	var node_type := deck[type_index]
+	deck.remove_at(type_index)
+	return node_type
 
 
 func _make_branching_root_angles(rng: RandomNumberGenerator, root_count: int) -> Array[float]:
@@ -4396,7 +4798,13 @@ func _connect_branching_spider(layers: Array[Array]) -> void:
 					connected = true
 					break
 			if not connected:
-				push_error("Unable to connect branching map node %d to the progression tree." % int(node_id))
+				# A generated progression node must never become unreachable. At this
+				# last-resort point every geometry-safe option has been exhausted, so
+				# preserve the authored parent relationship over visual planar purity.
+				var fallback_parent := int(parent_candidates[0]) if not parent_candidates.is_empty() else CENTER_ID
+				_add_link(fallback_parent, int(node_id))
+				node["web_parent_id"] = fallback_parent
+				map_nodes[int(node_id)] = node
 
 
 func _add_branching_lateral_relays(layers: Array[Array]) -> void:
@@ -5069,6 +5477,7 @@ func _select_run_conditions() -> void:
 	active_run_conditions.clear()
 	if RUN_CONDITION_PROFILES.is_empty():
 		return
+	var target_count := ACTIVE_RUN_CONDITION_COUNT + int(_get_advanced_crisis_domain("run").get("active_condition_count_bonus", 0))
 	var pool: Array[Dictionary] = []
 	for raw_condition in RUN_CONDITION_PROFILES:
 		pool.append(Dictionary(raw_condition).duplicate(true))
@@ -5080,10 +5489,10 @@ func _select_run_conditions() -> void:
 			continue
 		active_run_conditions.append(condition.duplicate(true))
 		categories[category] = true
-		if active_run_conditions.size() >= ACTIVE_RUN_CONDITION_COUNT:
+		if active_run_conditions.size() >= target_count:
 			return
 	for condition in pool:
-		if active_run_conditions.size() >= ACTIVE_RUN_CONDITION_COUNT:
+		if active_run_conditions.size() >= target_count:
 			return
 		var condition_id := String(condition.get("id", ""))
 		if _has_active_run_condition(condition_id):

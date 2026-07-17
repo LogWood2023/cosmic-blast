@@ -1,0 +1,4 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://tools/balance_telemetry_check.gd" id="1"]
+[node name="BalanceTelemetryCheck" type="Node"]
+script = ExtResource("1")

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 3
+crisis_id = "crisis_03_elite_echo"
+display_name = "精英回声"
+description = "精英获得家族词缀，EHP 提高 10%。"
+modifiers = {"enemy": {"elite_ehp_mult": 1.1, "elite_family_affix_count": 1}}

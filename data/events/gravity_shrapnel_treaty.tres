@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "sign"
+title = "签署破片协定"
+description = "让天堂分裂弹继承部分牵引能力。"
+preview_text = "签订跨家族桥接协议。"
+duration_nodes = 3
+effects = [{"action": "add_event_contract", "payload": {"id": "gravity_shrapnel_treaty", "effect_type": "projectile_gravity_bridge"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "sell"
+title = "出售协定"
+description = "把协定碎片交给回收商。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(28, 42, 60)}]
+[resource]
+script = ExtResource("1")
+event_id = "gravity_shrapnel_treaty"
+title = "引力破片协定"
+narrative = "破片的轨迹同时记录了天堂与星核。"
+category = "bridge"
+prerequisites = {"required_families": ["paradise", "warped"]}
+theme_tags = PackedStringArray("bridge", "projectile", "gravity")
+options = [SubResource("A"), SubResource("B")]

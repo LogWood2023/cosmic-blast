@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CalibrationData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/CalibrationData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+calibration_id = "chaos_seed"
+display_name = "混沌种子"
+description = "开局获得一件随机普通辅助机；第一阶段商店不获得家族定向。"
+unlock_condition = "首次通关"
+effects = {"grant_random_common_auxiliary": true, "disable_stage_one_family_focus": true}

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "commit"
+title = "接入齐射排程"
+description = "为主武器载入额外齐射规则。"
+preview_text = "支付星髓矿，签订天堂航线。"
+costs = [{"kind": "minerals", "amount_by_stage": PackedInt32Array(18, 26, 38)}]
+duration_nodes = 3
+effects = [{"action": "add_event_contract", "payload": {"id": "paradise_barrage_route", "effect_type": "sixth_shot_barrage"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "sell"
+title = "拆解弹链"
+description = "将排程拆成稳定的星髓。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(24, 36, 52)}]
+[resource]
+script = ExtResource("1")
+event_id = "paradise_barrage_route"
+title = "天堂齐射排程"
+narrative = "整齐的弹链正在等待第六次射击。"
+category = "route"
+family_tag = "paradise"
+theme_tags = PackedStringArray("family", "projectile")
+options = [SubResource("A"), SubResource("B")]

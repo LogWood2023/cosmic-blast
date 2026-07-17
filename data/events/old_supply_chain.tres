@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "salvage"
+title = "接入补给链"
+description = "回收仍可使用的旧时代货仓。"
+preview_text = "获得稳定的星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(32, 48, 70)}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "repair"
+title = "优先维修"
+description = "将货仓拆作紧急修复材料。"
+preview_text = "恢复船体生命。"
+effects = [{"action": "heal", "amount_by_stage": PackedInt32Array(18, 24, 30)}]
+[resource]
+script = ExtResource("1")
+event_id = "old_supply_chain"
+title = "旧时代补给链"
+narrative = "失效的货运协议仍在重复发送坐标。"
+category = "safe"
+theme_tags = PackedStringArray("supply", "safe")
+options = [SubResource("A"), SubResource("B")]

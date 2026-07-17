@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "sign"
+title = "接入圣羽热炉"
+description = "让僚机命中以有限速率产生热量。"
+preview_text = "签订跨家族桥接协议。"
+duration_nodes = 3
+effects = [{"action": "add_event_contract", "payload": {"id": "seraph_furnace_treaty", "effect_type": "drone_heat_bridge"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "dismantle"
+title = "拆除热炉"
+description = "把热炉部件导入维修槽。"
+preview_text = "恢复船体生命。"
+effects = [{"action": "heal", "amount_by_stage": PackedInt32Array(24, 32, 40)}]
+[resource]
+script = ExtResource("1")
+event_id = "seraph_furnace_treaty"
+title = "圣羽热炉协定"
+narrative = "热炉将神使火线接入了狂热回路。"
+category = "bridge"
+prerequisites = {"required_families": ["divine", "hell_eye"]}
+theme_tags = PackedStringArray("bridge", "drone", "heat")
+options = [SubResource("A"), SubResource("B")]

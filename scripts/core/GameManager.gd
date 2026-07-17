@@ -2,16 +2,36 @@ extends Node
 ## 全局游戏管理器（Autoload 单例）
 
 var score: int = 0
-var player_hp: int = 100
+var _player_hp: int = 100
+var player_hp: int:
+	get:
+		return _player_hp
+	set(value):
+		_set_player_hp(value)
 const PLAYER_MAX_HP: int = 100
 var elapsed: float = 0.0
 var frenzy_value: float = 0.0
 var frenzy_active: bool = false
 var frenzy_timer: float = 0.0
+var _preflight_emergency_bulkhead_available: bool = false
+var _preflight_emergency_threshold: int = 0
+var _preflight_emergency_heal: int = 0
+var _preflight_invulnerability_remaining: float = 0.0
+var _preflight_starting_heat: float = 0.0
+var _preflight_heat_cap_bonus: float = 0.0
+var _frenzy_gain_window_started_msec: int = 0
+var _frenzy_gain_this_window: float = 0.0
 const FRENZY_MAX: float = 100.0
 const FRENZY_DURATION: float = 5.0
-const FRENZY_DAMAGE_TAKEN_MULT: float = 0.5
-const FRENZY_FIRE_RATE_MULT: float = 0.5
+const FRENZY_DAMAGE_TAKEN_MULT: float = 0.6
+const FRENZY_FIRE_RATE_MULT: float = 0.625
+const FRENZY_PRIMARY_HIT_HEAT: float = 2.5
+const FRENZY_SECONDARY_HIT_HEAT: float = 1.0
+const FRENZY_NORMAL_KILL_HEAT: float = 3.0
+const FRENZY_ELITE_KILL_HEAT: float = 12.0
+const FRENZY_DAMAGE_HEAT_CAP: float = 8.0
+const FRENZY_STANDARD_GAIN_CAP: float = 12.0
+const FRENZY_HELL_EYE_GAIN_CAP: float = 24.0
 
 var bgm_player: AudioStreamPlayer
 const BGM_PATH: String = "res://assets/audio/bgm.mp3"
@@ -48,6 +68,12 @@ const EXPLORE_ROOM_CONFIG_KEYS: Array[String] = [
 	"divine_family_weight",
 	"enemy_spawn_interval",
 	"max_patrol_enemy_count",
+	"advanced_patrol_interval_mult",
+	"advanced_patrol_enemy_cap_bonus",
+	"advanced_trap_count_mult",
+	"advanced_crisis_enemy",
+	"advanced_crisis_boss",
+	"run_stage",
 	"reward_mineral_mult",
 	"reward_profile_id",
 	"reward_profile_title",
@@ -118,6 +144,8 @@ const EXPLORE_ROOM_STRING_CONFIG_KEYS: Array[String] = [
 ]
 const EXPLORE_ROOM_DICTIONARY_CONFIG_KEYS: Array[String] = [
 	"ore_source_weights",
+	"advanced_crisis_enemy",
+	"advanced_crisis_boss",
 ]
 
 # 测试功能：游戏场景缩放（正式版移除）
@@ -171,6 +199,7 @@ func resume_bgm() -> void:
 
 func _process(delta: float) -> void:
 	_begin_frame_budget_window()
+	_preflight_invulnerability_remaining = maxf(0.0, _preflight_invulnerability_remaining - delta)
 	elapsed += delta
 	_update_frenzy(delta)
 	_update_stutter_monitor()
@@ -192,6 +221,13 @@ func add_frenzy(amount: float) -> void:
 
 func get_frenzy_ratio() -> float:
 	return clampf(frenzy_value / FRENZY_MAX, 0.0, 1.0)
+
+
+func estimate_frenzy_uptime(gain_per_second: float) -> float:
+	if gain_per_second <= 0.0:
+		return 0.0
+	var charge_seconds := FRENZY_MAX / gain_per_second
+	return FRENZY_DURATION / (charge_seconds + FRENZY_DURATION)
 
 
 func get_incoming_damage_after_frenzy(damage: int) -> int:
@@ -232,6 +268,8 @@ func reset_run_state() -> void:
 	frenzy_value = 0.0
 	frenzy_active = false
 	frenzy_timer = 0.0
+	_frenzy_gain_window_started_msec = 0
+	_frenzy_gain_this_window = 0.0
 	suction_active = false
 	suction_center = Vector2.ZERO
 	controls_inverted = false
@@ -239,6 +277,42 @@ func reset_run_state() -> void:
 	test_scale_enabled = false
 	kill_lifesteal = 0.0
 	reveal_map = 0.0
+	_clear_preflight_modifiers()
+
+
+func configure_preflight_modifiers(effects: Dictionary) -> void:
+	_clear_preflight_modifiers()
+	_preflight_starting_heat = clampf(float(effects.get("starting_heat", 0.0)), 0.0, FRENZY_MAX)
+	_preflight_heat_cap_bonus = maxf(0.0, float(effects.get("heat_cap_bonus", 0.0)))
+	_preflight_emergency_threshold = maxi(0, int(effects.get("emergency_heal_threshold", 0)))
+	_preflight_emergency_heal = maxi(0, int(effects.get("emergency_heal_amount", 0)))
+	_preflight_emergency_bulkhead_available = _preflight_emergency_threshold > 0 and _preflight_emergency_heal > 0
+	frenzy_value = _preflight_starting_heat
+
+
+func is_preflight_invulnerable() -> bool:
+	return _preflight_invulnerability_remaining > 0.0
+
+
+func _set_player_hp(value: int) -> void:
+	var next_hp := clampi(value, 0, PLAYER_MAX_HP)
+	if next_hp < _player_hp and _preflight_invulnerability_remaining > 0.0:
+		return
+	var crossed_bulkhead_threshold := _preflight_emergency_bulkhead_available and _player_hp > _preflight_emergency_threshold and next_hp <= _preflight_emergency_threshold
+	_player_hp = next_hp
+	if crossed_bulkhead_threshold:
+		_preflight_emergency_bulkhead_available = false
+		_player_hp = mini(PLAYER_MAX_HP, _player_hp + _preflight_emergency_heal)
+		_preflight_invulnerability_remaining = 1.0
+
+
+func _clear_preflight_modifiers() -> void:
+	_preflight_emergency_bulkhead_available = false
+	_preflight_emergency_threshold = 0
+	_preflight_emergency_heal = 0
+	_preflight_invulnerability_remaining = 0.0
+	_preflight_starting_heat = 0.0
+	_preflight_heat_cap_bonus = 0.0
 
 
 # 微型铸炉：击杀敌人回复少量生命（敌人死亡时调用）
@@ -252,6 +326,53 @@ func _start_frenzy() -> void:
 	frenzy_active = true
 	frenzy_timer = FRENZY_DURATION
 	frenzy_value = FRENZY_MAX
+
+
+func report_frenzy_hit(proc_coefficient: float = 1.0, secondary: bool = false) -> void:
+	var base_gain := FRENZY_SECONDARY_HIT_HEAT if secondary else FRENZY_PRIMARY_HIT_HEAT
+	_add_capped_frenzy(base_gain * clampf(proc_coefficient, 0.0, 1.0))
+
+
+func report_frenzy_kill(is_elite: bool = false) -> void:
+	_add_capped_frenzy(FRENZY_ELITE_KILL_HEAT if is_elite else FRENZY_NORMAL_KILL_HEAT)
+
+
+func report_frenzy_damage_taken(damage: int) -> void:
+	if damage > 0:
+		_add_capped_frenzy(minf(float(damage) * 0.5, FRENZY_DAMAGE_HEAT_CAP))
+
+
+func report_frenzy_mechanic_heat(amount: float) -> void:
+	_add_capped_frenzy(amount)
+
+
+func _add_capped_frenzy(amount: float) -> void:
+	if amount <= 0.0 or frenzy_active:
+		return
+	_refresh_frenzy_gain_window()
+	amount = minf(amount, maxf(0.0, _get_frenzy_gain_cap() - _frenzy_gain_this_window))
+	if amount <= 0.0:
+		return
+	if RunManager.is_formal_run_active():
+		amount *= RunManager.get_frenzy_gain_mult()
+	_frenzy_gain_this_window += amount
+	frenzy_value = minf(FRENZY_MAX, frenzy_value + amount)
+	if frenzy_value >= FRENZY_MAX:
+		_start_frenzy()
+
+
+func _get_frenzy_gain_cap() -> float:
+	var cap := FRENZY_STANDARD_GAIN_CAP + _preflight_heat_cap_bonus
+	if RunManager.is_formal_run_active() and RunManager.get_frenzy_gain_mult() > 1.3:
+		return FRENZY_HELL_EYE_GAIN_CAP + _preflight_heat_cap_bonus
+	return cap
+
+
+func _refresh_frenzy_gain_window() -> void:
+	var now := Time.get_ticks_msec()
+	if _frenzy_gain_window_started_msec == 0 or now - _frenzy_gain_window_started_msec >= 1000:
+		_frenzy_gain_window_started_msec = now
+		_frenzy_gain_this_window = 0.0
 
 
 func _update_frenzy(delta: float) -> void:

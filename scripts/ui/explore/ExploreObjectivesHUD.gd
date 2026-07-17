@@ -21,6 +21,7 @@ var _refresh_remaining := 0.0
 var _rewards: Node
 var _collapsed := false
 var _resource_totals := {"ore_veins": 0, "chests": 0, "elites": 0}
+var _resource_totals_initialized := false
 var _toggle_tween: Tween
 var _content_tween: Tween
 var _content_rest_position := Vector2.ZERO
@@ -104,10 +105,20 @@ func _refresh() -> void:
 	task_value.text = _get_task_text()
 	var counts := _get_remaining_reward_counts()
 	var elite_count := _get_remaining_elite_count()
-	var planned_reward_totals := _get_planned_reward_totals()
+	var totals_finalized := _are_objective_totals_finalized()
+	if totals_finalized and not _resource_totals_initialized:
+		_resource_totals = {"ore_veins": 0, "chests": 0, "elites": 0}
+		_resource_totals_initialized = true
+	var planned_reward_totals := _get_planned_reward_totals() if totals_finalized else {}
 	ore_value.text = "剩余矿脉：%d/%d" % [int(counts["ore_veins"]), _record_total("ore_veins", int(counts["ore_veins"]), int(planned_reward_totals.get("ore_veins", 0)))]
 	chest_value.text = "剩余宝箱：%d/%d" % [int(counts["chests"]), _record_total("chests", int(counts["chests"]), int(planned_reward_totals.get("chests", 0)))]
 	elite_value.text = "剩余精英：%d/%d" % [elite_count, _record_total("elites", elite_count, _get_planned_elite_total())]
+
+
+func reset_resource_totals() -> void:
+	_resource_totals_initialized = false
+	_resource_totals = {"ore_veins": 0, "chests": 0, "elites": 0}
+	_refresh()
 
 
 func _get_task_text() -> String:
@@ -132,7 +143,7 @@ func _get_remaining_reward_counts() -> Dictionary:
 	if not _rewards:
 		return counts
 	for reward in _rewards.get_children():
-		if not is_instance_valid(reward) or not reward.has_method("get_reward_type"):
+		if not is_instance_valid(reward) or reward.is_queued_for_deletion() or not reward.has_method("get_reward_type"):
 			continue
 		if bool(reward.get_meta(&"reward_depleted", false)):
 			continue
@@ -156,6 +167,11 @@ func _get_planned_reward_totals() -> Dictionary:
 	if room:
 		return Dictionary(room.get_meta(&"explore_reward_totals", {}))
 	return {}
+
+
+func _are_objective_totals_finalized() -> bool:
+	var room := get_node_or_null("../..")
+	return bool(room.get_meta(&"explore_objective_totals_finalized", false)) if room else false
 
 
 func _get_planned_elite_total() -> int:

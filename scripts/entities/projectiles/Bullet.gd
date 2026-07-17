@@ -20,6 +20,10 @@ var blackhole_strength: float = 0.0 # 黑洞弹：命中处生成引力奇点的
 var slow_ratio: float = 0.0         # 减速扭曲：命中敌人的减速比例
 var phase_left: int = 0             # 相位穿透：可穿透的障碍数
 var mark_bonus: float = 0.0         # 质量标记：命中打标记，对已标记敌人增伤
+var mechanic_runtime: Node
+var mechanic_generation: int = 0
+var mechanic_lineage_effect_ids: Array = []
+var mechanic_proc_coefficient: float = 1.0
 const DOT_SCRIPT := preload("res://scripts/fx/DamageOverTime.gd")
 const WARP_BLACKHOLE := preload("res://scripts/fx/WarpBlackhole.gd")
 const WARP_SLOW := preload("res://scripts/fx/WarpSlow.gd")
@@ -109,6 +113,10 @@ func _hit_enemy(enemy: Node) -> void:
 		dmg = maxi(1, int(round(float(dmg) * (1.0 + float(enemy.get_meta(&"warped_mark_bonus", 0.0))))))
 	if enemy.has_method("take_damage"):
 		enemy.take_damage(dmg, self)
+		GameManager.report_frenzy_hit(mechanic_proc_coefficient, mechanic_generation > 0)
+		_dispatch_mechanic_event("on_hit", enemy, dmg)
+		if int(enemy.get("hp")) <= 0:
+			_dispatch_mechanic_event("on_kill", enemy, dmg)
 	_apply_bullet_dot(enemy)
 	_apply_warp_effects(enemy)
 	# 穿透优先（继续直飞）；否则跳弹（转向下一敌）；都没有则销毁
@@ -180,6 +188,27 @@ func _find_chain_target(exclude: Node) -> Node:
 
 func is_player_bullet() -> bool:
 	return true
+
+
+func configure_mechanic_context(runtime: Node, generation: int, lineage_effect_ids: Array, proc_coefficient: float) -> void:
+	mechanic_runtime = runtime
+	mechanic_generation = clampi(generation, 0, 3)
+	mechanic_lineage_effect_ids = lineage_effect_ids.duplicate()
+	mechanic_proc_coefficient = clampf(proc_coefficient, 0.0, 1.0)
+
+
+func _dispatch_mechanic_event(trigger: String, enemy: Node, damage: int) -> void:
+	if not is_instance_valid(mechanic_runtime) or not mechanic_runtime.has_method("dispatch"):
+		return
+	mechanic_runtime.call("dispatch", trigger, {
+		"position": global_position,
+		"direction": direction,
+		"target": enemy,
+		"damage": damage,
+		"generation": mechanic_generation,
+		"lineage_effect_ids": mechanic_lineage_effect_ids.duplicate(),
+		"proc_coefficient": mechanic_proc_coefficient,
+	})
 
 
 func apply_force_field(accel: Vector2, delta: float) -> void:

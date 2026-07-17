@@ -126,7 +126,6 @@ func _build_contents() -> void:
 	content.add_child(controls_note)
 	for item in ACTIONS:
 		_add_binding(content, item[0], item[1])
-	_add_toggle(content, "自动开火", "auto_fire")
 
 	var footer := HBoxContainer.new()
 	footer.custom_minimum_size.y = 50
@@ -333,7 +332,7 @@ func _update_dirty_state() -> void:
 
 func _settings_signature(settings: Dictionary) -> String:
 	var parts: Array[String] = []
-	for key in ["master_volume", "music_volume", "sfx_volume", "fullscreen", "vsync_enabled", "window_size_index", "screen_shake_strength", "reduced_effects", "auto_fire"]:
+	for key in ["master_volume", "music_volume", "sfx_volume", "fullscreen", "vsync_enabled", "window_size_index", "screen_shake_strength", "reduced_effects"]:
 		parts.append("%s=%s" % [key, settings.get(key)])
 	var bindings: Dictionary = settings.get("bindings", {})
 	for action in SettingsManager.CONTROL_ACTIONS:

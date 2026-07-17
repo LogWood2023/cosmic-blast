@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b6c17m53w5lm1" path="res://assets/images/player/player_ship_cutout.png" id="2_g2els"]
 [ext_resource type="Script" path="res://scripts/fx/Thruster.gd" id="3_thrust"]
 [ext_resource type="Script" path="res://scripts/fx/FrenzyAura.gd" id="4_frenzy"]
+[ext_resource type="Script" path="res://scripts/components/mechanics/MechanicRuntime.gd" id="5_mechanics"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_v6fml"]
 radius = 5.0
@@ -21,6 +22,9 @@ script = ExtResource("3_thrust")
 [node name="FrenzyAura" type="GPUParticles2D" parent="."]
 z_index = -1
 script = ExtResource("4_frenzy")
+
+[node name="MechanicRuntime" type="Node" parent="."]
+script = ExtResource("5_mechanics")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1496012804]
 scale = Vector2(0.0625, 0.0625)

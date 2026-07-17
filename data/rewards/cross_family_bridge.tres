@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RewardPoolData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/rewards/RewardPoolData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+pool_id = "cross_family_bridge"
+title = "跨家族桥接"
+description = "提供跨家族规则连接的装备候选。"
+weight = 0.7
+min_stage = 2
+reward_types = PackedStringArray("equipment")
+tags = PackedStringArray("equipment", "bridge")

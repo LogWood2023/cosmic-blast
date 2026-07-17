@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "overdraw"
+title = "透支核心"
+description = "用船体和危机换取临时算力。"
+preview_text = "失去生命、危机上升，获得算力。"
+costs = [{"kind": "hp", "amount": 12}]
+effects = [{"action": "grant_compute", "amount": 2}, {"action": "add_crisis", "amount": 1}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "buy"
+title = "购买算力"
+description = "以星髓稳定核心输出。"
+preview_text = "支付星髓矿，获得算力。"
+costs = [{"kind": "minerals", "amount_by_stage": PackedInt32Array(35, 50, 70)}]
+effects = [{"action": "grant_compute", "amount": 1}]
+[resource]
+script = ExtResource("1")
+event_id = "overdrawn_core"
+title = "透支核心"
+narrative = "核心请求一次不被允许的能源调用。"
+category = "risk"
+is_unique = true
+theme_tags = PackedStringArray("compute", "risk")
+options = [SubResource("A"), SubResource("B")]

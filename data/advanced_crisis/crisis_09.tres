@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 9
+crisis_id = "crisis_09_deep_judgement"
+display_name = "深层裁决"
+description = "Boss 技能冷却缩短，并增加强化招式变体。"
+modifiers = {"boss": {"cooldown_mult": 0.9, "family_variant_count": 1}}

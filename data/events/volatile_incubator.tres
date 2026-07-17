@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "arm"
+title = "保留热巢"
+description = "以高热量开场换取精英缓存。"
+preview_text = "签订高风险战斗协议。"
+duration_nodes = 2
+effects = [{"action": "add_event_contract", "payload": {"id": "volatile_incubator", "effect_type": "heat_elite_cache"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "dismantle"
+title = "拆除热巢"
+description = "将不稳反应物换成可用燃料。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(24, 36, 52)}]
+[resource]
+script = ExtResource("1")
+event_id = "volatile_incubator"
+title = "不稳热巢"
+narrative = "一座热巢仍在为未知主人保温。"
+category = "risk"
+theme_tags = PackedStringArray("heat", "elite")
+options = [SubResource("A"), SubResource("B")]

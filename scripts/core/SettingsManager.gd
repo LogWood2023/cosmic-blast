@@ -22,7 +22,6 @@ var vsync_enabled := true
 var window_size_index := 0
 var screen_shake_strength := 1.0
 var reduced_effects := false
-var auto_fire := false
 var _default_bindings: Dictionary = {}
 
 
@@ -66,11 +65,6 @@ func set_vsync_enabled(value: bool) -> void:
 func set_window_size_index(value: int) -> void:
 	window_size_index = clampi(value, 0, WINDOW_SIZES.size() - 1)
 	_apply_display()
-	_save_and_notify()
-
-
-func set_auto_fire(value: bool) -> void:
-	auto_fire = value
 	_save_and_notify()
 
 
@@ -121,7 +115,6 @@ func get_settings_snapshot() -> Dictionary:
 		"window_size_index": window_size_index,
 		"screen_shake_strength": screen_shake_strength,
 		"reduced_effects": reduced_effects,
-		"auto_fire": auto_fire,
 		"bindings": _get_bindings(),
 	}
 
@@ -136,7 +129,6 @@ func get_default_settings() -> Dictionary:
 		"window_size_index": 0,
 		"screen_shake_strength": 1.0,
 		"reduced_effects": false,
-		"auto_fire": false,
 		"bindings": _duplicate_bindings(_default_bindings),
 	}
 
@@ -150,7 +142,6 @@ func apply_settings(settings: Dictionary, save: bool = true) -> void:
 	window_size_index = clampi(int(settings.get("window_size_index", window_size_index)), 0, WINDOW_SIZES.size() - 1)
 	screen_shake_strength = clampf(float(settings.get("screen_shake_strength", screen_shake_strength)), 0.0, 1.0)
 	reduced_effects = bool(settings.get("reduced_effects", reduced_effects))
-	auto_fire = bool(settings.get("auto_fire", auto_fire))
 	_apply_bindings(settings.get("bindings", {}))
 	_apply_all()
 	if save:
@@ -264,7 +255,6 @@ func _load_settings() -> void:
 	window_size_index = clampi(int(config.get_value("display", "window_size_index", window_size_index)), 0, WINDOW_SIZES.size() - 1)
 	screen_shake_strength = clampf(float(config.get_value("accessibility", "screen_shake_strength", screen_shake_strength)), 0.0, 1.0)
 	reduced_effects = bool(config.get_value("accessibility", "reduced_effects", reduced_effects))
-	auto_fire = bool(config.get_value("controls", "auto_fire", auto_fire))
 	for action in CONTROL_ACTIONS:
 		if not config.has_section_key("controls", String(action)):
 			continue
@@ -291,7 +281,6 @@ func _save_settings() -> void:
 	config.set_value("display", "window_size_index", window_size_index)
 	config.set_value("accessibility", "screen_shake_strength", screen_shake_strength)
 	config.set_value("accessibility", "reduced_effects", reduced_effects)
-	config.set_value("controls", "auto_fire", auto_fire)
 	for action in CONTROL_ACTIONS:
 		config.set_value("controls", String(action), InputMap.action_get_events(action))
 	if config.save(SETTINGS_PATH) != OK:

@@ -135,7 +135,7 @@ func take_damage(amount: int, _source: Node = null) -> void:
 		return
 	var old_hp := _hp
 	_hp -= amount
-	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
+	GameManager.report_frenzy_hit(1.0, false)
 	if _health_bar:
 		_health_bar.take_hit(_hp)
 	if _hp <= 0:

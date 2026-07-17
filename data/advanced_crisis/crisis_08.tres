@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 8
+crisis_id = "crisis_08_mixed_hunt"
+display_name = "混编猎队"
+description = "部分战斗波次加入第二家族敌人。"
+modifiers = {"enemy": {"mixed_family_wave_chance": 0.3}}

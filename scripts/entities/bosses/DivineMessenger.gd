@@ -2,6 +2,7 @@ extends Node2D
 ## 神明使者 —— 水晶/王冠/羽翼 Boss
 
 # ═══════════ 贴图 ═══════════
+const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
 const CRYSTAL_TEX = preload("res://assets/images/divine_messenger/crystal_cutout.png")
 const CROWN_TEX = preload("res://assets/images/divine_messenger/crown_cutout.png")
 const WINGS_TEX = preload("res://assets/images/divine_messenger/wings_cutout.png")
@@ -258,6 +259,7 @@ var _skill1_fx_side: int = AnimSide.RIGHT_WING
 
 func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
+	BossBudgetApplicator.apply_to(self, "divine")
 	boss_hp = max_hp
 	_crystal_pulse = randf_range(0.0, TAU)
 	_crown_phase = randf_range(0.0, TAU)
@@ -2356,7 +2358,8 @@ func apply_damage(amount: int) -> void:
 		amount = maxi(1, amount / 2)
 	var old_hp := boss_hp
 	boss_hp -= amount
-	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
+	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
+	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
 		boss_hp = 0
 		_die()

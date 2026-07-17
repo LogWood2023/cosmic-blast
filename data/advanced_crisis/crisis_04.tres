@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 4
+crisis_id = "crisis_04_costly_contracts"
+display_name = "高价契约"
+description = "事件生命与矿物代价提高，高风险事件收益提高。"
+modifiers = {"event": {"hp_cost_mult": 1.2, "mineral_cost_mult": 1.2, "high_risk_reward_mult": 1.1}}

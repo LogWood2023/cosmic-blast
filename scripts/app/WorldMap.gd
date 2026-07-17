@@ -8,6 +8,7 @@ const BOSS_REWARD_POPUP_SCENE := preload("res://scenes/ui/world_map/BossRewardPo
 const SPECIAL_BONUS_POPUP_SCENE := preload("res://scenes/ui/world_map/SpecialBonusPopup.tscn")
 const SETTINGS_POPUP_SCENE := preload("res://scenes/ui/main_menu/SettingsPopup.tscn")
 const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
+const NODE_INTRO_TAG_FONT_SIZE := 40
 
 var _selected_node_id: int = RunManager.CENTER_ID
 var _message: String = ""
@@ -422,7 +423,7 @@ func _refresh_details() -> void:
 	var node_type := String(node.get("type", ""))
 	details_title.text = String(node.get("name", "未知节点"))
 	var lines: Array[String] = [
-		"[color=#52e8ff][b][i]%s[/i][/b][/color]" % _node_intro_type_name(node_type),
+		"[font_size=%d][color=#52e8ff][b][i]%s[/i][/b][/color][/font_size]" % [NODE_INTRO_TAG_FONT_SIZE, _node_intro_type_name(node_type)],
 		"",
 		_node_flavor_text(node, node_type),
 	]
@@ -800,7 +801,7 @@ func _show_pending_route_directive_popup() -> void:
 func _show_event_choices(node_id: int) -> void:
 	_pending_event_node_id = node_id
 	_pending_event_seed = Time.get_ticks_msec()
-	var choices := RunManager.prepare_event_choices(node_id, _pending_event_seed)
+	var choices := RunManager.prepare_choices(node_id, RunManager.get_run_content_context(), _pending_event_seed)
 	if choices.is_empty():
 		_message = "事件方案生成失败。"
 		_refresh_all()
@@ -813,7 +814,7 @@ func _show_event_choices(node_id: int) -> void:
 func _show_reward_event_choices(node_id: int) -> void:
 	_pending_reward_node_id = node_id
 	_pending_reward_seed = Time.get_ticks_msec()
-	var choices := RunManager.prepare_reward_event_choices(node_id, _pending_reward_seed)
+	var choices := RunManager.prepare_choices(node_id, RunManager.get_run_content_context(), _pending_reward_seed)
 	if choices.is_empty():
 		_message = "奖励事件读取失败。"
 		_refresh_all()
@@ -826,7 +827,8 @@ func _show_reward_event_choices(node_id: int) -> void:
 func _on_reward_cache_choice_selected(choice_id: String) -> void:
 	if _pending_reward_node_id <= 0:
 		return
-	var result := RunManager.resolve_reward_event_choice(_pending_reward_node_id, choice_id, _pending_reward_seed)
+	var mutation := RunManager.resolve_choice(_pending_reward_node_id, choice_id, RunManager.get_run_content_context(), _pending_reward_seed)
+	var result := RunManager.commit_mutation(mutation)
 	_pending_reward_node_id = -1
 	_pending_reward_seed = -1
 	if bool(result.get("ok", false)):
@@ -842,7 +844,8 @@ func _on_reward_cache_choice_selected(choice_id: String) -> void:
 func _on_event_choice_selected(choice_id: String) -> void:
 	if _pending_event_node_id <= 0:
 		return
-	var result := RunManager.resolve_event_choice(_pending_event_node_id, choice_id, _pending_event_seed)
+	var mutation := RunManager.resolve_choice(_pending_event_node_id, choice_id, RunManager.get_run_content_context(), _pending_event_seed)
+	var result := RunManager.commit_mutation(mutation)
 	_pending_event_node_id = -1
 	_pending_event_seed = -1
 	_message = String(result.get("message", "事件已完成。"))

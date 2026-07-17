@@ -2,6 +2,8 @@ extends Area2D
 
 enum RewardType { CHEST, ORE_VEIN }
 
+signal reward_depleted(reward_type: int)
+
 @export var reward_type: RewardType = RewardType.CHEST
 @export var reward_texture: Texture2D
 @export var chest_color: Color = Color(0.95, 0.68, 0.22)
@@ -360,6 +362,7 @@ func _play_hit_feedback() -> void:
 func _break() -> void:
 	_broken = true
 	set_meta(&"reward_depleted", true)
+	reward_depleted.emit(int(reward_type))
 	if RunManager.is_formal_run_active():
 		_drop_run_loot()
 	set_deferred("monitoring", false)

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 2
+crisis_id = "crisis_02_tight_procurement"
+display_name = "紧缩采购"
+description = "商店价格提高，付费重抽基础价增加。"
+modifiers = {"economy": {"shop_price_mult": 1.1, "reroll_base_bonus": 10}}

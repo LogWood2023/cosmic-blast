@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "commit"
+title = "接入撞角航线"
+description = "以船体为代价换取冲刺余震规则。"
+preview_text = "失去生命，签订巨构航线。"
+costs = [{"kind": "hp", "amount": 7}]
+duration_nodes = 3
+effects = [{"action": "add_event_contract", "payload": {"id": "colossus_impact_route", "effect_type": "dash_aftershock"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "sell"
+title = "出售龙骨坐标"
+description = "将撞角路线交给回收商。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(22, 34, 50)}]
+[resource]
+script = ExtResource("1")
+event_id = "colossus_impact_route"
+title = "巨构撞角航线"
+narrative = "巨构残骸提供了一条危险的冲刺航线。"
+category = "route"
+family_tag = "colossus"
+theme_tags = PackedStringArray("family", "dash")
+options = [SubResource("A"), SubResource("B")]

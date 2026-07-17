@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "breach"
+title = "强行破拆"
+description = "承受反制后提取武备索引。"
+preview_text = "失去生命，获得武备候选。"
+costs = [{"kind": "hp", "amount_by_stage": PackedInt32Array(8, 10, 12)}]
+duration_nodes = 1
+effects = [{"action": "add_event_contract", "payload": {"id": "sealed_weapon_cache_draft", "effect_type": "equipment_draft"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "dismantle"
+title = "安全拆解"
+description = "放弃武备，回收完整材料。"
+preview_text = "获得星髓矿。"
+effects = [{"action": "grant_minerals", "amount_by_stage": PackedInt32Array(28, 42, 62)}]
+[resource]
+script = ExtResource("1")
+event_id = "sealed_weapon_cache"
+title = "密封武备缓存"
+narrative = "缓存外壳仍带着旧战争的反制电荷。"
+category = "risk"
+theme_tags = PackedStringArray("equipment", "risk")
+options = [SubResource("A"), SubResource("B")]

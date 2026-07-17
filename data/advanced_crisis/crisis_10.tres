@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 10
+crisis_id = "crisis_10_final_veto"
+display_name = "最终否决"
+description = "活跃局势增加一条，最终 Boss 获得随机家族裁决词缀。"
+modifiers = {"run": {"active_condition_count_bonus": 1}, "boss": {"final_family_affix_count": 1}}

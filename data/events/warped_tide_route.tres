@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EventDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/data/events/EventDefinition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/events/EventOptionData.gd" id="2"]
+[sub_resource type="Resource" id="A"]
+script = ExtResource("2")
+option_id = "commit"
+title = "开启潮汐窗口"
+description = "让首个牵引击杀留下短引力井。"
+preview_text = "危机上升，签订星核航线。"
+duration_nodes = 3
+effects = [{"action": "add_crisis", "amount": 1}, {"action": "add_event_contract", "payload": {"id": "warped_tide_route", "effect_type": "gravity_well"}}]
+[sub_resource type="Resource" id="B"]
+script = ExtResource("2")
+option_id = "close"
+title = "关闭窗口"
+description = "把不稳定潮汐导入维修槽。"
+preview_text = "恢复船体生命。"
+effects = [{"action": "heal", "amount_by_stage": PackedInt32Array(20, 28, 36)}]
+[resource]
+script = ExtResource("1")
+event_id = "warped_tide_route"
+title = "星核潮汐窗口"
+narrative = "潮汐窗口另一端传来持续的重力噪声。"
+category = "route"
+family_tag = "warped"
+theme_tags = PackedStringArray("family", "gravity")
+options = [SubResource("A"), SubResource("B")]

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+beacon_id = "phase_shelter_beacon"
+title = "相位庇护信标"
+description = "无伤穿过预警区时获得临时护盾。"
+category = "defense"
+rule_key = "dash_warning_shield"
+mechanic_hook = "on_dash"
+route_echo = {"nodes": 3}

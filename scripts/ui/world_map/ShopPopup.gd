@@ -15,8 +15,9 @@ const FAMILY_OPTIONS: Array[Dictionary] = [
 	{"id": EquipmentCatalogScript.FAMILY_HELL_EYE, "label": "地狱眼"},
 	{"id": EquipmentCatalogScript.FAMILY_DIVINE, "label": "神使"},
 ]
+const EconomyService := preload("res://scripts/core/EconomyService.gd")
 
-@onready var minerals_label: Label = $Panel/MineralsLabel
+@onready var minerals_label: Label = $Panel/ControlsBar/MineralsLabel
 @onready var shade: ColorRect = $Shade
 @onready var message_label: Label = $Panel/MessageLabel
 @onready var items_list: Container = $Panel/ItemsScroll/ItemsList
@@ -68,10 +69,11 @@ func _refresh() -> void:
 		if run_manager.has_method("get_effective_shop_price"):
 			price = int(run_manager.call("get_effective_shop_price", item_id))
 		var owned: bool = run_manager.equipment_inventory.has(item_id)
-		_add_offer_card(item_id, item, price, base_price, owned)
+		var can_purchase: bool = not owned and int(run_manager.minerals) >= price
+		_add_offer_card(item_id, item, price, base_price, owned, can_purchase)
 
 
-func _add_offer_card(item_id: String, item: Dictionary, price: int, base_price: int, owned: bool) -> void:
+func _add_offer_card(item_id: String, item: Dictionary, price: int, base_price: int, owned: bool, can_purchase: bool) -> void:
 	var price_text := "✦ %d" % price
 	if price < base_price:
 		price_text = "✦ %d  原价 %d" % [price, base_price]
@@ -85,10 +87,15 @@ func _add_offer_card(item_id: String, item: Dictionary, price: int, base_price: 
 		"",
 		String(item.get("description", "")),
 		"",
-		owned,
+		not can_purchase,
 		""
 	)
-	row.set_card_action_only(true, "已拥有" if owned else price_text)
+	var status_text := price_text
+	if owned:
+		status_text = "已拥有"
+	elif not can_purchase:
+		status_text = "矿石不足 · %s" % price_text
+	row.set_card_action_only(true, status_text)
 	# 商品卡片的价格需要比通用状态文案更醒目：15px × 1.5，四舍五入为 23px。
 	row.set_context_font_size(23)
 	row.action_pressed.connect(_on_buy_item)
@@ -98,7 +105,12 @@ func _on_buy_item(item_id: String) -> void:
 	var run_manager := _get_run_manager()
 	if run_manager == null:
 		return
-	var result: Dictionary = run_manager.buy_equipment(item_id)
+	var economy := EconomyService.new()
+	var context = run_manager.get_run_content_context()
+	var mutation := economy.create_purchase_run_mutation(item_id, -1, context.get_state_version())
+	var result: Dictionary = run_manager.commit_mutation(mutation)
+	if bool(result.get("ok", false)):
+		result["message"] = "已将 %s 收入装备库。" % EquipmentCatalog.get_display_name(item_id)
 	var text := String(result.get("message", ""))
 	message_label.text = text
 	message_requested.emit(text)

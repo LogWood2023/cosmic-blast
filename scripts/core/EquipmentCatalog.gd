@@ -15,6 +15,15 @@ const CRISIS_EPIC_UNLOCK_LEVEL: int = 12
 const CRISIS_EPIC_FULL_WEIGHT_LEVEL: int = 21
 const PREFERRED_FAMILY_WEIGHT: float = 3.5
 const GENERAL_FAMILY_WEIGHT: float = 1.1
+const MECHANIC_ROLES: PackedStringArray = ["starter", "amplifier", "converter", "bridge", "economy", "stabilizer", "legacy"]
+const CORE_FAMILY_ROLES: PackedStringArray = ["starter", "amplifier", "bridge", "converter", "stabilizer"]
+const EFFECT_RESOURCE_PATHS: Dictionary = {
+	"colossus_aftershock": "res://data/mechanics/runtime_samples/colossus_aftershock.tres",
+	"paradise_split": "res://data/mechanics/runtime_samples/paradise_split.tres",
+	"warped_mark": "res://data/mechanics/runtime_samples/warped_mark.tres",
+	"hell_eye_heat": "res://data/mechanics/runtime_samples/hell_eye_heat.tres",
+	"divine_drone_copy": "res://data/mechanics/runtime_samples/divine_drone_copy.tres",
+}
 
 static var _auxiliary_catalog_cache: Dictionary = {}
 
@@ -895,6 +904,7 @@ static func get_item(id: String) -> Dictionary:
 		return {}
 	if not item.has("icon"):
 		item["icon"] = "res://assets/images/equipment/%s.png" % id
+	_apply_mechanic_metadata(id, item)
 	return item
 
 
@@ -967,7 +977,60 @@ static func is_boss_drop(id: String) -> bool:
 
 
 static func get_effect_id(id: String) -> String:
-	return String(_get_item_ref(id).get("effect_id", ""))
+	var effect_ids := get_effect_ids(id)
+	return String(effect_ids[0]) if not effect_ids.is_empty() else ""
+
+
+static func get_role(id: String) -> String:
+	var raw := _get_item_ref(id)
+	return _get_primary_mechanic_role(id, raw) if not raw.is_empty() else ""
+
+
+static func get_mechanic_tags(id: String) -> PackedStringArray:
+	var item := get_item(id)
+	return item.get("mechanic_tags", PackedStringArray()).duplicate()
+
+
+static func get_effect_ids(id: String) -> PackedStringArray:
+	var item := get_item(id)
+	return item.get("effect_ids", PackedStringArray()).duplicate()
+
+
+static func get_bridge_tags(id: String) -> PackedStringArray:
+	var item := get_item(id)
+	return item.get("bridge_tags", PackedStringArray()).duplicate()
+
+
+static func get_all_item_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for item_id in WEAPONS.keys():
+		ids.append(String(item_id))
+	for item_id in _get_auxiliary_catalog().keys():
+		ids.append(String(item_id))
+	ids.sort()
+	return ids
+
+
+static func get_role_candidates(family: String, role: String) -> Array[String]:
+	var candidates: Array[String] = []
+	for item_id in get_all_item_ids():
+		if get_family(item_id) == family and get_role(item_id) == role:
+			candidates.append(item_id)
+	return candidates
+
+
+static func get_mechanic_effects(ids: Array) -> Array[MechanicEffectData]:
+	var results: Array[MechanicEffectData] = []
+	var seen_effect_ids: Dictionary = {}
+	for item_id_variant in ids:
+		for effect_id in get_effect_ids(String(item_id_variant)):
+			if seen_effect_ids.has(effect_id) or not EFFECT_RESOURCE_PATHS.has(effect_id):
+				continue
+			var effect := load(String(EFFECT_RESOURCE_PATHS[effect_id])) as MechanicEffectData
+			if effect != null:
+				results.append(effect)
+				seen_effect_ids[effect_id] = true
+	return results
 
 
 static func get_boss_drop_stage(id: String) -> int:
@@ -1568,6 +1631,122 @@ static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
 		if stats.has(key):
 			item[key] = stats[key]
 	return item
+
+
+static func _apply_mechanic_metadata(item_id: String, item: Dictionary) -> void:
+	var role := _get_primary_mechanic_role(item_id, item)
+	var tags := _infer_mechanic_tags(item)
+	var effect_ids := _infer_effect_ids(item_id, item, tags)
+	var bridge_tags := _infer_bridge_tags(item, role)
+	if not tags.has(role):
+		tags.append(role)
+	if not bridge_tags.is_empty() and not tags.has("bridge"):
+		tags.append("bridge")
+	item["role"] = role
+	item["mechanic_tags"] = tags
+	item["effect_ids"] = effect_ids
+	item["bridge_tags"] = bridge_tags
+	item["legacy_compatible"] = _has_legacy_effect(effect_ids)
+
+
+static func _get_primary_mechanic_role(item_id: String, item: Dictionary) -> String:
+	var family := String(item.get("family", FAMILY_GENERAL))
+	if family == FAMILY_GENERAL:
+		if float(item.get("mineral_bonus", 0.0)) > 0.0 or bool(item.get("reveal_map", false)):
+			return "economy"
+		if float(item.get("damage_taken_mult", 1.0)) < 1.0 or float(item.get("kill_lifesteal", 0.0)) > 0.0:
+			return "stabilizer"
+		return "starter" if String(item.get("type", "")) == TYPE_WEAPON else "legacy"
+	if String(item.get("type", "")) == TYPE_WEAPON:
+		return "starter"
+	var family_ids := _get_raw_family_item_ids(family)
+	var index := family_ids.find(item_id)
+	if index < 0:
+		return "legacy"
+	# Each family has a deterministic, evenly spaced role sequence. This is the
+	# query contract used by reward/shop services rather than a Player-side ID check.
+	return CORE_FAMILY_ROLES[index % CORE_FAMILY_ROLES.size()]
+
+
+static func _get_raw_family_item_ids(family: String) -> Array[String]:
+	var ids: Array[String] = []
+	for item_id in WEAPONS.keys():
+		if String(WEAPONS[item_id].get("family", FAMILY_GENERAL)) == family:
+			ids.append(String(item_id))
+	for item_id in _get_auxiliary_catalog().keys():
+		if String(_get_auxiliary_catalog()[item_id].get("family", FAMILY_GENERAL)) == family:
+			ids.append(String(item_id))
+	ids.sort()
+	return ids
+
+
+static func _infer_mechanic_tags(item: Dictionary) -> PackedStringArray:
+	var tags := PackedStringArray()
+	var family := String(item.get("family", FAMILY_GENERAL))
+	if family != FAMILY_GENERAL:
+		tags.append(family)
+	if String(item.get("type", "")) == TYPE_WEAPON or int(item.get("bullet_count", 1)) > 1:
+		tags.append("projectile")
+	if int(item.get("bullet_split_count", 0)) > 0 or int(item.get("bullet_chain", 0)) > 0 or int(item.get("bullet_pierce", 0)) > 0:
+		tags.append("projectile_proc")
+	if float(item.get("dash_damage_mult", 0.0)) > 0.0 or int(item.get("dash_chain", 0)) > 0 or float(item.get("dash_aftershock_radius", 0.0)) > 0.0:
+		tags.append("dash")
+	if float(item.get("gravity_pull_strength", 0.0)) > 0.0 or float(item.get("bullet_mark_bonus", 0.0)) > 0.0 or float(item.get("bullet_blackhole", 0.0)) > 0.0:
+		tags.append("gravity")
+	if float(item.get("frenzy_gain_mult", 1.0)) > 1.0 or float(item.get("frenzy_fire_rate_mult", 1.0)) < 1.0 or float(item.get("frenzy_damage_mult", 1.0)) > 1.0:
+		tags.append("frenzy")
+	if int(item.get("drone_slots", 0)) > 0 or not String(item.get("drone_behavior", "")).is_empty():
+		tags.append("drone")
+	if float(item.get("mineral_bonus", 0.0)) > 0.0 or float(item.get("evac_mineral_bonus", 0.0)) > 0.0:
+		tags.append("economy")
+	if float(item.get("damage_taken_mult", 1.0)) < 1.0 or float(item.get("kill_lifesteal", 0.0)) > 0.0 or float(item.get("dash_shield_duration", 0.0)) > 0.0:
+		tags.append("survival")
+	return tags
+
+
+static func _infer_effect_ids(item_id: String, item: Dictionary, tags: PackedStringArray) -> PackedStringArray:
+	var effect_ids := PackedStringArray()
+	var explicit_id := String(item.get("effect_id", ""))
+	if not explicit_id.is_empty():
+		effect_ids.append(explicit_id)
+	if tags.has("dash"):
+		effect_ids.append("colossus_aftershock")
+	if tags.has("projectile_proc"):
+		effect_ids.append("paradise_split")
+	if tags.has("gravity"):
+		effect_ids.append("warped_mark")
+	if tags.has("frenzy"):
+		effect_ids.append("hell_eye_heat")
+	if tags.has("drone"):
+		effect_ids.append("divine_drone_copy")
+	if effect_ids.is_empty():
+		effect_ids.append("legacy_%s" % item_id)
+	return effect_ids
+
+
+static func _infer_bridge_tags(item: Dictionary, role: String) -> PackedStringArray:
+	var bridge_tags := PackedStringArray()
+	if role != "bridge":
+		return bridge_tags
+	match String(item.get("family", FAMILY_GENERAL)):
+		FAMILY_COLOSSUS:
+			bridge_tags.append("colossus_paradise")
+		FAMILY_PARADISE:
+			bridge_tags.append("paradise_warped")
+		FAMILY_WARPED:
+			bridge_tags.append("warped_hell_eye")
+		FAMILY_HELL_EYE:
+			bridge_tags.append("hell_eye_divine")
+		FAMILY_DIVINE:
+			bridge_tags.append("divine_colossus")
+	return bridge_tags
+
+
+static func _has_legacy_effect(effect_ids: PackedStringArray) -> bool:
+	for effect_id in effect_ids:
+		if not EFFECT_RESOURCE_PATHS.has(effect_id):
+			return true
+	return false
 
 
 static func _family_archetype_tag(family: String) -> String:

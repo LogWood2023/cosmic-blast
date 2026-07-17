@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+beacon_id = "vector_route_beacon"
+title = "矢量航路信标"
+description = "每阶段可预览并改道一次可达节点。"
+category = "general"
+rule_key = "route_reroll"
+route_echo = {"family_weight_mult": 2.0, "nodes": 3}

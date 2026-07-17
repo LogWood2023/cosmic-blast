@@ -260,7 +260,6 @@ func _on_arrive() -> void:
 func take_damage(amount: int, _source: Node = null) -> void:
 	var old_hp := hp
 	hp -= amount
-	GameManager.add_frenzy(maxi(0, mini(old_hp, amount)))
 	health_bar.take_hit(hp)
 	if hp <= 0:
 		_die()
@@ -289,6 +288,7 @@ func handle_player_collision(area: Area2D) -> void:
 
 func _die() -> void:
 	GameManager.add_score(100)
+	GameManager.report_frenzy_kill(false)
 	GameManager.on_enemy_killed()
 	_play_sfx(EXPLOSION_SFX)
 	if health_bar:

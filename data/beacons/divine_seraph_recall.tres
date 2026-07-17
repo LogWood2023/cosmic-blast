@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script=ExtResource("1")
+beacon_id="divine_seraph_recall"
+title="圣羽召回信标"
+family_tag="divine"
+category="family"
+rule_key="frenzy_drone_cooldown_reset"
+mechanic_hook="on_frenzy_start"

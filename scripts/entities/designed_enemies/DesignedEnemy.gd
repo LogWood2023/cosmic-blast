@@ -645,6 +645,18 @@ func reset_explore_pooled_idle_enemy(new_behavior: int, room_bounds: Rect2, spaw
 		_enter_idle_ai(true)
 
 
+func apply_budgeted_profile(stage: int, advanced_crisis_enemy: Dictionary = {}) -> void:
+	var budget := DesignedEnemyCatalog.get_budgeted_enemy(int(behavior), stage, {"enemy": advanced_crisis_enemy})
+	if budget.is_empty():
+		return
+	hp = maxi(1, int(budget.get("ehp", hp)))
+	max_hp = hp
+	damage = clampi(int(budget.get("damage", damage)), 1, 40)
+	set_meta(&"budgeted_enemy_profile", budget.duplicate(true))
+	if health_bar:
+		health_bar.setup(hp)
+
+
 func release_explore_pool_item() -> void:
 	_release_explore_pooled_enemy()
 

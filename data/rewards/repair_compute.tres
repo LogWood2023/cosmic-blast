@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RewardPoolData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/rewards/RewardPoolData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+pool_id = "repair_compute"
+title = "修复与算力"
+description = "缓解生存或算力容量瓶颈。"
+weight = 1.0
+reward_types = PackedStringArray("heal", "compute")
+tags = PackedStringArray("survival", "compute")

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script=ExtResource("1")
+beacon_id="hell_eye_ash_covenant"
+title="灰烬契约信标"
+family_tag="hell_eye"
+category="family"
+rule_key="frenzy_room_heat_carry"
+mechanic_hook="on_room_complete"

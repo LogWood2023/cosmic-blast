@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CalibrationData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/CalibrationData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+calibration_id = "salvage_probe"
+display_name = "回收探针"
+description = "探索房标记高价值目标，矿物收益 +8%，巡逻敌人上限 +1。"
+unlock_condition = "击败第二 Boss"
+effects = {"mineral_mult": 1.08, "patrol_enemy_cap_bonus": 1, "mark_high_value_targets": true}

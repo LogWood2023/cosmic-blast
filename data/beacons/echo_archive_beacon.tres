@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BeaconData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/beacons/BeaconData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+beacon_id = "echo_archive_beacon"
+title = "回声档案信标"
+description = "下一次装备草案保留同家族不同角色候选。"
+category = "general"
+rule_key = "next_draft_role_echo"
+route_echo = {"nodes": 3}

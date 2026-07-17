@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AdvancedCrisisData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/meta/AdvancedCrisisData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+level = 1
+crisis_id = "crisis_01_patrol_overdrive"
+display_name = "巡逻增压"
+description = "巡逻间隔缩短，同时敌人上限增加。"
+modifiers = {"exploration": {"patrol_interval_mult": 0.9, "patrol_enemy_cap_bonus": 1}}

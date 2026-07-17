@@ -7,6 +7,11 @@ signal message_requested(message: String)
 const EquipmentCatalogScript := preload("res://scripts/core/EquipmentCatalog.gd")
 const ITEM_ROW_SCENE := preload("res://scenes/ui/world_map/EquipmentItemRow.tscn")
 const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
+const LOW_COMPUTE_BEEP_RATE := 22050
+const LOW_COMPUTE_BEEP_DURATION := 0.22
+const LOW_COMPUTE_BEEP_FREQUENCY := 880.0
+const LOW_COMPUTE_BEEP_LENGTH := 0.065
+const LOW_COMPUTE_BEEP_GAP := 0.055
 
 @onready var weapon_tab: Button = $Panel/TabBar/WeaponTab
 @onready var auxiliary_tab: Button = $Panel/TabBar/AuxiliaryTab
@@ -24,11 +29,13 @@ const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
 var _active_type: String = EquipmentCatalogScript.TYPE_WEAPON
 var _is_closing := false
+var _low_compute_sfx: AudioStreamPlayer
 
 
 func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
 	CombatUiMotion.animate_first_panel_enter(self)
+	_setup_low_compute_sfx()
 	shade.gui_input.connect(_on_shade_gui_input)
 	weapon_tab.pressed.connect(_set_active_type.bind(EquipmentCatalogScript.TYPE_WEAPON))
 	auxiliary_tab.pressed.connect(_set_active_type.bind(EquipmentCatalogScript.TYPE_AUX))
@@ -142,37 +149,41 @@ func _refresh_compute_slots(run_manager: Node) -> void:
 func _add_item_row(item_id: String) -> void:
 	var item := EquipmentCatalogScript.get_item(item_id)
 	var row = ITEM_ROW_SCENE.instantiate()
-	row.custom_minimum_size = Vector2(0.0, 158.0)
+	row.custom_minimum_size = Vector2(0.0, 176.0)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_list.add_child(row)
 	row.setup(
 		item_id,
 		String(item.get("name", item_id)),
 		EquipmentCatalogScript.get_ui_meta_text(item_id, false, 0),
 		String(item.get("description", "")),
-		"装配",
+		"",
 		false
 	)
-	row.action_pressed.connect(_on_equip_item)
+	row.set_card_action_only(true, "点击装配")
+	row.action_pressed.connect(_on_equip_item.bind(row))
 
 
 func _add_equipped_row(item_id: String) -> void:
 	var item := EquipmentCatalogScript.get_item(item_id)
 	var row = ITEM_ROW_SCENE.instantiate()
-	row.custom_minimum_size = Vector2(0.0, 158.0)
+	row.custom_minimum_size = Vector2(0.0, 176.0)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	equipped_list.add_child(row)
 	row.setup(
 		item_id,
 		String(item.get("name", item_id)),
 		EquipmentCatalogScript.get_ui_meta_text(item_id, false, 0),
 		String(item.get("description", "")),
-		"卸下",
+		"",
 		false,
-		"[已装配]"
+		"[已装配 · 点击卸下]"
 	)
-	row.action_pressed.connect(_on_equip_item)
+	row.set_card_action_only(true, "[已装配 · 点击卸下]")
+	row.action_pressed.connect(_on_equip_item.bind(row))
 
 
-func _on_equip_item(item_id: String) -> void:
+func _on_equip_item(item_id: String, row: Node) -> void:
 	var run_manager := _get_run_manager()
 	if run_manager == null:
 		return
@@ -183,6 +194,60 @@ func _on_equip_item(item_id: String) -> void:
 	if bool(result.get("ok", false)):
 		inventory_changed.emit()
 		_refresh()
+	elif _is_auxiliary_compute_rejection(run_manager, item_id):
+		if row.has_method("play_rejection_feedback"):
+			row.call("play_rejection_feedback")
+		_play_low_compute_sfx()
+
+
+func _is_auxiliary_compute_rejection(run_manager: Node, item_id: String) -> bool:
+	if EquipmentCatalogScript.get_type(item_id) != EquipmentCatalogScript.TYPE_AUX:
+		return false
+	var cost := EquipmentCatalogScript.get_compute_cost(item_id)
+	return int(run_manager.get_used_compute()) + cost > int(run_manager.compute_capacity)
+
+
+func _setup_low_compute_sfx() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	_low_compute_sfx = AudioStreamPlayer.new()
+	_low_compute_sfx.bus = &"SFX" if AudioServer.get_bus_index(&"SFX") >= 0 else &"Master"
+	_low_compute_sfx.stream = _make_low_compute_beep()
+	add_child(_low_compute_sfx)
+
+
+func _play_low_compute_sfx() -> void:
+	if _low_compute_sfx == null:
+		return
+	_low_compute_sfx.stop()
+	_low_compute_sfx.play()
+
+
+func _make_low_compute_beep() -> AudioStreamWAV:
+	var frame_count := int(LOW_COMPUTE_BEEP_RATE * LOW_COMPUTE_BEEP_DURATION)
+	var data := PackedByteArray()
+	data.resize(frame_count * 2)
+	for frame in range(frame_count):
+		var time := float(frame) / LOW_COMPUTE_BEEP_RATE
+		var local_time := -1.0
+		if time < LOW_COMPUTE_BEEP_LENGTH:
+			local_time = time
+		elif time >= LOW_COMPUTE_BEEP_LENGTH + LOW_COMPUTE_BEEP_GAP and time < LOW_COMPUTE_BEEP_LENGTH * 2.0 + LOW_COMPUTE_BEEP_GAP:
+			local_time = time - LOW_COMPUTE_BEEP_LENGTH - LOW_COMPUTE_BEEP_GAP
+		var sample := 0
+		if local_time >= 0.0:
+			var fade_in := clampf(local_time / 0.006, 0.0, 1.0)
+			var fade_out := clampf((LOW_COMPUTE_BEEP_LENGTH - local_time) / 0.012, 0.0, 1.0)
+			var amplitude := minf(fade_in, fade_out) * 0.24
+			sample = int(round(sin(TAU * LOW_COMPUTE_BEEP_FREQUENCY * local_time) * amplitude * 32767.0))
+		data[frame * 2] = sample & 0xff
+		data[frame * 2 + 1] = (sample >> 8) & 0xff
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = LOW_COMPUTE_BEEP_RATE
+	stream.stereo = false
+	stream.data = data
+	return stream
 
 
 func _on_close_pressed() -> void:
