@@ -2,6 +2,7 @@ class_name CombatUiMotion
 extends Node
 
 const META_BOUND := &"combat_ui_motion_bound"
+const SCALE_ENABLED_META := &"combat_ui_motion_scale_enabled"
 const HOVER_SCALE := Vector2(1.035, 1.035)
 const PRESS_SCALE := Vector2(0.965, 0.965)
 const NORMAL_SECONDS := 0.13
@@ -18,6 +19,7 @@ var _button: Button
 var _base_scale := Vector2.ONE
 var _base_modulate := Color.WHITE
 var _was_disabled := false
+var _scale_enabled := true
 var _tween: Tween
 
 
@@ -36,6 +38,10 @@ static func bind_button(button: Button) -> void:
 	button.add_child(driver)
 	button.set_meta(META_BOUND, true)
 	driver._bind(button)
+
+
+static func set_button_scale_enabled(button: Button, enabled: bool) -> void:
+	button.set_meta(SCALE_ENABLED_META, enabled)
 
 
 static func animate_panel_enter(panel: Control) -> void:
@@ -119,6 +125,7 @@ func _bind(button: Button) -> void:
 	_base_scale = button.scale
 	_base_modulate = button.modulate
 	_was_disabled = button.disabled
+	_scale_enabled = bool(button.get_meta(SCALE_ENABLED_META, true))
 	button.mouse_entered.connect(_on_hovered)
 	button.mouse_exited.connect(_on_unhovered)
 	button.focus_entered.connect(_on_hovered)
@@ -158,7 +165,7 @@ func _refresh_disabled_visual() -> void:
 func _on_hovered() -> void:
 	if _button.disabled:
 		return
-	_animate(HOVER_SCALE, HOVER_COLOR, NORMAL_SECONDS, Tween.TRANS_QUAD, Tween.EASE_OUT)
+	_animate(HOVER_SCALE if _scale_enabled else Vector2.ONE, HOVER_COLOR, NORMAL_SECONDS, Tween.TRANS_QUAD, Tween.EASE_OUT)
 
 
 func _on_unhovered() -> void:
@@ -168,13 +175,13 @@ func _on_unhovered() -> void:
 func _on_button_down() -> void:
 	if _button.disabled:
 		return
-	_animate(PRESS_SCALE, Color(1.16, 1.02, 1.02, 1.0), PRESS_SECONDS, Tween.TRANS_BACK, Tween.EASE_IN)
+	_animate(PRESS_SCALE if _scale_enabled else Vector2.ONE, Color(1.16, 1.02, 1.02, 1.0), PRESS_SECONDS, Tween.TRANS_BACK, Tween.EASE_IN)
 
 
 func _on_button_up() -> void:
 	if _button.disabled:
 		return
-	var target_scale := HOVER_SCALE if _button.has_focus() else Vector2.ONE
+	var target_scale := HOVER_SCALE if _button.has_focus() and _scale_enabled else Vector2.ONE
 	var target_color := HOVER_COLOR if _button.has_focus() else _base_modulate
 	_animate(target_scale, target_color, NORMAL_SECONDS, Tween.TRANS_BACK, Tween.EASE_OUT)
 
@@ -182,9 +189,9 @@ func _on_button_up() -> void:
 func _on_pressed() -> void:
 	if _button.disabled:
 		return
-	_animate(Vector2(1.06, 1.06), Color(1.2, 1.08, 1.08, 1.0), 0.08, Tween.TRANS_BACK, Tween.EASE_OUT)
+	_animate(Vector2(1.06, 1.06) if _scale_enabled else Vector2.ONE, Color(1.2, 1.08, 1.08, 1.0), 0.08, Tween.TRANS_BACK, Tween.EASE_OUT)
 	if _tween:
-		_tween.tween_property(_button, "scale", HOVER_SCALE, 0.12)
+		_tween.tween_property(_button, "scale", HOVER_SCALE if _scale_enabled else Vector2.ONE, 0.12)
 		_tween.tween_property(_button, "modulate", HOVER_COLOR, 0.12)
 
 

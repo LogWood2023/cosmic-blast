@@ -22,7 +22,7 @@ const TYPE_AUX: String = "aux"
 const TYPE_FILTER_OPTIONS: Array[Dictionary] = [
 	{"id": TYPE_ALL, "label": "全库", "node": "AllButton"},
 	{"id": TYPE_WEAPON, "label": "武器", "node": "WeaponButton"},
-	{"id": TYPE_AUX, "label": "辅助机", "node": "AuxButton"},
+	{"id": TYPE_AUX, "label": "辅助装备", "node": "AuxButton"},
 ]
 
 @onready var summary_label: Label = $Panel/SummaryLabel
@@ -122,7 +122,7 @@ func _refresh_summary(run_manager: Node) -> void:
 	for item_id in _get_all_equipment_ids():
 		if run_manager.equipment_inventory.has(item_id):
 			owned_count += 1
-	summary_label.text = "纹章档案 / 已入库 %d / 武器 %d / 辅助机 %d" % [
+	summary_label.text = "装备档案 / 已入库 %d / 武器 %d / 辅助装备 %d" % [
 		owned_count,
 		weapon_count,
 		auxiliary_count,
@@ -157,7 +157,7 @@ func _type_display_name(type_id: String) -> String:
 		TYPE_WEAPON:
 			return "武器"
 		TYPE_AUX:
-			return "辅助机"
+			return "辅助装备"
 	return "全库"
 
 

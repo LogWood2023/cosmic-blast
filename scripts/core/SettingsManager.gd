@@ -101,8 +101,49 @@ func format_binding_text(events: Array) -> String:
 		return "未绑定"
 	var labels: Array[String] = []
 	for event in events:
-		labels.append(event.as_text())
-	return " / ".join(labels)
+		labels.append(_format_binding_event(event))
+	return "按键：%s" % " / ".join(labels)
+
+
+func _format_binding_event(event: InputEvent) -> String:
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		var keycode := key_event.keycode if key_event.keycode != KEY_NONE else key_event.physical_keycode
+		return _format_keycode(keycode)
+	if event is InputEventMouseButton:
+		match (event as InputEventMouseButton).button_index:
+			MOUSE_BUTTON_LEFT: return "鼠标左键"
+			MOUSE_BUTTON_RIGHT: return "鼠标右键"
+			MOUSE_BUTTON_MIDDLE: return "鼠标中键"
+			MOUSE_BUTTON_WHEEL_UP: return "鼠标滚轮上"
+			MOUSE_BUTTON_WHEEL_DOWN: return "鼠标滚轮下"
+			_: return "鼠标按键"
+	if event is InputEventJoypadButton:
+		return "手柄按键 %d" % (event as InputEventJoypadButton).button_index
+	return "未识别按键"
+
+
+func _format_keycode(keycode: Key) -> String:
+	match keycode:
+		KEY_UP: return "上方向键"
+		KEY_DOWN: return "下方向键"
+		KEY_LEFT: return "左方向键"
+		KEY_RIGHT: return "右方向键"
+		KEY_SPACE: return "空格键"
+		KEY_ESCAPE: return "取消键"
+		KEY_ENTER: return "回车键"
+		KEY_TAB: return "制表键"
+		KEY_SHIFT: return "上档键"
+		KEY_CTRL: return "控制键"
+		KEY_ALT: return "功能修饰键"
+	var raw := OS.get_keycode_string(keycode)
+	if raw.length() == 1 and raw.unicode_at(0) >= 65 and raw.unicode_at(0) <= 90:
+		return "字母 %s" % raw
+	if raw.length() == 1 and raw.unicode_at(0) >= 48 and raw.unicode_at(0) <= 57:
+		return "数字 %s" % raw
+	if raw.begins_with("F") and raw.substr(1).is_valid_int():
+		return "功能键 %s" % raw.substr(1)
+	return "键盘按键"
 
 
 func get_settings_snapshot() -> Dictionary:

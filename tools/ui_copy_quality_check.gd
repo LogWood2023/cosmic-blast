@@ -176,7 +176,7 @@ func _check_copy(label: String, text: String, required: bool) -> void:
 	if not _contains_cjk(stripped):
 		_fail("%s should be Chinese UI copy: %s" % [label, stripped])
 		return
-	if _contains_ascii_letter(stripped):
+	if _contains_ascii_letter(stripped) and not _is_keyboard_binding_copy(stripped):
 		_fail("%s should not contain English letters: %s" % [label, stripped])
 		return
 	for term in FORBIDDEN_COPY_TERMS:
@@ -207,6 +207,10 @@ func _is_symbolic_or_numeric(text: String) -> bool:
 		if (code >= 0x4e00 and code <= 0x9fff) or (code >= 65 and code <= 90) or (code >= 97 and code <= 122):
 			return false
 	return true
+
+
+func _is_keyboard_binding_copy(text: String) -> bool:
+	return text.begins_with("按键：")
 
 
 func _contains_cjk(text: String) -> bool:

@@ -45,7 +45,7 @@ func setup(item_id: String, item_name: String, meta_text: String, description: S
 		effect_label.text = meta_text if not meta_text.strip_edges().is_empty() else "实际效果待补充"
 		flavor_label.text = description if not description.strip_edges().is_empty() else "风味文本待补充"
 	else:
-		category_label.text = "武器" if EquipmentCatalogScript.get_type(item_id) == EquipmentCatalogScript.TYPE_WEAPON else "辅助机"
+		category_label.text = "武器" if EquipmentCatalogScript.get_type(item_id) == EquipmentCatalogScript.TYPE_WEAPON else "辅助装备"
 		effect_label.text = EquipmentCatalogScript.get_effect_summary_text(item_id)
 		flavor_label.text = String(item.get("description", ""))
 	action_button.text = action_text
@@ -174,4 +174,4 @@ func _load_icon_texture(icon_path: String) -> Texture2D:
 
 
 func _fallback_category(meta_text: String) -> String:
-	return "辅助机" if meta_text.contains("辅助机") else "武器"
+	return "辅助装备" if meta_text.contains("辅助装备") or meta_text.contains("辅助机") else "武器"

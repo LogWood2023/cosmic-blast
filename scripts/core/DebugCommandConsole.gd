@@ -109,7 +109,7 @@ func _execute_command(command: String) -> String:
 		var lines: Array[String] = [
 			"调试控制台（仅 Debug 构建可用）",
 			"快捷键：F2 或 ` 打开；Enter 提交；Esc 关闭；↑/↓ 调取历史指令。",
-			"/加危机 [数量]（或 /危机+ [数量]）：提升正式航程的危机等级，首领阈值会自动停下。",
+			"/加危机 [数量]（或 /危机+ [数量]）：提高正式航程的危机关注度，抵达首领阈值会自动停下。",
 		]
 		if is_instance_valid(active_scene) and active_scene.has_method("_execute_command"):
 			lines.append("")
@@ -131,7 +131,7 @@ func _execute_add_crisis_command(parts: PackedStringArray, active_scene: Node) -
 	var result: Dictionary = RunManager.debug_add_crisis(amount)
 	if bool(result.get("ok", false)) and is_instance_valid(active_scene) and active_scene.has_method("_refresh_all"):
 		active_scene.call_deferred("_refresh_all")
-	return String(result.get("message", "危机等级操作失败。"))
+	return String(result.get("message", "危机关注度操作失败。"))
 
 
 func show_response(command: String, response: String) -> void:

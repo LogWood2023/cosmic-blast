@@ -22,21 +22,21 @@ const NODE_SPECIAL: String = "special"
 
 var CRISIS_THRESHOLDS: Array[int] = [5, 12, 21]
 const BOSS_ALERT_PREVIEWS: Dictionary = {
-	"res://scenes/gameplay/boss/BossBattle_Frontier.tscn": {"name": "星海前锋", "test_text": "测试通告：前锋舰队已完成坐标校准，正在评估方舟的征服价值。"},
-	"res://scenes/gameplay/boss/BossBattle_PeachBlossom.tscn": {"name": "桃源乡", "test_text": "测试通告：乐园协议正在抹除航图中的不稳定变量。"},
-	"res://scenes/gameplay/boss/BossBattle_Source.tscn": {"name": "异变源石", "test_text": "测试通告：星核燃料形态失控，正在向核心区扩散。"},
-	"res://scenes/gameplay/boss/BossBattle_Sentry.tscn": {"name": "前哨战", "test_text": "测试通告：外层侦测人格已锁定方舟核心信号。"},
-	"res://scenes/gameplay/boss/BossBattle_ImitationAngel.tscn": {"name": "仿造天使", "test_text": "测试通告：工业化救赎单元正在接近核心航道。"},
-	"res://scenes/gameplay/boss/BossBattle_Heavy.tscn": {"name": "星尘重兵", "test_text": "测试通告：重装封锁线已展开，等待火力验证。"},
-	"res://scenes/gameplay/boss/BossBattle_Utopia.tscn": {"name": "乌托邦", "test_text": "测试通告：合规裁决开始执行，异常航线将被逐项修剪。"},
-	"res://scenes/gameplay/boss/BossBattle_Spore.tscn": {"name": "诡异菌孢", "test_text": "测试通告：失控繁殖体已污染撤离扇区。"},
-	"res://scenes/gameplay/boss/BossBattle_Admin.tscn": {"name": "防火墙", "test_text": "测试通告：隔离系统判定方舟为感染源，封锁即将收紧。"},
-	"res://scenes/gameplay/boss/BossBattle_HolyBloodBrokenSword.tscn": {"name": "圣血断剑", "test_text": "测试通告：残存审判协议请求以失血偿还越界。"},
-	"res://scenes/gameplay/boss/BossBattle_Nebula.tscn": {"name": "星云巨构", "test_text": "测试通告：巨构行军核心已进入碾压航线。"},
-	"res://scenes/gameplay/boss/BossBattle_Eden.tscn": {"name": "伊甸园", "test_text": "测试通告：完美容器正在覆写自由变量。"},
-	"res://scenes/gameplay/boss/BossBattle_Anti.tscn": {"name": "反物质核", "test_text": "测试通告：反物质反应即将重写当前星域。"},
-	"res://scenes/gameplay/boss/BossBattle_Gate.tscn": {"name": "典狱长", "test_text": "测试通告：深层判决人格宣告方舟不得离开。"},
-	"res://scenes/gameplay/boss/BossBattle_CrystalMother.tscn": {"name": "水晶圣母", "test_text": "测试通告：封存协议已启动，心智样本正在冻结。"},
+	"res://scenes/gameplay/boss/BossBattle_Frontier.tscn": {"name": "星海前锋", "forecast_text": "首领预报：前锋舰队已完成坐标校准，正在评估方舟的征服价值。"},
+	"res://scenes/gameplay/boss/BossBattle_PeachBlossom.tscn": {"name": "桃源乡", "forecast_text": "首领预报：乐园协议正在抹除航图中的不稳定变量。"},
+	"res://scenes/gameplay/boss/BossBattle_Source.tscn": {"name": "异变源石", "forecast_text": "首领预报：星核燃料形态失控，正在向核心区扩散。"},
+	"res://scenes/gameplay/boss/BossBattle_Sentry.tscn": {"name": "前哨战", "forecast_text": "首领预报：外层侦测人格已锁定方舟核心信号。"},
+	"res://scenes/gameplay/boss/BossBattle_ImitationAngel.tscn": {"name": "仿造天使", "forecast_text": "首领预报：工业化救赎单元正在接近核心航道。"},
+	"res://scenes/gameplay/boss/BossBattle_Heavy.tscn": {"name": "星尘重兵", "forecast_text": "首领预报：重装封锁线已展开，正在封锁核心航道。"},
+	"res://scenes/gameplay/boss/BossBattle_Utopia.tscn": {"name": "乌托邦", "forecast_text": "首领预报：合规裁决开始执行，异常航线将被逐项修剪。"},
+	"res://scenes/gameplay/boss/BossBattle_Spore.tscn": {"name": "诡异菌孢", "forecast_text": "首领预报：失控繁殖体已污染撤离扇区。"},
+	"res://scenes/gameplay/boss/BossBattle_Admin.tscn": {"name": "防火墙", "forecast_text": "首领预报：隔离系统判定方舟为感染源，封锁即将收紧。"},
+	"res://scenes/gameplay/boss/BossBattle_HolyBloodBrokenSword.tscn": {"name": "圣血断剑", "forecast_text": "首领预报：残存审判协议要求以失血偿还越界。"},
+	"res://scenes/gameplay/boss/BossBattle_Nebula.tscn": {"name": "星云巨构", "forecast_text": "首领预报：巨构行军核心已进入碾压航线。"},
+	"res://scenes/gameplay/boss/BossBattle_Eden.tscn": {"name": "伊甸园", "forecast_text": "首领预报：完美容器正在覆写自由变量。"},
+	"res://scenes/gameplay/boss/BossBattle_Anti.tscn": {"name": "反物质核", "forecast_text": "首领预报：反物质反应即将重写当前星域。"},
+	"res://scenes/gameplay/boss/BossBattle_Gate.tscn": {"name": "典狱长", "forecast_text": "首领预报：深层判决人格宣告方舟不得离开。"},
+	"res://scenes/gameplay/boss/BossBattle_CrystalMother.tscn": {"name": "水晶圣母", "forecast_text": "首领预报：封存协议已启动，心智样本正在冻结。"},
 }
 # 危机播报文案（对应 docs/lore/02）：引导之声 + 天穹协议双视角。
 # 每次危机 +1 抽一条 TICK；将触阈值时（4/11/20）改抽 APPROACH；触到 5/12/21 锁定时用 LOCK。
@@ -130,7 +130,7 @@ const RUN_CONDITION_PROFILES: Array[Dictionary] = [
 		"title": "黑匣雨",
 		"category": "遗物",
 		"description": "碎裂记录器像雨点一样落进残区，装备信号更密，陷阱也更难完全避开。",
-		"effects_text": "装备检出提高，陷阱密度上升。",
+		"effects_text": "装备出现率提高，陷阱密度上升。",
 		"reward_mult_bonus": 0.04,
 		"equipment_chance_bonus": 0.08,
 		"room_config": {"trap_count": 10, "chest_crystal_count": 14},
@@ -140,7 +140,7 @@ const RUN_CONDITION_PROFILES: Array[Dictionary] = [
 		"title": "静默值守",
 		"category": "静默",
 		"description": "巡逻链路短暂熄火，资源点更容易清理，但高价值信号也被压低。",
-		"effects_text": "巡逻压力降低，装备检出略降。",
+		"effects_text": "巡逻压力降低，装备出现率略降。",
 		"reward_mult_bonus": 0.06,
 		"equipment_chance_bonus": -0.03,
 		"room_config": {"enemy_spawn_interval": 64.0, "max_patrol_enemy_count": 6},
@@ -160,7 +160,7 @@ const RUN_CONDITION_PROFILES: Array[Dictionary] = [
 		"title": "圣羽漂移",
 		"category": "护航",
 		"description": "失联僚机残片沿外层环绕，神使接口更活跃，宝箱缓存也更完整。",
-		"effects_text": "装备检出提高，宝箱密度上升。",
+		"effects_text": "装备出现率提高，宝箱密度上升。",
 		"reward_mult_bonus": 0.08,
 		"equipment_chance_bonus": 0.05,
 		"room_config": {"chest_crystal_count": 18, "clutter_count": 46},
@@ -180,7 +180,7 @@ const RUN_CONDITION_PROFILES: Array[Dictionary] = [
 		"title": "天堂交叉火线",
 		"category": "火线",
 		"description": "天堂号残留火控仍在铺线，敌群更密，弹药缓存也更容易被翻出来。",
-		"effects_text": "战斗节奏加快，装备检出提高。",
+		"effects_text": "战斗节奏加快，装备出现率提高。",
 		"reward_mult_bonus": 0.05,
 		"equipment_chance_bonus": 0.06,
 		"room_config": {"enemy_spawn_interval": 28.0, "max_patrol_enemy_count": 12, "chest_crystal_count": 15},
@@ -343,7 +343,7 @@ const NODE_INTEL_PROFILES: Array[Dictionary] = [
 	{
 		"id": "drone_graveyard",
 		"title": "僚机坟场",
-		"description": "失联无人机在这里静静漂浮，完整零件很多，唤醒信号也更容易惊动守卫。",
+		"description": "失联僚机在这里静静漂浮，完整零件很多，唤醒信号也更容易惊动守卫。",
 		"room_config": {
 			"large_space_rock_count": 9,
 			"trap_count": 7,
@@ -587,7 +587,7 @@ const NODE_OPPORTUNITY_PROFILES: Array[Dictionary] = [
 		"id": "blueprint_echo",
 		"title": "蓝图回声",
 		"description": "装备残片在静电里反复闪烁，值得冒险多翻几只货柜。",
-		"effects_text": "装备检出提高，陷阱密度上升。",
+		"effects_text": "装备出现率提高，陷阱密度上升。",
 		"tags": ["蓝图", "陷阱"],
 		"reward_mult_bonus": 0.0,
 		"equipment_chance_bonus": 0.06,
@@ -627,7 +627,7 @@ const NODE_OPPORTUNITY_PROFILES: Array[Dictionary] = [
 		"id": "drone_courier_wreck",
 		"title": "僚机货梭残骸",
 		"description": "护航货梭断在矿带边缘，零件完整，矿箱也还没散尽。",
-		"effects_text": "装备检出与杂物数量提高。",
+		"effects_text": "装备出现率与杂物数量提高。",
 		"tags": ["僚机", "货梭"],
 		"reward_mult_bonus": 0.04,
 		"equipment_chance_bonus": 0.04,
@@ -687,9 +687,9 @@ const SPECIAL_BONUS_PROFILES: Array[Dictionary] = [
 	},
 	{
 		"bonus_id": "divine_drone_beacon",
-		"name": "神使无人机信标",
+		"name": "神使僚机信标",
 		"bonus_name": "僚机挂载协议",
-		"bonus_description": "接入后，整局获得额外无人机挂载位，僚机射速与火力同步提升。",
+		"bonus_description": "接入后，整局获得额外僚机挂载位，僚机射速与火力同步提升。",
 		"family_bias": "divine",
 		"offset": Vector2(-84.0, -72.0),
 	},
@@ -774,16 +774,16 @@ const REWARD_CACHE_CHOICE_PROFILES: Array[Dictionary] = [
 	},
 	{
 		"cache_type": "family",
-		"title": "同调纹章箱",
-		"description": "锁定当前家族回响，蓝图、敌群信号和商店货单都会向这条航路靠拢。",
-		"preview": "家族蓝图更容易出现，并获得少量星髓收益与货单导向。",
+		"title": "同家族装备箱",
+		"description": "锁定当前家族回响，装备、敌群信号和商店商品都会向这条航路靠拢。",
+		"preview": "更容易获得同一家族装备，并获得少量星髓矿与商品偏好。",
 		"shop_focus": true,
 	},
 	{
 		"cache_type": "shop",
 		"title": "采购校准箱",
-		"description": "方舟把缓存坐标同步给商店终端，下一批货单会沿当前家族倾向刷新。",
-		"preview": "立即校准商店货单，装备检出小幅提高。",
+		"description": "方舟把缓存坐标同步给商店终端，下一批商品会沿当前家族倾向刷新。",
+		"preview": "立即调整商店商品，装备出现率小幅提高。",
 		"shop_focus": true,
 	},
 ]
@@ -810,7 +810,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 		"target": NODE_BATTLE,
 		"required": 2,
 		"reward": {"minerals": 42, "equipment_chance_bonus": 0.04},
-		"reward_text": "星髓矿 +42，装备检出提高",
+		"reward_text": "星髓矿 +42，装备出现率提高",
 	},
 	{
 		"id": "open_reward_cache",
@@ -830,7 +830,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 		"target": NODE_EVENT,
 		"required": 1,
 		"reward": {"compute": 1},
-		"reward_text": "算力容量 +1",
+		"reward_text": "装配容量 +1",
 	},
 	{
 		"id": "wake_beacon_protocol",
@@ -839,7 +839,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 		"goal_type": "activate_special",
 		"required": 1,
 		"reward": {"minerals": 30, "compute": 1},
-		"reward_text": "星髓矿 +30，算力容量 +1",
+		"reward_text": "星髓矿 +30，装配容量 +1",
 	},
 	{
 		"id": "trace_colossus_route",
@@ -864,7 +864,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "trace_warped_route",
 		"title": "收束扭曲潮汐",
-		"description": "扭曲星核的引力读数忽明忽暗，清理同调航线能让追踪火力更早成形。",
+		"description": "扭曲星核的引力读数忽明忽暗；清理同一家族航线能让追踪火力更早成形。",
 		"goal_type": "complete_family",
 		"target": "warped",
 		"required": 2,
@@ -874,7 +874,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "trace_hell_eye_route",
 		"title": "压住赤红热线",
-		"description": "地狱之眼的热值沿航线攀升，清理同调节点能让狂热回路提前升温。",
+		"description": "地狱之眼的热值沿航线攀升；清理同一家族节点能让武器过载更早积累。",
 		"goal_type": "complete_family",
 		"target": "hell_eye",
 		"required": 2,
@@ -884,7 +884,7 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "trace_divine_route",
 		"title": "回收圣羽航标",
-		"description": "神明使者的僚机接口仍在回应，清理同调航线能让护航系统更快接入。",
+		"description": "神明使者的僚机接口仍在回应；清理同一家族航线能让护航系统更快接入。",
 		"goal_type": "complete_family",
 		"target": "divine",
 		"required": 2,
@@ -894,31 +894,31 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 	{
 		"id": "align_paradise_shop",
 		"title": "点亮天堂货栈",
-		"description": "明亮弹链沿着补给轨道展开，方舟会把下一批货单推向火力覆盖纹章。",
+		"description": "明亮弹链沿着补给轨道展开，方舟会让下一批商品更偏向火力覆盖装备。",
 		"goal_type": "complete_type",
 		"target": NODE_BATTLE,
 		"required": 1,
-		"reward": {"minerals": 28, "shop_focus_family": "paradise", "shop_focus_text": "天堂号货单导向"},
-		"reward_text": "星髓矿 +28，天堂号货单导向",
+		"reward": {"minerals": 28, "shop_focus_family": "paradise", "shop_focus_text": "天堂号商品偏好"},
+		"reward_text": "星髓矿 +28，天堂号商品偏好",
 	},
 	{
 		"id": "lock_warped_vendor",
 		"title": "锁住星核观测窗",
-		"description": "扭曲读数被压进采购天线，下一次货单会更愿意翻出追踪与引力纹章。",
+		"description": "扭曲读数被压进采购天线，下一次商品更容易出现追踪与引力装备。",
 		"goal_type": "complete_family",
 		"target": "warped",
 		"required": 1,
-		"reward": {"minerals": 26, "shop_focus_family": "warped", "shop_focus_text": "扭曲星核货单导向"},
-		"reward_text": "星髓矿 +26，扭曲星核货单导向",
+		"reward": {"minerals": 26, "shop_focus_family": "warped", "shop_focus_text": "扭曲星核商品偏好"},
+		"reward_text": "星髓矿 +26，扭曲星核商品偏好",
 	},
 	{
 		"id": "seal_hell_eye_redline",
 		"title": "封存赤红热线",
-		"description": "地狱之眼的高温回路短暂稳定，方舟会把狂热系纹章摆到更显眼的位置。",
+		"description": "地狱之眼的高温回路短暂稳定，方舟会让过载相关装备更容易出现。",
 		"goal_type": "complete_nodes",
 		"required": 4,
-		"reward": {"compute": 1, "shop_focus_family": "hell_eye", "shop_focus_text": "地狱之眼货单导向"},
-		"reward_text": "算力容量 +1，地狱之眼货单导向",
+		"reward": {"compute": 1, "shop_focus_family": "hell_eye", "shop_focus_text": "地狱之眼商品偏好"},
+		"reward_text": "装配容量 +1，地狱之眼商品偏好",
 	},
 	{
 		"id": "open_divine_relay_crate",
@@ -927,8 +927,8 @@ const ROUTE_DIRECTIVE_PROFILES: Array[Dictionary] = [
 		"goal_type": "complete_type",
 		"target": NODE_REWARD,
 		"required": 1,
-		"reward": {"minerals": 22, "equipment_family": "divine", "shop_focus_family": "divine", "shop_focus_text": "神明使者货单导向"},
-		"reward_text": "星髓矿 +22，神明使者蓝图与货单导向",
+		"reward": {"minerals": 22, "equipment_family": "divine", "shop_focus_family": "divine", "shop_focus_text": "神明使者商品偏好"},
+		"reward_text": "星髓矿 +22，获得神明使者装备并提高商品偏好",
 	},
 	{
 		"id": "chart_star_marrow_lane",
@@ -1597,7 +1597,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"duration_nodes": 2,
 			"equipment_chance_bonus": 0.18,
 			"frenzy_gain_mult": 0.72,
-			"description": "接下来 2 个完成节点的装备检出率 +18%，但狂热获取降低至 72%。",
+			"description": "接下来 2 个完成节点的装备出现率 +18%，但武器过载积累降至 72%。",
 		},
 		"description": "黑匣记录提供少量资源，也修正了近期战损参数。",
 	},
@@ -1717,8 +1717,8 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"duration_nodes": 3,
 			"mineral_bonus_rate": 0.16,
 			"equipment_chance_bonus": 0.06,
-			"shop_focus_text": "通用货单导向",
-			"description": "接下来 3 个完成节点内，矿物结算与装备检出小幅抬升，方舟货单会优先补齐通用纹章。",
+			"shop_focus_text": "通用商品偏好",
+			"description": "接下来 3 个完成节点内，矿物结算与装备出现率小幅提高；刷新商品时更容易出现通用装备。",
 		},
 		"description": "一份保守但干净的担保合同，把回收、检出和采购都往稳态航路上轻轻推了一把。",
 	},
@@ -1738,7 +1738,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"duration_nodes": 3,
 			"equipment_chance_bonus": 0.22,
 			"frenzy_gain_mult": 0.82,
-			"description": "接下来 3 个完成节点的装备检出率 +22%，但狂热获取降低至 82%。",
+			"description": "接下来 3 个完成节点的装备出现率 +22%，但武器过载积累降至 82%。",
 		},
 		"description": "解码器会把每个缓存都扫得更深，也会把机体情绪压得更冷。",
 	},
@@ -1772,7 +1772,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 		"mineral_max": 18,
 		"risk_level": 0,
 		"risk_label": "安全",
-		"reward_tag": "重抽货单",
+		"reward_tag": "刷新商品",
 		"cost": {},
 		"contract": {
 			"contract_id": "shop_reroll_voucher",
@@ -1780,7 +1780,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"effect_type": "shop_reroll_voucher",
 			"duration_nodes": 2,
 			"free_shop_rerolls": 1,
-			"description": "接下来 2 个完成节点内，商店保留 1 次免矿重抽货单机会。",
+			"description": "接下来 2 个完成节点内，商店保留 1 次免费刷新商品的机会。",
 		},
 		"description": "补给终端吐出一枚短效货单券，方舟可以借它重新校准下一批装备。",
 	},
@@ -1805,7 +1805,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"dash_damage_mult": 1.16,
 			"dash_aftershock_radius_bonus": 48.0,
 			"shop_focus_family": "colossus",
-			"shop_focus_text": "星间巨构货单导向",
+			"shop_focus_text": "星间巨构商品偏好",
 			"description": "接下来 2 个完成节点内，冲锋距离与撞击威力提高，余震边缘更宽。",
 		},
 		"description": "一段巨构龙骨航线仍能校准撞角，代价是机体外壳会先承受一次硬压。",
@@ -1831,7 +1831,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"fire_rate_mult": 0.94,
 			"bullet_speed_mult": 1.08,
 			"shop_focus_family": "paradise",
-			"shop_focus_text": "天堂号货单导向",
+			"shop_focus_text": "天堂号商品偏好",
 			"description": "接下来 2 个完成节点内，主炮额外铺开一层弹幕，弹速与射击节拍同步上扬。",
 		},
 		"description": "天堂号残留排程把弹链塞进方舟火控，星髓押金会立刻被扣下。",
@@ -1857,7 +1857,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"gravity_pull_strength_bonus": 90.0,
 			"gravity_pull_radius_bonus": 80.0,
 			"shop_focus_family": "warped",
-			"shop_focus_text": "扭曲星核货单导向",
+			"shop_focus_text": "扭曲星核商品偏好",
 			"description": "接下来 2 个完成节点内，弹道更愿意贴近目标，弱引力会把小群拖进火线。",
 		},
 		"description": "扭曲星核的潮汐窗口短暂打开，方舟航路也因此被更多观察线看见。",
@@ -1883,7 +1883,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"frenzy_damage_mult": 1.12,
 			"frenzy_damage_taken_mult": 0.9,
 			"shop_focus_family": "hell_eye",
-			"shop_focus_text": "地狱之眼货单导向",
+			"shop_focus_text": "地狱之眼商品偏好",
 			"description": "接下来 2 个完成节点内，狂热升温更快，爆发期火力与防线一起烧亮。",
 		},
 		"description": "地狱之眼留下的赤线仍在跳动，签下它时，机体会先被热浪咬住。",
@@ -1909,7 +1909,7 @@ const EVENT_PROFILES: Array[Dictionary] = [
 			"drone_fire_interval_mult": 0.9,
 			"drone_damage_mult": 1.14,
 			"shop_focus_family": "divine",
-			"shop_focus_text": "神明使者货单导向",
+			"shop_focus_text": "神明使者商品偏好",
 			"description": "接下来 2 个完成节点内，额外僚机加入护航，友军火线回应得更快。",
 		},
 		"description": "神明使者旧令仍能召来一队短程护航，补给接口会先吃掉一笔星髓。",
@@ -3052,7 +3052,7 @@ func handle_boss_victory() -> bool:
 	for key in boss_aftershock.keys():
 		boss_completion_summary[key] = boss_aftershock[key]
 	last_boss_completion_summary = boss_completion_summary
-	BossVictoryTransition.play_to_scene(WORLD_MAP_SCENE)
+	SceneTransition.play_boss_victory_to_scene(WORLD_MAP_SCENE)
 	return true
 
 
@@ -3106,7 +3106,7 @@ func get_free_shop_reroll_summary() -> Dictionary:
 		"active": remaining > 0,
 		"remaining": remaining,
 		"title": title if remaining > 0 else "",
-		"text": "免矿重抽 %d 次，剩余 %d 节点。" % [remaining, remaining_nodes] if remaining > 0 else "",
+		"text": "免费刷新商品 %d 次，剩余 %d 个节点。" % [remaining, remaining_nodes] if remaining > 0 else "",
 		"remaining_nodes": remaining_nodes if remaining > 0 else 0,
 	}
 
@@ -3155,16 +3155,16 @@ func get_shop_guidance() -> Dictionary:
 	var family_name := String(guidance.get("family_name", EquipmentCatalogScript.get_family_display_name(family)))
 	var next_node := String(guidance.get("next_node_name", "未标记航线"))
 	var title := "采购校准：%s" % family_name
-	var summary := "货单会优先捕捉%s纹章，补齐下一段航线前的短板。" % family_name
-	var reroll_hint := "下一段：%s。重抽货单将沿这条航向偏移。" % next_node
+	var summary := "刷新商品时会更容易出现%s装备，帮助补齐下一段航线的短板。" % family_name
+	var reroll_hint := "下一段：%s。刷新商品会沿这条航向偏向%s装备。" % [next_node, family_name]
 	if not shop_ore_source_focus_text.is_empty():
 		summary = "%s %s已写入采购端口，下一批货单会优先保留对应矿源补给。" % [summary, shop_ore_source_focus_text]
 	if not shop_beacon_family.is_empty() and family == shop_beacon_family:
 		var beacon_name := shop_beacon_bonus_name if not shop_beacon_bonus_name.is_empty() else "信标回响"
-		summary = "%s信标已并入方舟货单，优先捕捉%s纹章。" % [beacon_name, family_name]
+		summary = "%s信标已并入方舟商品偏好，刷新时更容易出现%s装备。" % [beacon_name, family_name]
 		if not shop_ore_source_focus_text.is_empty():
 			summary = "%s %s同步保留。" % [summary, shop_ore_source_focus_text]
-		reroll_hint = "下一段：%s。重抽货单会沿信标回响继续偏移。" % next_node
+		reroll_hint = "下一段：%s。刷新商品会继续沿信标回响偏向该家族。" % next_node
 	var discount := get_shop_discount_summary()
 	var discount_text := String(discount.get("text", ""))
 	if not discount_text.is_empty():
@@ -3208,7 +3208,7 @@ func reroll_shop_offers(preferred_family: String = "") -> Dictionary:
 	shop_draft_initialized = true
 	return {
 		"ok": true,
-		"message": "货单券已兑现，商店货单免矿重抽。" if used_free_reroll else "商店货单已刷新。",
+		"message": "商品券已兑现，本次免费刷新商品。" if used_free_reroll else "商店商品已刷新。",
 		"cost": cost,
 		"free_reroll": used_free_reroll,
 		"preferred_family": shop_preferred_family,
@@ -3259,12 +3259,12 @@ func equip_or_toggle(item_id: String) -> Dictionary:
 	if item_type == EquipmentCatalogScript.TYPE_AUX:
 		if equipped_auxiliaries.has(item_id):
 			equipped_auxiliaries.erase(item_id)
-			return {"ok": true, "message": "已卸下辅助机：%s。" % EquipmentCatalogScript.get_display_name(item_id)}
+			return {"ok": true, "message": "已卸下辅助装备：%s。" % EquipmentCatalogScript.get_display_name(item_id)}
 		var cost := EquipmentCatalogScript.get_compute_cost(item_id)
 		if get_used_compute() + cost > compute_capacity:
 			return {"ok": false, "message": "算力不足，当前 %d/%d。" % [get_used_compute(), compute_capacity]}
 		equipped_auxiliaries.append(item_id)
-		return {"ok": true, "message": "已装配辅助机：%s。" % EquipmentCatalogScript.get_display_name(item_id)}
+		return {"ok": true, "message": "已装配辅助装备：%s。" % EquipmentCatalogScript.get_display_name(item_id)}
 	return {"ok": false, "message": "该物品不能装配。"}
 
 
@@ -3339,7 +3339,7 @@ func _make_guidance_summary(family: String, sync: Dictionary) -> String:
 		EquipmentCatalogScript.FAMILY_COLOSSUS:
 			return "右键冲锋已经接入%s回路，继续补强撞击、距离和折返收益。" % family_name
 		EquipmentCatalogScript.FAMILY_PARADISE:
-			return "%s回路正在扩展火力覆盖，优先寻找射速、弹速和散射纹章。" % family_name
+			return "%s装备正在扩展火力覆盖，优先寻找射速、弹速和散射效果。" % family_name
 		EquipmentCatalogScript.FAMILY_WARPED:
 			return "%s回路会把弹道牵向敌群，优先追踪追踪与引力装备。" % family_name
 		EquipmentCatalogScript.FAMILY_HELL_EYE:
@@ -3348,20 +3348,20 @@ func _make_guidance_summary(family: String, sync: Dictionary) -> String:
 			return "%s回路依靠僚机扩大战线，优先补足挂载位和友军火力。" % family_name
 		_:
 			if level > 0:
-				return "当前航路已有同调雏形，通用纹章负责稳住航程与矿物回收。"
-			return "当前航路尚未定型，先用通用纹章稳住算力，再选择一条五席航路。"
+				return "当前航路已有同家族加成雏形，通用装备负责稳住航程与矿物回收。"
+			return "当前航路尚未定型，先用通用装备稳住装配容量，再选择一条五席航路。"
 
 
 func _make_guidance_sync_goal_text(family: String, sync: Dictionary) -> String:
 	if family == EquipmentCatalogScript.FAMILY_GENERAL:
-		return "通用回路不参与五席同调，可稳住算力空档。"
+		return "通用装备不参与五席家族加成，可填补装配容量空档。"
 	var family_counts: Dictionary = sync.get("family_counts", {})
 	var count := int(family_counts.get(family, 0))
 	if count >= 4:
-		return "同调四件共鸣已稳定，后续优先寻找遗物级纹章放大核心手感。"
+		return "四件同家族加成已稳定，后续优先寻找高阶装备放大核心效果。"
 	if count >= 2:
-		return "同调四件共鸣还差 %d 件同族辅助机。" % maxi(0, 4 - count)
-	return "同调二件共鸣还差 %d 件同族辅助机。" % maxi(0, 2 - count)
+		return "四件同家族加成还差 %d 件同族辅助装备。" % maxi(0, 4 - count)
+	return "二件同家族加成还差 %d 件同族辅助装备。" % maxi(0, 2 - count)
 
 
 func _find_guidance_route(family: String) -> Dictionary:
@@ -3435,7 +3435,7 @@ func _make_archetype_sync_summary() -> Dictionary:
 		"resonance_effect_text": _archetype_resonance_effect_text(resonance_family, resonance_level),
 		"next_resonance_text": _archetype_next_resonance_text(resonance_family, resonance_count),
 		"sync_level": sync_level,
-		"sync_text": "同调 %d 级" % sync_level,
+		"sync_text": "同家族加成 %d 级" % sync_level,
 		"effect_text": _archetype_sync_effect_text(dominant_family, sync_level),
 		"score_text": _archetype_score_text(scores),
 		"scores": scores,
@@ -3480,18 +3480,18 @@ func _archetype_resonance_text(family: String, level: int) -> String:
 
 func _archetype_next_resonance_text(family: String, count: int) -> String:
 	if family.is_empty() or count <= 0:
-		return "装配同一家族辅助机可唤醒二件共鸣。"
+		return "装配同一家族辅助装备可获得二件同家族加成。"
 	var family_name := EquipmentCatalogScript.get_family_display_name(family)
 	if count >= 4:
-		return "%s四件共鸣已稳定，继续寻找遗物纹章放大主轴。" % family_name
+		return "%s四件同家族加成已稳定，继续寻找高阶装备强化核心效果。" % family_name
 	if count >= 2:
-		return "%s四件共鸣还差 %d 件同族辅助机。" % [family_name, maxi(0, 4 - count)]
-	return "%s二件共鸣还差 %d 件同族辅助机。" % [family_name, maxi(0, 2 - count)]
+		return "%s四件同家族加成还差 %d 件同族辅助装备。" % [family_name, maxi(0, 4 - count)]
+	return "%s二件同家族加成还差 %d 件同族辅助装备。" % [family_name, maxi(0, 2 - count)]
 
 
 func _archetype_resonance_effect_text(family: String, level: int) -> String:
 	if level <= 0 or family.is_empty():
-		return "同族纹章尚未成环"
+		return "同族装备尚未形成加成"
 	match family:
 		EquipmentCatalogScript.FAMILY_COLOSSUS:
 			if level >= 2:
@@ -3507,13 +3507,13 @@ func _archetype_resonance_effect_text(family: String, level: int) -> String:
 			return "追踪修正与锁定距离提升。"
 		EquipmentCatalogScript.FAMILY_HELL_EYE:
 			if level >= 2:
-				return "狂热火力烧得更亮，承伤被红线压低。"
-			return "狂热积累速度提升。"
+				return "武器过载火力更强，承受伤害更低。"
+			return "武器过载积累速度提升。"
 		EquipmentCatalogScript.FAMILY_DIVINE:
 			if level >= 2:
 				return "僚机群火力加重，并额外开放护航槽位。"
 			return "僚机射击间隔缩短。"
-	return "同族纹章尚未成环"
+	return "同族装备尚未形成加成"
 
 
 func _archetype_score_text(scores: Dictionary) -> String:
@@ -3547,7 +3547,7 @@ func _short_family_name(family: String) -> String:
 
 func _archetype_sync_effect_text(family: String, level: int) -> String:
 	if level <= 0 or family.is_empty():
-		return "同调静默"
+		return "同家族加成未激活"
 	match family:
 		EquipmentCatalogScript.FAMILY_COLOSSUS:
 			return "冲锋距离 +%d%% / 撞击 +%d%%" % [level * 5, level * 6]
@@ -3556,10 +3556,10 @@ func _archetype_sync_effect_text(family: String, level: int) -> String:
 		EquipmentCatalogScript.FAMILY_WARPED:
 			return "追踪强化 / 引力牵引"
 		EquipmentCatalogScript.FAMILY_HELL_EYE:
-			return "狂热积累 +%d%% / 狂热火力 +%d%%" % [level * 8, level * 5]
+			return "武器过载积累 +%d%% / 武器过载火力 +%d%%" % [level * 8, level * 5]
 		EquipmentCatalogScript.FAMILY_DIVINE:
 			return "僚机射速 +%d%% / 僚机火力 +%d%%" % [level * 6, level * 7]
-	return "同调静默"
+	return "同家族加成未激活"
 
 
 func get_player_stats() -> Dictionary:
@@ -3764,13 +3764,13 @@ func _add_crisis_with_alert_stop(amount: int) -> int:
 
 func debug_add_crisis(amount: int = 1) -> Dictionary:
 	if not is_formal_run_active():
-		return {"ok": false, "message": "当前没有进行中的正式航程，无法提升危机等级。"}
+		return {"ok": false, "message": "当前没有进行中的正式航程，无法提高危机关注度。"}
 	if is_alert_active():
-		return {"ok": false, "message": "危机等级 %d 已触发首领警报，请先处理中心节点。" % crisis_level}
+		return {"ok": false, "message": "危机关注度 %d 已触发首领警报，请先处理中心节点。" % crisis_level}
 	var requested := clampi(amount, 1, 99)
 	var added := _add_crisis_with_alert_stop(requested)
 	if added <= 0:
-		return {"ok": false, "message": "危机等级未变化。"}
+		return {"ok": false, "message": "危机关注度未变化。"}
 	save_run()
 	var suffix := "已触发首领警报。" if is_alert_active() else ""
 	return {
@@ -3778,7 +3778,7 @@ func debug_add_crisis(amount: int = 1) -> Dictionary:
 		"added": added,
 		"crisis_level": crisis_level,
 		"alert_active": is_alert_active(),
-		"message": "危机等级 +%d，当前为 %d。%s" % [added, crisis_level, suffix],
+		"message": "危机关注度 +%d，当前为 %d。%s" % [added, crisis_level, suffix],
 	}
 
 
@@ -3863,7 +3863,7 @@ func _apply_event_contract_shop_focus(contract: Dictionary) -> void:
 		return
 	contract["shop_focus_family"] = family
 	if String(contract.get("shop_focus_text", "")).strip_edges().is_empty():
-		contract["shop_focus_text"] = "%s货单导向" % EquipmentCatalogScript.get_family_display_name(family)
+		contract["shop_focus_text"] = "%s商品偏好" % EquipmentCatalogScript.get_family_display_name(family)
 	shop_preferred_family = family
 	shop_offer_ids.clear()
 	shop_draft_initialized = false
@@ -3974,18 +3974,18 @@ func _get_event_contract_effects_text(contract: Dictionary) -> String:
 		parts.append("危机 +%d" % extra_crisis)
 	var equipment_chance_bonus := float(contract.get("equipment_chance_bonus", 0.0))
 	if equipment_chance_bonus > 0.0:
-		parts.append("装备检出 +%d%%" % int(round(equipment_chance_bonus * 100.0)))
+		parts.append("装备出现率 +%d%%" % int(round(equipment_chance_bonus * 100.0)))
 	var shop_discount_rate := float(contract.get("shop_discount_rate", 0.0))
 	if shop_discount_rate > 0.0:
 		parts.append("采购折扣 %d%%" % int(round(shop_discount_rate * 100.0)))
 	var free_shop_rerolls := maxi(0, int(contract.get("free_shop_rerolls", 0)) - int(contract.get("free_shop_rerolls_used", 0)))
 	if free_shop_rerolls > 0:
-		parts.append("免矿重抽 %d 次" % free_shop_rerolls)
+		parts.append("免费刷新商品 %d 次" % free_shop_rerolls)
 	var frenzy_gain_mult := float(contract.get("frenzy_gain_mult", 1.0))
 	if frenzy_gain_mult < 1.0:
-		parts.append("狂热获取 %d%%" % int(round(frenzy_gain_mult * 100.0)))
+		parts.append("武器过载积累 %d%%" % int(round(frenzy_gain_mult * 100.0)))
 	elif frenzy_gain_mult > 1.0:
-		parts.append("狂热获取 +%d%%" % int(round((frenzy_gain_mult - 1.0) * 100.0)))
+		parts.append("武器过载积累 +%d%%" % int(round((frenzy_gain_mult - 1.0) * 100.0)))
 	if float(contract.get("dash_distance_mult", 1.0)) > 1.0 or float(contract.get("dash_damage_mult", 1.0)) > 1.0:
 		parts.append("冲锋强化")
 	if int(contract.get("bullet_count_bonus", 0)) > 0:
@@ -3995,7 +3995,7 @@ func _get_event_contract_effects_text(contract: Dictionary) -> String:
 	if float(contract.get("gravity_pull_strength_bonus", 0.0)) > 0.0:
 		parts.append("引力牵引")
 	if float(contract.get("frenzy_damage_mult", 1.0)) > 1.0:
-		parts.append("狂热火力 +%d%%" % int(round((float(contract.get("frenzy_damage_mult", 1.0)) - 1.0) * 100.0)))
+		parts.append("武器过载火力 +%d%%" % int(round((float(contract.get("frenzy_damage_mult", 1.0)) - 1.0) * 100.0)))
 	if int(contract.get("drone_slots_bonus", 0)) > 0:
 		parts.append("僚机 +%d" % int(contract.get("drone_slots_bonus", 0)))
 	var shop_focus_text := String(contract.get("shop_focus_text", "")).strip_edges()
@@ -4125,7 +4125,7 @@ func _apply_boss_aftershock(reward: Dictionary) -> Dictionary:
 	if family.is_empty():
 		return {}
 	var family_name := EquipmentCatalogScript.get_family_display_name(family)
-	var focus_text := "%s货单导向" % family_name
+	var focus_text := "%s商品偏好" % family_name
 	shop_preferred_family = family
 	shop_offer_ids.clear()
 	shop_draft_initialized = false
@@ -4137,7 +4137,7 @@ func _apply_boss_aftershock(reward: Dictionary) -> Dictionary:
 		var target := get_map_node(int(target_id))
 		if target.is_empty():
 			continue
-		var aftershock_text := "执行体余波：%s残响压入航图，%s正在改写下一段货单。" % [family_name, focus_text]
+		var aftershock_text := "首领余波：%s残响压入航图，%s正在改写下一段商品偏好。" % [family_name, focus_text]
 		target["boss_aftershock"] = {
 			"family_bias": family,
 			"family_name": family_name,
@@ -4173,7 +4173,7 @@ func _apply_boss_aftershock(reward: Dictionary) -> Dictionary:
 		"shop_focus_name": family_name,
 		"shop_focus_text": focus_text,
 		"shop_focus_changed": true,
-		"boss_aftershock_text": "余波校准：%s残响已并入方舟货单，下一段航线会向%s收束。" % [family_name, family_name],
+		"boss_aftershock_text": "余波调整：%s残响已并入方舟商品偏好，下一段航线会向%s收束。" % [family_name, family_name],
 		"boss_aftershock_routes": calibrated_routes,
 		"boss_aftershock_route_count": calibrated_routes.size(),
 	}
@@ -4531,7 +4531,7 @@ func _grant_route_directive_reward(directive: Dictionary) -> Dictionary:
 	var equipment_chance_bonus := float(reward.get("equipment_chance_bonus", 0.0))
 	if equipment_chance_bonus > 0.0:
 		result["equipment_chance_bonus"] = equipment_chance_bonus
-		result["equipment_chance_text"] = "装备检出 +%d%%" % int(round(equipment_chance_bonus * 100.0))
+		result["equipment_chance_text"] = "装备出现率 +%d%%" % int(round(equipment_chance_bonus * 100.0))
 	var equipment_family := String(reward.get("equipment_family", ""))
 	if not equipment_family.is_empty():
 		var item_id := EquipmentCatalogScript.get_random_family_loot_item_id(equipment_inventory, crisis_level, equipment_family)
@@ -4558,7 +4558,7 @@ func _grant_route_directive_reward(directive: Dictionary) -> Dictionary:
 		shop_offer_ids.clear()
 		result["shop_focus_family"] = shop_focus_family
 		result["shop_focus_name"] = EquipmentCatalogScript.get_family_display_name(shop_focus_family)
-		result["shop_focus_text"] = String(reward.get("shop_focus_text", "%s货单导向" % EquipmentCatalogScript.get_family_display_name(shop_focus_family)))
+		result["shop_focus_text"] = String(reward.get("shop_focus_text", "%s商品偏好" % EquipmentCatalogScript.get_family_display_name(shop_focus_family)))
 		result["shop_focus_changed"] = true
 	var shop_focus_ore_source := String(reward.get("shop_focus_ore_source", "")).strip_edges()
 	if not shop_focus_ore_source.is_empty():
@@ -4577,7 +4577,7 @@ func _merge_route_directive_reward_summary(total: Dictionary, reward: Dictionary
 	total["compute"] = int(total.get("compute", 0)) + int(reward.get("compute", 0))
 	total["equipment_chance_bonus"] = float(total.get("equipment_chance_bonus", 0.0)) + float(reward.get("equipment_chance_bonus", 0.0))
 	if float(total.get("equipment_chance_bonus", 0.0)) > 0.0:
-		total["equipment_chance_text"] = "装备检出 +%d%%" % int(round(float(total.get("equipment_chance_bonus", 0.0)) * 100.0))
+		total["equipment_chance_text"] = "装备出现率 +%d%%" % int(round(float(total.get("equipment_chance_bonus", 0.0)) * 100.0))
 	var equipment: Array = total.get("equipment", [])
 	for item_id in reward.get("equipment", []):
 		equipment.append(String(item_id))
@@ -5856,9 +5856,9 @@ func _route_plan_ore_source_hint(node: Dictionary) -> String:
 
 
 func _route_plan_tactic_hint(family: String, node_type: String) -> String:
-	var suffix := "进入前优先校准同调纹章。"
+	var suffix := "进入前优先寻找同家族装备。"
 	if node_type == NODE_REWARD:
-		suffix = "奖励航线正好用来补强核心纹章。"
+		suffix = "奖励航线正好用来补强核心装备。"
 	elif node_type == NODE_EVENT:
 		suffix = "事件方案会改变后续航路节奏。"
 	match family:
@@ -5963,7 +5963,7 @@ func _apply_beacon_echo_to_room_config(config: Dictionary, node: Dictionary) -> 
 	var equipment_bonus := float(echo.get("equipment_bonus", 0.0))
 	var effects: Array[String] = []
 	if equipment_bonus > 0.0:
-		effects.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
+		effects.append("装备出现率 +%d%%" % int(round(equipment_bonus * 100.0)))
 	if reward_bonus > 0.0:
 		effects.append("矿物倍率 +%.2f" % reward_bonus)
 	var effect_text := "，".join(effects)
@@ -6231,11 +6231,11 @@ func _make_reward_cache_choice_data(cache_type: String, node: Dictionary) -> Dic
 		family = EquipmentCatalogScript.FAMILY_GENERAL
 	var family_name := EquipmentCatalogScript.get_family_display_name(family)
 	if cache_type == "family":
-		var shop_focus_text := "%s货单导向" % family_name
+		var shop_focus_text := "%s商品偏好" % family_name
 		return {
 			"choice_id": "cache_family_%d" % node_id,
 			"cache_type": "family",
-			"title": "%s同调纹章箱" % family_name,
+			"title": "%s同家族装备箱" % family_name,
 			"description": "锁定%s回响，蓝图、敌群信号和商店货单都会向这条航路靠拢。" % family_name,
 			"preview": "%s蓝图更容易出现，并获得少量星髓收益与%s。" % [family_name, shop_focus_text],
 			"family_bias": family,
@@ -6248,13 +6248,13 @@ func _make_reward_cache_choice_data(cache_type: String, node: Dictionary) -> Dic
 			"shop_focus_text": shop_focus_text,
 		}
 	if cache_type == "shop":
-		var shop_focus_text := "%s货单导向" % family_name
+		var shop_focus_text := "%s商品偏好" % family_name
 		return {
 			"choice_id": "cache_shop_%d" % node_id,
 			"cache_type": "shop",
 			"title": "%s采购校准箱" % family_name,
 			"description": "方舟把%s缓存坐标同步给商店终端，下一批货单会沿这条航路刷新。" % family_name,
-			"preview": "%s，并让装备检出小幅提高。" % shop_focus_text,
+			"preview": "%s，并让装备出现率小幅提高。" % shop_focus_text,
 			"family_bias": family,
 			"family_name": family_name,
 			"mineral_mult_bonus": 0.0,
@@ -6293,7 +6293,7 @@ func _make_reward_cache_choice_data(cache_type: String, node: Dictionary) -> Dic
 			return {
 				"choice_id": "cache_family_%d" % node_id,
 				"cache_type": "family",
-				"title": "%s同调箱" % family_name,
+				"title": "%s同家族装备箱" % family_name,
 				"description": "锁定%s回响，蓝图与敌群信号都会向这条航路靠拢。" % family_name,
 				"preview": "%s蓝图更容易出现，并获得少量星髓收益。" % family_name,
 				"family_bias": family,
@@ -6339,7 +6339,7 @@ func _apply_reward_cache_choice_to_node(node_id: int, choice: Dictionary) -> Dic
 		shop_focus_family = _normalize_shop_family(String(choice.get("family_bias", "")))
 	if not shop_focus_family.is_empty():
 		if shop_focus_text.is_empty():
-			shop_focus_text = "%s货单导向" % EquipmentCatalogScript.get_family_display_name(shop_focus_family)
+			shop_focus_text = "%s商品偏好" % EquipmentCatalogScript.get_family_display_name(shop_focus_family)
 		node["reward_cache_shop_focus_family"] = shop_focus_family
 		node["reward_cache_shop_focus_text"] = shop_focus_text
 		shop_preferred_family = shop_focus_family
@@ -6411,7 +6411,7 @@ func _apply_reward_cache_route_calibration(source_node_id: int, family: String, 
 	var family_name := EquipmentCatalogScript.get_family_display_name(normalized_family)
 	var focus_text := shop_focus_text.strip_edges()
 	if focus_text.is_empty():
-		focus_text = "%s货单导向" % family_name
+		focus_text = "%s商品偏好" % family_name
 	var calibrated: Array[Dictionary] = []
 	for raw_target_id in source.get("links", []):
 		var target_id := int(raw_target_id)
@@ -6422,7 +6422,7 @@ func _apply_reward_cache_route_calibration(source_node_id: int, family: String, 
 			continue
 		if String(target.get("type", "")) == NODE_SPECIAL:
 			continue
-		var calibration_text := "缓存校准：%s沿相邻航线同步，%s已写入方舟货单。" % [family_name, focus_text]
+		var calibration_text := "奖励调整：%s沿相邻航线同步，%s已写入方舟商品偏好。" % [family_name, focus_text]
 		target["reward_cache_route_calibration"] = {
 			"source_node_id": source_node_id,
 			"source_node_name": String(source.get("name", "奖励缓存")),
@@ -6484,8 +6484,8 @@ func _make_reward_cache_route_calibration_tip(calibration: Dictionary) -> String
 	if family_name.is_empty() and focus_text.is_empty():
 		return ""
 	if focus_text.is_empty():
-		focus_text = "%s货单导向" % family_name
-	return "缓存校准：%s沿相邻航线同步，%s已写入方舟货单。" % [family_name, focus_text]
+		focus_text = "%s商品偏好" % family_name
+	return "奖励调整：%s沿相邻航线同步，%s已写入方舟商品偏好。" % [family_name, focus_text]
 
 
 func _apply_boss_aftershock_to_room_config(config: Dictionary, node: Dictionary) -> void:
@@ -6516,8 +6516,8 @@ func _make_boss_aftershock_tip(aftershock: Dictionary) -> String:
 	if family_name.is_empty() and focus_text.is_empty():
 		return ""
 	if focus_text.is_empty():
-		focus_text = "%s货单导向" % family_name
-	return "执行体余波：%s残响压入航图，%s正在改写下一段货单。" % [family_name, focus_text]
+		focus_text = "%s商品偏好" % family_name
+	return "首领余波：%s残响压入航图，%s正在改写下一段商品偏好。" % [family_name, focus_text]
 
 
 func _make_event_choice_data(profile: Dictionary, node: Dictionary) -> Dictionary:
@@ -6621,11 +6621,11 @@ func _make_event_contract_preview(profile: Dictionary) -> String:
 	if extra_crisis > 0:
 		parts.append("每节点危机 +%d" % extra_crisis)
 	if equipment_chance_bonus > 0.0:
-		parts.append("装备检出 +%d%%" % int(round(equipment_chance_bonus * 100.0)))
+		parts.append("装备出现率 +%d%%" % int(round(equipment_chance_bonus * 100.0)))
 	if shop_discount_rate > 0.0:
 		parts.append("采购折扣 %d%%" % int(round(shop_discount_rate * 100.0)))
 	if free_shop_rerolls > 0:
-		parts.append("免矿重抽 %d 次" % free_shop_rerolls)
+		parts.append("免费刷新商品 %d 次" % free_shop_rerolls)
 	if frenzy_gain_mult < 1.0:
 		parts.append("狂热获取 %d%%" % int(round(frenzy_gain_mult * 100.0)))
 	if float(contract.get("dash_distance_mult", 1.0)) > 1.0 or float(contract.get("dash_damage_mult", 1.0)) > 1.0:
@@ -6637,9 +6637,9 @@ func _make_event_contract_preview(profile: Dictionary) -> String:
 	if float(contract.get("gravity_pull_strength_bonus", 0.0)) > 0.0:
 		parts.append("引力牵引")
 	if frenzy_gain_mult > 1.0:
-		parts.append("狂热获取 +%d%%" % int(round((frenzy_gain_mult - 1.0) * 100.0)))
+		parts.append("武器过载积累 +%d%%" % int(round((frenzy_gain_mult - 1.0) * 100.0)))
 	if float(contract.get("frenzy_damage_mult", 1.0)) > 1.0:
-		parts.append("狂热火力 +%d%%" % int(round((float(contract.get("frenzy_damage_mult", 1.0)) - 1.0) * 100.0)))
+		parts.append("武器过载火力 +%d%%" % int(round((float(contract.get("frenzy_damage_mult", 1.0)) - 1.0) * 100.0)))
 	if int(contract.get("drone_slots_bonus", 0)) > 0:
 		parts.append("僚机 +%d" % int(contract.get("drone_slots_bonus", 0)))
 	var shop_focus_text := String(contract.get("shop_focus_text", "")).strip_edges()

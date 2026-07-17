@@ -148,5 +148,5 @@ theme_override_colors/caret_color = Color(0.321569, 0.909804, 1, 1)
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_empty")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
-placeholder_text = "输入 / 指令（↑↓ 历史，Enter 执行）"
+placeholder_text = "输入 / 指令（↑↓ 历史，回车键执行）"
 caret_blink = true

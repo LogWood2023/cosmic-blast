@@ -5,6 +5,7 @@ extends Node2D
 @export var body_tex: Texture2D
 @export var cannon_tex: Texture2D
 const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
+const BossNarrationScript = preload("res://scripts/ui/BossNarration.gd")
 const BOSS_BGM = preload("res://assets/audio/paradise_bgm.mp3")
 
 enum Dock { TOP, LEFT, RIGHT }
@@ -119,6 +120,7 @@ func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
 	BossBudgetApplicator.apply_to(self, "paradise")
 	boss_hp = max_hp
+	BossNarrationScript.show(self, boss_name, &"intro")
 	for i in CANNON_COUNT:
 		cannon_hp[i] = max_hp / 4.0
 		cannon_alive[i] = true
@@ -1193,6 +1195,8 @@ func apply_damage(amount: int) -> void:
 		return
 	var old_hp := boss_hp
 	boss_hp -= amount
+	if old_hp > max_hp * 0.5 and boss_hp <= max_hp * 0.5:
+		BossNarrationScript.show(self, boss_name, &"half")
 	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
 	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
@@ -1239,6 +1243,7 @@ func _destroy_cannon(idx: int) -> void:
 func _die() -> void:
 	if dying:
 		return
+	BossNarrationScript.show(self, boss_name, &"defeat")
 	active = false
 	dying = true
 	death_timer = 0.0
@@ -1296,7 +1301,7 @@ func _return_to_menu() -> void:
 	if get_tree():
 		if RunManager.handle_boss_victory():
 			return
-		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+		SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _spawn_death_explosion() -> void:

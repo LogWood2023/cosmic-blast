@@ -90,7 +90,7 @@ func _build_contents() -> void:
 	var title_box := VBoxContainer.new()
 	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title_box)
-	var kicker := _make_label("SYSTEM CONFIGURATION", 16, Color(1.0, 0.72, 0.30, 1.0))
+	var kicker := _make_label(GameCopy.text(&"ui.settings.kicker"), 16, Color(1.0, 0.72, 0.30, 1.0))
 	title_box.add_child(kicker)
 	var title := _make_label("系统设置", 32, Color(0.98, 1.0, 1.0, 1.0))
 	title_box.add_child(title)
@@ -122,7 +122,7 @@ func _build_contents() -> void:
 	_add_slider(content, "屏幕震动强度", "screen_shake_strength")
 	_add_toggle(content, "低特效模式", "reduced_effects")
 	_add_section(content, "控制")
-	var controls_note := _make_label("点击按键即可重新绑定；按 Esc 取消绑定。", 16, Color(0.58, 0.72, 0.82, 1.0))
+	var controls_note := _make_label("点击按键即可重新绑定；按取消键可放弃本次修改。", 16, Color(0.58, 0.72, 0.82, 1.0))
 	content.add_child(controls_note)
 	for item in ACTIONS:
 		_add_binding(content, item[0], item[1])

@@ -87,7 +87,7 @@ func _refresh() -> void:
 		available_count += 1
 	if available_count == 0:
 		var empty_label := Label.new()
-		empty_label.text = "没有可装配的%s。" % ("武器" if _active_type == EquipmentCatalogScript.TYPE_WEAPON else "辅助机")
+		empty_label.text = "没有可装配的%s。" % ("武器" if _active_type == EquipmentCatalogScript.TYPE_WEAPON else "辅助装备")
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_label.add_theme_font_size_override("font_size", 22)
 		items_list.add_child(empty_label)
@@ -109,7 +109,7 @@ func _refresh_equipped_list(run_manager: Node) -> void:
 		equipped_count += 1
 	if equipped_count == 0:
 		var empty_label := Label.new()
-		empty_label.text = "当前没有已装配的辅助机。"
+		empty_label.text = "当前没有已装配的辅助装备。"
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_label.add_theme_font_size_override("font_size", 20)
 		equipped_list.add_child(empty_label)

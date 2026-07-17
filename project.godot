@@ -10,20 +10,21 @@ config_version=5
 
 [application]
 
-config/name="高能⭐宇宙⭐大爆炸"
+config/name="未明星域"
 run/main_scene="res://scenes/app/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
+GameCopy="*res://scripts/core/GameCopy.gd"
 BalanceService="*res://scripts/core/BalanceService.gd"
 SettingsManager="*res://scripts/core/SettingsManager.gd"
 GameManager="*res://scripts/core/GameManager.gd"
 RunManager="*res://scripts/core/RunManager.gd"
 CameraFeedback="*res://scripts/fx/CameraFeedback.gd"
 DebugCommandConsole="*res://scripts/core/DebugCommandConsole.gd"
-BossVictoryTransition="*res://scripts/ui/BossVictoryTransition.gd"
+SceneTransition="*res://scripts/ui/BossVictoryTransition.gd"
 MetaProgressionState="*res://scripts/core/MetaProgression.gd"
 
 [display]
@@ -78,6 +79,11 @@ dash={
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":2,"position":Vector2(131, 28),"global_position":Vector2(140, 76),"factor":1.0,"button_index":2,"canceled":false,"pressed":true,"double_click":false,"script":null)
 ]
 }
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/game_zh_CN.po")
+locale/fallback="zh_CN"
 
 [physics]
 

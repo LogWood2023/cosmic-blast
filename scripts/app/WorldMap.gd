@@ -62,16 +62,16 @@ func _ready() -> void:
 	# 入场弹窗排队依次展示；此前三个同帧打开会互相 queue_free，玩家只看到最后一个
 	if not _pending_special_bonus_popup_summary.is_empty():
 		_startup_popup_queue.append(_show_pending_special_bonus_popup)
-	# BossVictoryTransition keeps its cover up and owns the reward picker until a
+	# SceneTransition keeps its cover up and owns the reward picker until a
 	# choice is made. Other entries (such as a resumed save) still use the map UI.
-	if not BossVictoryTransition.is_waiting_for_boss_reward():
+	if not SceneTransition.is_waiting_for_boss_reward():
 		if not _pending_boss_reward_popup_summary.is_empty():
 			_startup_popup_queue.append(_show_pending_boss_reward_popup)
 		elif RunManager.has_method("get_pending_boss_reward_summary"):
 			_pending_boss_reward_popup_summary = Dictionary(RunManager.get_pending_boss_reward_summary())
 			if not _pending_boss_reward_popup_summary.is_empty():
 				_startup_popup_queue.append(_show_pending_boss_reward_popup)
-	if not _startup_popup_queue.is_empty() and not BossVictoryTransition.is_waiting_for_boss_reward():
+	if not _startup_popup_queue.is_empty() and not SceneTransition.is_waiting_for_boss_reward():
 		call_deferred("_show_next_startup_popup")
 
 
@@ -142,7 +142,7 @@ func _consume_boss_completion_feedback() -> String:
 	var summary := Dictionary(RunManager.call("consume_last_boss_completion_summary"))
 	if summary.is_empty() or not bool(summary.get("ok", false)):
 		return ""
-	if not BossVictoryTransition.is_waiting_for_boss_reward():
+	if not SceneTransition.is_waiting_for_boss_reward():
 		_pending_boss_reward_popup_summary = summary.duplicate(true)
 	return _make_boss_completion_feedback(summary)
 
@@ -155,10 +155,10 @@ func _make_boss_completion_feedback(summary: Dictionary) -> String:
 	if family_name.is_empty():
 		lines.append("执行体肃清：危机残响已封存")
 	else:
-		lines.append("执行体肃清：%s残响已封存" % family_name)
+		lines.append("首领已清除：%s残响已封存" % family_name)
 	var item_name := String(summary.get("item_name", "")).strip_edges()
 	if not item_name.is_empty():
-		lines.append("缴获纹章：%s" % item_name)
+		lines.append("获得装备：%s" % item_name)
 	var aftershock_text := String(summary.get("boss_aftershock_text", "")).strip_edges()
 	if not aftershock_text.is_empty():
 		lines.append(aftershock_text)
@@ -185,7 +185,7 @@ func _make_beacon_echo_feedback(summary: Dictionary) -> String:
 		if not family_name.is_empty():
 			effects.append(family_name)
 		if equipment_bonus > 0.0:
-			effects.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
+			effects.append("装备出现率 +%d%%" % int(round(equipment_bonus * 100.0)))
 		if reward_bonus > 0.0:
 			effects.append("矿物倍率 +%.2f" % reward_bonus)
 		if effects.is_empty():
@@ -241,7 +241,7 @@ func _make_route_momentum_feedback(summary: Dictionary) -> String:
 		parts.append("余波已收束")
 	if parts.is_empty():
 		return ""
-	return "航路动能：%s" % "，".join(parts)
+	return "航路加成：%s" % "，".join(parts)
 
 
 func _make_route_directive_completion_feedback(summary: Dictionary) -> String:
@@ -262,7 +262,7 @@ func _make_route_directive_completion_feedback(summary: Dictionary) -> String:
 	if not new_directives.is_empty():
 		suffix = "，新的航路目标已入列"
 	if not route_momentum.is_empty():
-		suffix += "，航路动能已点燃"
+		suffix += "，航路加成已生效"
 	return "航路指令完成：%s%s" % ["、".join(names), suffix]
 
 
@@ -435,7 +435,7 @@ func _refresh_details() -> void:
 			details_title.text = "危机警报 // %s" % boss_name
 			lines.append("")
 			lines.append("[color=#ff4f6a][b]执行体锁定：%s[/b][/color]" % boss_name)
-			lines.append(String(boss_preview.get("test_text", "测试通告：未知执行体正在接近。")))
+			lines.append(String(boss_preview.get("forecast_text", "首领预报：未知首领正在接近。")))
 	details_body.text = "\n".join(lines)
 	action_button.visible = true
 	action_button.disabled = false
@@ -533,10 +533,10 @@ func _append_beacon_echo_lines(lines: Array[String], node: Dictionary) -> void:
 	var equipment_bonus := float(echo.get("equipment_bonus", 0.0))
 	var reward_bonus := float(echo.get("reward_bonus", 0.0))
 	lines.append("[b]信标回响：[/b]%s" % bonus_name)
-	lines.append("方舟航图已被%s染色，邻近航线更容易检出同调纹章。" % family_name)
+	lines.append("方舟航图已被%s信号覆盖，邻近航线更容易出现同一家族装备。" % family_name)
 	var effects: Array[String] = []
 	if equipment_bonus > 0.0:
-		effects.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
+		effects.append("装备出现率 +%d%%" % int(round(equipment_bonus * 100.0)))
 	if reward_bonus > 0.0:
 		effects.append("矿物倍率 +%.2f" % reward_bonus)
 	if not effects.is_empty():
@@ -548,9 +548,9 @@ func _append_reward_cache_calibration_lines(lines: Array[String], node: Dictiona
 	if calibration.is_empty():
 		return
 	var family_name := String(calibration.get("family_name", _family_display_name(String(calibration.get("family_bias", "")))))
-	var focus_text := String(calibration.get("shop_focus_text", "货单导向")).strip_edges()
+	var focus_text := String(calibration.get("shop_focus_text", "商品偏好")).strip_edges()
 	var calibration_text := String(calibration.get("calibration_text", "")).strip_edges()
-	lines.append("[b]缓存校准：[/b]%s" % family_name)
+	lines.append("[b]奖励调整：[/b]%s" % family_name)
 	if calibration_text.is_empty():
 		lines.append("%s已沿相邻航线同步，%s正在接管方舟货单。" % [family_name, focus_text])
 	else:
@@ -559,7 +559,7 @@ func _append_reward_cache_calibration_lines(lines: Array[String], node: Dictiona
 	var equipment_bonus := float(calibration.get("equipment_bonus", 0.0))
 	var reward_bonus := float(calibration.get("reward_bonus", 0.0))
 	if equipment_bonus > 0.0:
-		effects.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
+			effects.append("装备出现率 +%d%%" % int(round(equipment_bonus * 100.0)))
 	if reward_bonus > 0.0:
 		effects.append("矿物倍率 +%.2f" % reward_bonus)
 	if not effects.is_empty():
@@ -571,9 +571,9 @@ func _append_boss_aftershock_lines(lines: Array[String], node: Dictionary) -> vo
 	if aftershock.is_empty():
 		return
 	var family_name := String(aftershock.get("family_name", _family_display_name(String(aftershock.get("family_bias", "")))))
-	var focus_text := String(aftershock.get("shop_focus_text", "货单导向")).strip_edges()
+	var focus_text := String(aftershock.get("shop_focus_text", "商品偏好")).strip_edges()
 	var aftershock_text := String(aftershock.get("aftershock_text", "")).strip_edges()
-	lines.append("[b]执行体余波：[/b]%s" % family_name)
+	lines.append("[b]首领余波：[/b]%s" % family_name)
 	if aftershock_text.is_empty():
 		lines.append("%s残响压入航图，%s正在改写下一段货单。" % [family_name, focus_text])
 	else:
@@ -582,7 +582,7 @@ func _append_boss_aftershock_lines(lines: Array[String], node: Dictionary) -> vo
 	var equipment_bonus := float(aftershock.get("equipment_bonus", 0.0))
 	var reward_bonus := float(aftershock.get("reward_bonus", 0.0))
 	if equipment_bonus > 0.0:
-		effects.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
+			effects.append("装备出现率 +%d%%" % int(round(equipment_bonus * 100.0)))
 	if reward_bonus > 0.0:
 		effects.append("矿物倍率 +%.2f" % reward_bonus)
 	if not effects.is_empty():
@@ -648,7 +648,7 @@ func _append_active_route_momentum_lines(lines: Array[String]) -> void:
 	if summary.is_empty():
 		return
 	lines.append("")
-	lines.append("[b]航路动能：[/b]")
+	lines.append("[b]航路加成：[/b]")
 	var remaining := int(summary.get("remaining_nodes", 0))
 	var effects_text := String(summary.get("effects_text", "回收效率提高"))
 	lines.append("• 余波仍在推进，剩余 %d 个完成节点：%s" % [remaining, effects_text])
@@ -727,7 +727,7 @@ func _family_display_name(family: String) -> String:
 		"hell_eye":
 			return "地狱之眼 / 狂热流"
 		"divine":
-			return "神明使者 / 无人机流"
+			return "神明使者 / 僚机火力"
 	return "通用"
 
 
@@ -737,7 +737,7 @@ func _on_enter_pressed() -> void:
 			_message = "当前没有危机警报。"
 			_refresh_all()
 			return
-		get_tree().change_scene_to_file(RunManager.pending_boss_scene)
+		SceneTransition.change_scene_to_file(RunManager.pending_boss_scene)
 		return
 	var node := RunManager.get_map_node(_selected_node_id)
 	var node_type := String(node.get("type", RunManager.NODE_BATTLE))
@@ -748,7 +748,7 @@ func _on_enter_pressed() -> void:
 		_show_reward_event_choices(_selected_node_id)
 		return
 	if RunManager.start_explore_node(_selected_node_id):
-		get_tree().change_scene_to_file(RunManager.EXPLORE_ROOM_SCENE)
+		SceneTransition.change_scene_to_file(RunManager.EXPLORE_ROOM_SCENE)
 	else:
 		_message = "节点暂不可进入。"
 		_refresh_all()
@@ -769,7 +769,7 @@ func _show_hangar() -> void:
 
 
 func _set_hangar_message(message: String) -> void:
-	if message.begins_with("已装配辅助机："):
+	if message.begins_with("已装配辅助装备："):
 		_set_message("")
 		return
 	_set_message(message)
@@ -865,7 +865,7 @@ func _on_boss_reward_selected(item_id: String) -> void:
 		await get_tree().create_timer(0.3, true).timeout
 	if bool(result.get("is_final", false)):
 		RunManager.finish_run(true)
-		get_tree().change_scene_to_file(RunManager.GAME_OVER_SCENE)
+		SceneTransition.change_scene_to_file(RunManager.GAME_OVER_SCENE)
 		return
 	RunManager.save_run()
 	_refresh_all()
@@ -928,4 +928,4 @@ func _on_settings_save_and_exit() -> void:
 
 func _on_settings_save_and_main_menu() -> void:
 	RunManager.save_run()
-	get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+	SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")

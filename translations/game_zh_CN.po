@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\\n"
+"Language: zh_CN\\n"
+
+msgid "ui.settings.kicker"
+msgstr "系统控制台"
+
+msgid "ui.preflight.kicker"
+msgstr "出航准备"
+
+msgid "ui.world_map.return_warning"
+msgstr "警报：危机关注度已达上限，请返回方舟核心"
+
+msgid "ui.world_map.crisis_warning"
+msgstr "危机警报"
+
+msgid "ui.crisis_alert.title"
+msgstr "首领信号：%s"
+
+msgid "ui.crisis_alert.unknown_family"
+msgstr "未知首领"
+
+msgid "ui.boss_victory.title"
+msgstr "首领已清除"
+
+msgid "ui.hud.overload_ready"
+msgstr "武器过载：已就绪"
+
+msgid "ui.hud.overload_active"
+msgstr "武器过载：%.1f 秒"
+
+msgid "ui.hud.overload_charge"
+msgstr "武器过载：%d%%"
+
+msgid "ui.event.choice_fallback"
+msgstr "信号内容模糊，只有靠近后才能确认回应。"
+
+msgid "ui.event.unknown_choice"
+msgstr "未知回应"
+
+msgid "ui.event.cost"
+msgstr "代价：%s"
+
+msgid "ui.event.effect"
+msgstr "结果：%s"
+
+msgid "ui.event.risk"
+msgstr "风险：%s"
+
+msgid "ui.event.risk_level"
+msgstr "风险：%d级"
+
+msgid "ui.event.result_title"
+msgstr "事件结算"
+
+msgid "ui.event.result_meta"
+msgstr "本次回应已写入航图记录"
+
+msgid "ui.event.result_fallback"
+msgstr "信号已归档，方舟正在同步后续影响。"
+
+msgid "role.starter"
+msgstr "核心装备"
+
+msgid "role.amplifier"
+msgstr "强化装备"
+
+msgid "role.converter"
+msgstr "转化装备"
+
+msgid "role.bridge"
+msgstr "衔接装备"
+
+msgid "role.economy"
+msgstr "资源装备"
+
+msgid "role.stabilizer"
+msgstr "防护装备"
+
+msgid "role.legacy"
+msgstr "特殊装备"

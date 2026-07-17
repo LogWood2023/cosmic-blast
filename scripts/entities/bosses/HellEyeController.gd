@@ -1,6 +1,7 @@
 extends Node2D
 
 const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
+const BossNarrationScript = preload("res://scripts/ui/BossNarration.gd")
 
 enum Dock { HOME, LEFT, RIGHT, BOTTOM }
 
@@ -303,6 +304,8 @@ func apply_damage(amount: int) -> void:
 		return
 	var old_hp := boss_hp
 	boss_hp -= amount
+	if old_hp > max_hp * 0.5 and boss_hp <= max_hp * 0.5:
+		BossNarrationScript.show(self, boss_name, &"half")
 	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
 	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
@@ -1295,6 +1298,7 @@ func _get_death_particle_tex() -> Texture2D:
 func _die() -> void:
 	if dying:
 		return
+	BossNarrationScript.show(self, boss_name, &"defeat")
 	active = false
 	dying = true
 	is_executing = false
@@ -1364,7 +1368,7 @@ func _return_to_menu() -> void:
 	if RunManager.handle_boss_victory():
 		return
 	if get_tree():
-		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+		SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _shake_hell_eye_parts() -> void:
@@ -1423,6 +1427,7 @@ func _ready() -> void:
 	max_hp = 1000
 	BossBudgetApplicator.apply_to(self, "hell_eye")
 	boss_hp = max_hp
+	BossNarrationScript.show(self, boss_name, &"intro")
 	bgm_player = AudioStreamPlayer.new()
 	bgm_player.bus = &"Music"
 	bgm_player.stream = HELL_EYE_BGM

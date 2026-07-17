@@ -2663,11 +2663,11 @@ func _on_evacuation_button_pressed() -> void:
 	get_tree().paused = false
 	if RunManager.is_formal_run_active():
 		RunManager.complete_explore_room_success()
-		get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
+		SceneTransition.change_scene_to_file("res://scenes/app/WorldMap.tscn")
 		return
 	GameManager.player_hp = GameManager.PLAYER_MAX_HP
 	GameManager.elapsed = 0.0
-	get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+	SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _place_player_randomly() -> void:

@@ -166,7 +166,7 @@ theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleBox_button")
 theme_override_styles/hover = SubResource("StyleBox_button_hover")
 theme_override_styles/pressed = SubResource("StyleBox_button_hover")
-text = "辅助机"
+text = "辅助装备"
 
 [node name="CurrentEquipment" type="Panel" parent="Panel"]
 layout_mode = 0
@@ -238,7 +238,7 @@ offset_right = 410.0
 offset_bottom = 46.0
 theme_override_colors/font_color = Color(1, 0.721569, 0.301961, 1)
 theme_override_font_sizes/font_size = 20
-text = "已装配辅助机"
+text = "已装配辅助装备"
 
 [node name="EquippedScroll" type="ScrollContainer" parent="Panel/CurrentEquipment/EquippedFrame"]
 layout_mode = 1

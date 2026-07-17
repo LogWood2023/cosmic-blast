@@ -236,7 +236,7 @@ func _apply_drain() -> void:
 		GameManager.player_hp = 0
 		if RunManager.is_formal_run_active():
 			RunManager.finish_run(false)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+		SceneTransition.change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
 		return
 	var ppos = player.global_position
 	var count = randi_range(PARTICLE_MIN, PARTICLE_MAX)

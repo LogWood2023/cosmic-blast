@@ -4,7 +4,7 @@ extends Node
 
 const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
 
-const SAVE_VERSION: int = 2
+const SAVE_VERSION: int = 3
 const SAVE_PATH: String = "user://meta_progression.json"
 const CALIBRATION_IDS: PackedStringArray = ["wide_scan", "procurement_voucher", "resonance_compass", "emergency_bulkhead", "overclock_lease", "frenzy_preheat", "salvage_probe", "chaos_seed"]
 const INITIAL_CALIBRATION_IDS: PackedStringArray = ["wide_scan", "procurement_voucher", "resonance_compass"]
@@ -31,6 +31,8 @@ var unlocked_calibrations: Dictionary = {}
 var unlocked_crisis_level: int = 0
 var selected_crisis_level: int = 0
 var highest_cleared_crisis_level: int = -1
+var unlocked_codex_enemies: Dictionary = {}
+var viewed_codex_terms: Dictionary = {}
 
 
 func _init() -> void:
@@ -127,6 +129,22 @@ func unlock_crisis(level: int) -> void:
 	unlocked_crisis_level = maxi(unlocked_crisis_level, clampi(level, 0, 10))
 
 
+func unlock_codex_enemy(enemy_id: String) -> bool:
+	if enemy_id.is_empty() or unlocked_codex_enemies.has(enemy_id):
+		return false
+	unlocked_codex_enemies[enemy_id] = true
+	save_to_disk()
+	return true
+
+
+func mark_codex_term_viewed(term_id: String) -> bool:
+	if term_id.is_empty() or viewed_codex_terms.has(term_id):
+		return false
+	viewed_codex_terms[term_id] = true
+	save_to_disk()
+	return true
+
+
 func select_crisis(level: int) -> bool:
 	if level < 0 or level > unlocked_crisis_level:
 		return false
@@ -143,6 +161,8 @@ func to_dict() -> Dictionary:
 		"unlocked_crisis_level": unlocked_crisis_level,
 		"selected_crisis_level": selected_crisis_level,
 		"highest_cleared_crisis_level": highest_cleared_crisis_level,
+		"unlocked_codex_enemies": unlocked_codex_enemies.duplicate(true),
+		"viewed_codex_terms": viewed_codex_terms.duplicate(true),
 	}
 
 
@@ -164,6 +184,8 @@ func load_dict(data: Dictionary) -> void:
 	unlocked_crisis_level = clampi(int(data.get("unlocked_crisis_level", 0)), 0, 10)
 	selected_crisis_level = clampi(int(data.get("selected_crisis_level", 0)), 0, unlocked_crisis_level)
 	highest_cleared_crisis_level = clampi(int(data.get("highest_cleared_crisis_level", -1)), -1, 10)
+	unlocked_codex_enemies = Dictionary(data.get("unlocked_codex_enemies", {})).duplicate(true)
+	viewed_codex_terms = Dictionary(data.get("viewed_codex_terms", {})).duplicate(true)
 
 
 func save_to_disk() -> bool:
@@ -207,4 +229,6 @@ func _reset_to_defaults() -> void:
 	unlocked_crisis_level = 0
 	selected_crisis_level = 0
 	highest_cleared_crisis_level = -1
+	unlocked_codex_enemies.clear()
+	viewed_codex_terms.clear()
 	_ensure_initial_unlocks()

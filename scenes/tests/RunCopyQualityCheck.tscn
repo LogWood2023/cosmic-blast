@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://tools/run_copy_quality_check.gd" id="1_6xywp"]
+[ext_resource type="Script" path="res://tools/run_copy_quality_check.gd" id="1_run_copy"]
 
 [node name="RunCopyQualityCheck" type="Node"]
-script = ExtResource("1_6xywp")
+script = ExtResource("1_run_copy")

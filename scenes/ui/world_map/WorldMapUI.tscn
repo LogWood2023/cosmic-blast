@@ -186,7 +186,7 @@ theme_override_colors/font_shadow_color = Color(0.2, 0, 0.02, 1)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 20
-text = "WARNING  //  CRISIS LIMIT  //  RETURN TO ARK"
+text = "警报：危机关注度已达上限，请返回方舟核心"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -272,7 +272,7 @@ theme_override_colors/font_color = Color(1, 0.33, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0, 0.01, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 24
-text = "CRISIS WARNING"
+text = "危机警报"
 horizontal_alignment = 1
 
 [node name="BossIcon" type="TextureRect" parent="CrisisAlertOverlay/CenterContent"]

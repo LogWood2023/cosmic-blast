@@ -46,7 +46,7 @@ func setup(summary: Dictionary) -> void:
 		lines.append("[b]入库补给：[/b]%s" % " / ".join(reward_lines))
 	if not route_momentum.is_empty():
 		lines.append("")
-		lines.append("[b]航路动能：[/b]%s" % _make_route_momentum_line(route_momentum))
+		lines.append("[b]航路加成：[/b]%s" % _make_route_momentum_line(route_momentum))
 	if not new_directives.is_empty():
 		lines.append("")
 		lines.append("[b]新航路指令：[/b]")
@@ -76,7 +76,7 @@ func _make_reward_lines(reward_summary: Dictionary) -> Array[String]:
 	elif not equipment.is_empty():
 		lines.append("蓝图 +%d" % equipment.size())
 	if equipment_chance_text.is_empty() and float(reward_summary.get("equipment_chance_bonus", 0.0)) > 0.0:
-		equipment_chance_text = "装备检出 +%d%%" % int(round(float(reward_summary.get("equipment_chance_bonus", 0.0)) * 100.0))
+		equipment_chance_text = "装备出现率 +%d%%" % int(round(float(reward_summary.get("equipment_chance_bonus", 0.0)) * 100.0))
 	if not equipment_chance_text.is_empty():
 		lines.append(equipment_chance_text)
 	if not shop_focus_text.is_empty():

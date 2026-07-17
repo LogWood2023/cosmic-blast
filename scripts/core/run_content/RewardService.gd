@@ -89,8 +89,8 @@ func _make_boss_cards(node_id: int, context: RunContentContext, boss_family: Str
 	var maintenance := RewardDefinition.new()
 	maintenance.reward_id = "boss_maintenance_%d" % stage
 	maintenance.title = "核心维护包"
-	maintenance.description = "获得 2 点算力并修复船体；后续两次奖励提高装备权重。"
-	maintenance.preview_text = "算力 +2，修复 %d 生命。" % [25 + (stage - 1) * 10]
+	maintenance.description = "获得 2 点装配容量并修复机体结构；后续两次奖励更容易出现装备。"
+	maintenance.preview_text = "装配容量 +2，恢复 %d 点结构值。" % [25 + (stage - 1) * 10]
 	maintenance.reward_type = "maintenance"
 	maintenance.payload = {"heal": _reward_stage_value("boss_reward_four_choice", "maintenance_heal", stage, 25 + (stage - 1) * 10)}
 	maintenance.tags = PackedStringArray(["boss", "survival", "pity"])
@@ -129,7 +129,7 @@ func _make_equipment_card(context: RunContentContext, node_id: int, rng: RandomN
 	card.reward_id = "equipment:%s" % item_id
 	card.title = String(item.get("name", item_id))
 	card.description = String(item.get("description", "可装配的遗失装备。"))
-	card.preview_text = "%s · %s · 算力 %d" % [EquipmentCatalogScript.get_family_display_name(EquipmentCatalogScript.get_family(item_id)), _role_for_item(item_id), EquipmentCatalogScript.get_compute_cost(item_id)]
+	card.preview_text = "%s · %s · 占用容量 %d" % [EquipmentCatalogScript.get_family_display_name(EquipmentCatalogScript.get_family(item_id)), EquipmentCatalogScript.get_role_display_name(_role_for_item(item_id)), EquipmentCatalogScript.get_compute_cost(item_id)]
 	card.reward_type = "equipment"
 	card.item_id = item_id
 	card.family_tag = EquipmentCatalogScript.get_family(item_id)
@@ -153,9 +153,9 @@ func _make_mineral_card(amount: int, suffix: String) -> RewardDefinition:
 func _make_heal_card(amount: int, suffix: String) -> RewardDefinition:
 	var card := RewardDefinition.new()
 	card.reward_id = "heal:%s:%d" % [suffix, amount]
-	card.title = "船体维护包"
-	card.description = "将纳米修复剂导入船体维护接口。"
-	card.preview_text = "恢复 %d 生命。" % amount
+	card.title = "机体维护包"
+	card.description = "将纳米修复剂导入机体维护接口。"
+	card.preview_text = "恢复 %d 点结构值。" % amount
 	card.reward_type = "heal"
 	card.payload = {"amount": amount}
 	card.tags = PackedStringArray(["survival", "safe"])
@@ -165,9 +165,9 @@ func _make_heal_card(amount: int, suffix: String) -> RewardDefinition:
 func _make_compute_card(amount: int, suffix: String) -> RewardDefinition:
 	var card := RewardDefinition.new()
 	card.reward_id = "compute:%s:%d" % [suffix, amount]
-	card.title = "算力扩容"
-	card.description = "扩展本局可用算力容量。"
-	card.preview_text = "获得 %d 点算力。" % amount
+	card.title = "装配容量扩展"
+	card.description = "扩展本次航程可安装装备的容量。"
+	card.preview_text = "获得 %d 点装配容量。" % amount
 	card.reward_type = "compute"
 	card.payload = {"amount": amount}
 	card.tags = PackedStringArray(["compute"])

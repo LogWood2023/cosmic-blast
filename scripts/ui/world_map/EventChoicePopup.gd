@@ -50,7 +50,7 @@ func setup(node: Dictionary, choices: Array) -> void:
 
 func _add_choice_button(choice: Dictionary) -> void:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0.0, 108.0)
+	button.custom_minimum_size = Vector2(0.0, 164.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_ALL
 	button.disabled = not String(choice.get("disabled_reason", "")).is_empty()
@@ -74,19 +74,19 @@ func _add_choice_button(choice: Dictionary) -> void:
 	choice_title.add_theme_color_override("font_outline_color", Color(0.02, 0.06, 0.07, 0.9))
 	choice_title.add_theme_constant_override("outline_size", 2)
 	choice_title.add_theme_font_size_override("font_size", 24)
-	choice_title.text = String(choice.get("title", "未知回应"))
+	choice_title.text = String(choice.get("title", GameCopy.text(&"ui.event.unknown_choice")))
 	button.add_child(choice_title)
 	var choice_description := Label.new()
 	choice_description.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	choice_description.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	choice_description.set_anchors_preset(Control.PRESET_FULL_RECT)
 	choice_description.offset_left = 26.0
-	choice_description.offset_top = -52.0
+	choice_description.offset_top = 52.0
 	choice_description.offset_right = -26.0
-	choice_description.offset_bottom = -14.0
+	choice_description.offset_bottom = -12.0
 	choice_description.add_theme_color_override("font_color", Color(0.91, 0.97, 0.97, 1.0))
 	choice_description.add_theme_font_size_override("font_size", 18)
 	choice_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	choice_description.text = String(choice.get("flavor_text", "信号内容模糊，只有靠近后才能确认回应。"))
+	choice_description.text = _choice_detail_text(choice)
 	button.add_child(choice_description)
 	choices_list.add_child(button)
 	_choice_buttons.append(button)
@@ -115,10 +115,28 @@ func _set_event_background(background_path: String) -> void:
 	event_background.texture = load(background_path) as Texture2D
 
 
+func _choice_detail_text(choice: Dictionary) -> String:
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append(String(choice.get("flavor_text", GameCopy.text(&"ui.event.choice_fallback"))))
+	var risk := int(choice.get("risk", 0))
+	if risk > 0:
+		lines.append(GameCopy.text(&"ui.event.risk_level", [risk]))
+	var cost := String(choice.get("cost_preview", ""))
+	if not cost.is_empty():
+		lines.append(GameCopy.text(&"ui.event.cost", [cost]))
+	var effect := String(choice.get("effect_preview", ""))
+	if not effect.is_empty():
+		lines.append(GameCopy.text(&"ui.event.effect", [effect]))
+	var disabled_reason := String(choice.get("disabled_reason", ""))
+	if not disabled_reason.is_empty():
+		lines.append(disabled_reason)
+	return "\n".join(lines)
+
+
 func show_result(result: Dictionary) -> void:
-	title_label.text = "事件结算"
-	meta_label.text = "本次回应已写入航图记录"
-	story_label.text = String(result.get("message", "信号已归档，方舟正在同步后续影响。"))
+	title_label.text = GameCopy.text(&"ui.event.result_title")
+	meta_label.text = GameCopy.text(&"ui.event.result_meta")
+	story_label.text = String(result.get("message", GameCopy.text(&"ui.event.result_fallback")))
 	for child in choices_list.get_children():
 		child.queue_free()
 	_choice_buttons.clear()

@@ -141,7 +141,7 @@ text_overrun_behavior = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.321569, 0.909804, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "辅助机"
+text = "辅助装备"
 
 [node name="EffectLabel" type="Label" parent="InfoPanel/Margin/Inner/InfoBox"]
 layout_mode = 2

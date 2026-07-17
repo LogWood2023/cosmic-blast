@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const SETTINGS_POPUP_SCENE := preload("res://scenes/ui/main_menu/SettingsPopup.tscn")
 const META_PREFLIGHT_POPUP_SCENE := preload("res://scenes/ui/main_menu/MetaPreflightPopup.tscn")
+const CODEX_POPUP_SCENE := preload("res://scenes/ui/main_menu/CodexPopup.tscn")
 const CombatUiTheme := preload("res://scripts/ui/theme/CombatUiTheme.gd")
 const CombatUiMotion := preload("res://scripts/ui/theme/CombatUiMotion.gd")
 
@@ -27,11 +28,35 @@ var _menu_tween: Tween
 var _hover_highlight: ColorRect
 var _settings_popup: Control
 var _meta_preflight_popup: MetaPreflightPopup
+var _codex_popup: Control
 
 func _ready() -> void:
 	_setup_menu_buttons()
 	CombatUiMotion.bind_tree(ui_root)
 	_refresh_continue_button()
+	_setup_codex_entry()
+
+
+func _setup_codex_entry() -> void:
+	var button := Button.new()
+	button.name = "CodexButton"
+	button.text = "档案"
+	button.tooltip_text = "查看术语说明与敌人档案"
+	button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	button.offset_left = 36.0
+	button.offset_top = 32.0
+	button.offset_right = 156.0
+	button.offset_bottom = 76.0
+	button.pressed.connect(_on_codex_pressed)
+	ui_root.add_child(button)
+
+
+func _on_codex_pressed() -> void:
+	if is_instance_valid(_codex_popup):
+		return
+	_codex_popup = CODEX_POPUP_SCENE.instantiate() as Control
+	_codex_popup.closed.connect(func() -> void: _codex_popup = null)
+	add_child(_codex_popup)
 
 
 # 无存档时把"继续航程"置灰不可点
@@ -280,14 +305,14 @@ func _begin_new_run() -> void:
 	RunManager.clear_saved_run()  # 开新局丢弃旧存档
 	GameManager.reset_run_state()
 	RunManager.start_new_run()
-	get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
+	SceneTransition.change_scene_to_file("res://scenes/app/WorldMap.tscn")
 
 
 func _on_continue_pressed() -> void:
 	if not RunManager.load_saved_run():
 		_refresh_continue_button()  # 存档意外缺失/损坏，刷新按钮状态
 		return
-	get_tree().change_scene_to_file("res://scenes/app/WorldMap.tscn")
+	SceneTransition.change_scene_to_file("res://scenes/app/WorldMap.tscn")
 
 
 func _on_boss_pressed() -> void:
@@ -295,7 +320,7 @@ func _on_boss_pressed() -> void:
 	GameManager.score = 0
 	GameManager.player_hp = GameManager.PLAYER_MAX_HP
 	GameManager.elapsed = 0.0
-	get_tree().change_scene_to_file("res://scenes/app/BossSelect.tscn")
+	SceneTransition.change_scene_to_file("res://scenes/app/BossSelect.tscn")
 
 
 func _on_settings_pressed() -> void:

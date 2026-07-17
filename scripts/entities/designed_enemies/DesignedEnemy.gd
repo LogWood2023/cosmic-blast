@@ -370,6 +370,7 @@ const DIVINE_TELEPORT_SHADER_CODE := "shader_type canvas_item;\nuniform float fa
 
 func _ready() -> void:
 	_apply_behavior_defaults()
+	_record_codex_encounter()
 	if _explore_pool_enabled and not _explore_pool_active:
 		max_hp = hp
 		_apply_collision_shape_size()
@@ -605,6 +606,7 @@ func reset_explore_pooled_patrol_enemy(new_behavior: int, points: PackedVector2A
 	_clear_runtime_visual_effects_for_pool()
 	_reset_common_runtime_state_for_pool()
 	_apply_behavior_defaults()
+	_record_codex_encounter()
 	max_hp = hp
 	_ensure_behavior_visuals(behavior_changed or _visual_behavior != int(behavior))
 	if health_bar:
@@ -634,6 +636,7 @@ func reset_explore_pooled_idle_enemy(new_behavior: int, room_bounds: Rect2, spaw
 	_clear_runtime_visual_effects_for_pool()
 	_reset_common_runtime_state_for_pool()
 	_apply_behavior_defaults()
+	_record_codex_encounter()
 	max_hp = hp
 	_ensure_behavior_visuals(behavior_changed or _visual_behavior != int(behavior))
 	global_position = spawn_position
@@ -1411,6 +1414,13 @@ func _get_effect_parent() -> Node:
 			scene_parent = scene_parent.get_parent()
 		return parent
 	return self
+
+
+func _record_codex_encounter() -> void:
+	var index := int(behavior)
+	if index < 0 or index >= DesignedEnemyCatalog.ENEMIES.size():
+		return
+	MetaProgressionState.unlock_codex_enemy(String(DesignedEnemyCatalog.ENEMIES[index].get("id", "")))
 
 
 func _apply_behavior_defaults() -> void:

@@ -40,7 +40,7 @@ func setup(summary: Dictionary) -> void:
 				route_effects.append(family_name)
 			var equipment_bonus := float(route.get("equipment_bonus", 0.0))
 			if equipment_bonus > 0.0:
-				route_effects.append("装备检出 +%d%%" % int(round(equipment_bonus * 100.0)))
+				route_effects.append("装备出现率 +%d%%" % int(round(equipment_bonus * 100.0)))
 			var reward_bonus := float(route.get("reward_bonus", 0.0))
 			if reward_bonus > 0.0:
 				route_effects.append("矿物倍率 +%.2f" % reward_bonus)
@@ -49,7 +49,7 @@ func setup(summary: Dictionary) -> void:
 			else:
 				lines.append("• %s：%s" % [node_name, " / ".join(route_effects)])
 	lines.append("")
-	lines.append("方舟核心会在后续探索中沿这些航线强化纹章检出与资源回收。")
+	lines.append("方舟核心会在后续探索中沿这些航线提高装备出现率与资源回收。")
 	body_label.text = "\n".join(lines)
 
 

@@ -509,7 +509,7 @@ func _check_player_death() -> bool:
 	_death_triggered = true
 	if RunManager.is_formal_run_active():
 		RunManager.finish_run(false)
-	get_tree().change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
+	SceneTransition.change_scene_to_file.call_deferred("res://scenes/app/gameover.tscn")
 	return true
 
 

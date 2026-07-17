@@ -31,8 +31,8 @@ func _build_buttons() -> void:
 func _on_enemy_selected(enemy_id: String) -> void:
 	var scene_path := "res://scenes/tests/enemies/EnemyTest_%s.tscn" % enemy_id
 	GameManager.reset_run_state()
-	get_tree().change_scene_to_file(scene_path)
+	SceneTransition.change_scene_to_file(scene_path)
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+	SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")

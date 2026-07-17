@@ -5,6 +5,7 @@ extends Node2D
 @export var body_tex: Texture2D
 @export var orbiter_tex: Texture2D
 const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
+const BossNarrationScript = preload("res://scripts/ui/BossNarration.gd")
 const BOSS_BGM = preload("res://assets/audio/warpedcore_bgm.mp3")
 
 const BODY_TEX_DEFAULT = preload("res://assets/images/warpedcore/warpedcore_body_cutout.png")
@@ -157,6 +158,7 @@ func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
 	BossBudgetApplicator.apply_to(self, "warped")
 	boss_hp = max_hp
+	BossNarrationScript.show(self, boss_name, &"intro")
 	if not body_tex:
 		body_tex = BODY_TEX_DEFAULT
 	if not orbiter_tex:
@@ -1712,6 +1714,8 @@ func apply_damage(amount: int) -> void:
 		amount = maxi(1, amount / 2)
 	var old_hp := boss_hp
 	boss_hp -= amount
+	if old_hp > max_hp * 0.5 and boss_hp <= max_hp * 0.5:
+		BossNarrationScript.show(self, boss_name, &"half")
 	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
 	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
@@ -1737,6 +1741,7 @@ func apply_damage(amount: int) -> void:
 func _die() -> void:
 	if dying:
 		return
+	BossNarrationScript.show(self, boss_name, &"defeat")
 	active = false
 	dying = true
 	is_executing = false
@@ -1883,7 +1888,7 @@ func _return_to_menu() -> void:
 	if get_tree():
 		if RunManager.handle_boss_victory():
 			return
-		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+		SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 ## ── 进场黑幕 ──

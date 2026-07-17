@@ -163,7 +163,7 @@ theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-text = "重抽 18"
+text = "刷新商品 18"
 
 [node name="ItemsFrame" type="Panel" parent="Panel"]
 layout_mode = 1

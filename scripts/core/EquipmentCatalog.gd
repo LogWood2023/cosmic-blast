@@ -240,7 +240,7 @@ const WEAPONS: Dictionary = {
 		"bullet_count": 2,
 		"spread_degrees": 8.0,
 		"drone_slots": 1,
-		"description": "牺牲部分主炮效率，换取额外无人机联动空间。",
+		"description": "牺牲部分主炮效率，换取额外僚机联动空间。",
 	},
 }
 
@@ -359,7 +359,7 @@ const AUXILIARIES: Dictionary = {
 		"description": "地狱之眼残留的虹膜仍在发热，狂热窗口因此更加凶险。",
 	},
 	"divine_drone_seed": {
-		"name": "神使无人机种子",
+		"name": "神使僚机种子",
 		"type": TYPE_AUX,
 		"price": 0,
 		"compute_cost": 4,
@@ -663,7 +663,7 @@ const AUXILIARIES: Dictionary = {
 		"description": "红线节拍压迫神经，狂热来得更快，火力也更急。",
 	},
 	"drone_hangar": {
-		"name": "折叠无人机库",
+		"name": "折叠僚机库",
 		"type": TYPE_AUX,
 		"price": 92,
 		"compute_cost": 5,
@@ -988,6 +988,19 @@ static func get_effect_id(id: String) -> String:
 static func get_role(id: String) -> String:
 	var raw := _get_item_ref(id)
 	return _get_primary_mechanic_role(id, raw) if not raw.is_empty() else ""
+
+
+static func get_role_display_name(role: String) -> String:
+	var key_by_role := {
+		"starter": &"role.starter",
+		"amplifier": &"role.amplifier",
+		"converter": &"role.converter",
+		"bridge": &"role.bridge",
+		"economy": &"role.economy",
+		"stabilizer": &"role.stabilizer",
+		"legacy": &"role.legacy",
+	}
+	return GameCopy.text(StringName(key_by_role.get(role, &"role.legacy")))
 
 
 static func get_mechanic_tags(id: String) -> PackedStringArray:
@@ -1375,7 +1388,7 @@ static func get_ui_meta_text(id: String, include_price: bool = false, price: int
 		return ""
 	var parts: Array[String] = []
 	var item_type := String(item.get("type", ""))
-	parts.append("武器" if item_type == TYPE_WEAPON else "辅助机")
+	parts.append("武器" if item_type == TYPE_WEAPON else "辅助装备")
 	parts.append(get_family_display_name(get_family(id)))
 	parts.append(get_rarity_display_name(get_rarity(id)))
 	if item_type == TYPE_AUX:

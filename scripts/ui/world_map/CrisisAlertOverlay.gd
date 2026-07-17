@@ -56,7 +56,7 @@ func play_alert(family: String) -> void:
 		return
 	_kill_animations()
 	boss_icon.texture = icon
-	boss_label.text = "EXECUTOR SIGNAL  //  %s" % String(BOSS_NAME_BY_FAMILY.get(family, "UNKNOWN"))
+	boss_label.text = GameCopy.text(&"ui.crisis_alert.title", [String(BOSS_NAME_BY_FAMILY.get(family, GameCopy.text(&"ui.crisis_alert.unknown_family")))])
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	top_warning_tape.call("set_active", true)

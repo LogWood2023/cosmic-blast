@@ -116,7 +116,7 @@ theme_override_colors/font_color = Color(0.97, 0.985, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 32
-text = "方舟核心 / 纹章档案"
+text = "方舟核心 / 装备档案"
 
 [node name="SummaryLabel" type="Label" parent="Panel"]
 layout_mode = 1
@@ -129,7 +129,7 @@ offset_bottom = 120.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.321569, 0.909804, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "纹章档案 / 已入库 0 / 武器 0 / 辅助机 0"
+text = "装备档案 / 已入库 0 / 武器 0 / 辅助装备 0"
 text_overrun_behavior = 3
 
 [node name="HintLabel" type="Label" parent="Panel"]
@@ -143,7 +143,7 @@ offset_bottom = 152.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.72, 0.79, 0.86, 1)
 theme_override_font_sizes/font_size = 18
-text = "方舟保存所有已识别纹章信号，未入库条目会等待后续航路回收。"
+text = "方舟保存所有已识别装备记录，未入库条目会等待后续航路回收。"
 text_overrun_behavior = 3
 
 [node name="TypeFilterBar" type="HBoxContainer" parent="Panel"]
@@ -188,7 +188,7 @@ theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-text = "辅助机"
+text = "辅助装备"
 
 [node name="FamilyFilterBar" type="HBoxContainer" parent="Panel"]
 layout_mode = 1

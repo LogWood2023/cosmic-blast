@@ -1,8 +1,8 @@
 extends Node
-## Scene-independent cover for the boss-victory handoff.
+## Scene-independent cover for every scene handoff.
 ##
-## It freezes the final boss frame under a black fade before WorldMap is
-## instantiated, so the reward picker can hold one continuous backdrop.
+## Normal scene changes fade through a frozen frame. Boss victories use the
+## same cover while keeping the reward picker on one continuous backdrop.
 
 const BLACK_FADE_COLOR := Color(0.0, 0.0, 0.0, 1.0)
 const BLACK_FADE_ALPHA := 0.76
@@ -14,6 +14,9 @@ const AMBER_COLOR := Color(1.0, 0.72, 0.26, 0.90)
 const BOSS_REWARD_POPUP_SCENE := preload("res://scenes/ui/world_map/BossRewardPopup.tscn")
 const COVER_IN_DURATION := 0.68
 const COVER_OUT_DURATION := 0.62
+const GENERIC_TITLE := "星域跃迁"
+const GENERIC_STATUS := "正在同步目标区域"
+const BOSS_STATUS := "连接已稳定，奖励通道已开启"
 const SLICE_SPECS: Array[Dictionary] = [
 	{"y": 0.16, "height": 5.0, "color": CYAN_COLOR},
 	{"y": 0.27, "height": 14.0, "color": RED_COLOR},
@@ -36,6 +39,7 @@ var _status: Label
 var _title_rest_position := Vector2.ZERO
 var _status_rest_position := Vector2.ZERO
 var _is_transitioning := false
+var _is_boss_victory_transition := false
 var _waiting_for_boss_reward := false
 var _is_claiming_boss_reward := false
 var _boss_reward_popup: Control
@@ -49,11 +53,21 @@ func is_waiting_for_boss_reward() -> bool:
 	return _waiting_for_boss_reward
 
 
-func play_to_scene(scene_path: String) -> void:
+func change_scene_to_file(scene_path: String) -> void:
+	_play_to_scene(scene_path, false)
+
+
+func play_boss_victory_to_scene(scene_path: String) -> void:
+	_play_to_scene(scene_path, true)
+
+
+func _play_to_scene(scene_path: String, is_boss_victory: bool) -> void:
 	if _is_transitioning or scene_path.is_empty():
 		return
 	_is_transitioning = true
+	_is_boss_victory_transition = is_boss_victory
 	_ensure_overlay()
+	_update_overlay_copy()
 	_capture_current_frame()
 	_reset_overlay()
 	_root.show()
@@ -82,10 +96,11 @@ func play_to_scene(scene_path: String) -> void:
 		scanline_tween.tween_property(scanline, "modulate:a", 0.24, 0.12)
 	await cover_tween.finished
 
-	_waiting_for_boss_reward = RunManager.has_pending_boss_reward()
+	_waiting_for_boss_reward = _is_boss_victory_transition and RunManager.has_pending_boss_reward()
 	var change_error := get_tree().change_scene_to_file(scene_path)
 	if change_error != OK:
 		push_error("执行体结算转场无法加载场景：%s" % scene_path)
+		_waiting_for_boss_reward = false
 		await _reveal_overlay()
 		return
 
@@ -155,7 +170,9 @@ func _reveal_overlay() -> void:
 	await reveal_tween.finished
 	_root.hide()
 	_is_transitioning = false
+	_is_boss_victory_transition = false
 	_is_claiming_boss_reward = false
+	_waiting_for_boss_reward = false
 
 
 func _ensure_overlay() -> void:
@@ -169,7 +186,7 @@ func _ensure_overlay() -> void:
 	_root = Control.new()
 	_root.name = "BossVictoryTransition"
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.process_mode = Node.PROCESS_MODE_ALWAYS
 	_layer.add_child(_root)
 
@@ -214,7 +231,7 @@ func _ensure_overlay() -> void:
 		_root.add_child(slice)
 		_slices.append(slice)
 
-	_title = _make_label("EXECUTOR PURGE", 46, CYAN_COLOR)
+	_title = _make_label(GameCopy.text(&"ui.boss_victory.title"), 46, CYAN_COLOR)
 	_title.set_anchors_preset(Control.PRESET_CENTER)
 	_title.offset_left = -440.0
 	_title.offset_top = -62.0
@@ -223,7 +240,7 @@ func _ensure_overlay() -> void:
 	_root.add_child(_title)
 	_title_rest_position = _title.position
 
-	_status = _make_label("LINK STABILIZED  //  REWARD CHANNEL OPEN", 16, AMBER_COLOR)
+	_status = _make_label("连接已稳定，奖励通道已开启", 16, AMBER_COLOR)
 	_status.set_anchors_preset(Control.PRESET_CENTER)
 	_status.offset_left = -440.0
 	_status.offset_top = 4.0
@@ -249,6 +266,15 @@ func _make_label(text: String, font_size: int, font_color: Color) -> Label:
 	return label
 
 
+func _update_overlay_copy() -> void:
+	if _is_boss_victory_transition:
+		_title.text = GameCopy.text(&"ui.boss_victory.title")
+		_status.text = BOSS_STATUS
+		return
+	_title.text = GENERIC_TITLE
+	_status.text = GENERIC_STATUS
+
+
 func _reset_overlay() -> void:
 	_black_fade.color = BLACK_FADE_COLOR
 	_black_fade.color.a = 0.0
@@ -264,6 +290,10 @@ func _reset_overlay() -> void:
 
 
 func _capture_current_frame() -> void:
+	if DisplayServer.get_name() == "headless":
+		_has_frozen_frame = false
+		_frozen_frame.hide()
+		return
 	var image := get_viewport().get_texture().get_image()
 	if image == null or image.is_empty():
 		_has_frozen_frame = false

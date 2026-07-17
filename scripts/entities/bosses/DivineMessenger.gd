@@ -3,6 +3,7 @@ extends Node2D
 
 # ═══════════ 贴图 ═══════════
 const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
+const BossNarrationScript = preload("res://scripts/ui/BossNarration.gd")
 const CRYSTAL_TEX = preload("res://assets/images/divine_messenger/crystal_cutout.png")
 const CROWN_TEX = preload("res://assets/images/divine_messenger/crown_cutout.png")
 const WINGS_TEX = preload("res://assets/images/divine_messenger/wings_cutout.png")
@@ -261,6 +262,7 @@ func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
 	BossBudgetApplicator.apply_to(self, "divine")
 	boss_hp = max_hp
+	BossNarrationScript.show(self, boss_name, &"intro")
 	_crystal_pulse = randf_range(0.0, TAU)
 	_crown_phase = randf_range(0.0, TAU)
 	_wings_phase = randf_range(0.0, TAU)
@@ -2207,6 +2209,7 @@ func _test_wing_cycle(delta: float) -> void:
 func _die() -> void:
 	if dying:
 		return
+	BossNarrationScript.show(self, boss_name, &"defeat")
 	active = false
 	dying = true
 	is_executing = false
@@ -2315,7 +2318,7 @@ func _return_to_menu() -> void:
 	if get_tree():
 		if RunManager.handle_boss_victory():
 			return
-		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+		SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _shake_parts() -> void:
@@ -2358,6 +2361,8 @@ func apply_damage(amount: int) -> void:
 		amount = maxi(1, amount / 2)
 	var old_hp := boss_hp
 	boss_hp -= amount
+	if old_hp > max_hp * 0.5 and boss_hp <= max_hp * 0.5:
+		BossNarrationScript.show(self, boss_name, &"half")
 	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
 	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:

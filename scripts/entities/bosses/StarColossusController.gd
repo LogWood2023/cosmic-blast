@@ -5,6 +5,7 @@ extends Node2D
 @export var arm_tex: Texture2D = preload("res://assets/images/boss/boss_colossus_arm_cutout.png")
 @export var arm_r_tex: Texture2D = preload("res://assets/images/boss/boss_colossus_arm_r_cutout.png")
 const BossBudgetApplicator = preload("res://scripts/core/BossBudgetApplicator.gd")
+const BossNarrationScript = preload("res://scripts/ui/BossNarration.gd")
 const ArmScript = preload("res://scripts/entities/bosses/StarColossusArm.gd")
 const BodyScript = preload("res://scripts/entities/bosses/StarColossusBody.gd")
 const BOSS_BGM = preload("res://assets/audio/colossus_bgm.mp3")
@@ -85,6 +86,7 @@ func _ready() -> void:
 	screen_size = get_viewport().get_visible_rect().size
 	BossBudgetApplicator.apply_to(self, "colossus")
 	boss_hp = max_hp
+	BossNarrationScript.show(self, boss_name, &"intro")
 	_setup_bgm()
 	_build_parts()
 	_start_entrance()
@@ -830,6 +832,8 @@ func apply_damage(amount: int) -> void:
 		return
 	var old_hp := boss_hp
 	boss_hp -= amount
+	if old_hp > max_hp * 0.5 and boss_hp <= max_hp * 0.5:
+		BossNarrationScript.show(self, boss_name, &"half")
 	BossBudgetApplicator.apply_damage_phase_modifier(self, boss_hp)
 	GameManager.report_frenzy_hit(1.0, false)
 	if boss_hp <= 0:
@@ -841,6 +845,7 @@ func apply_damage(amount: int) -> void:
 func _die() -> void:
 	if dying:
 		return
+	BossNarrationScript.show(self, boss_name, &"defeat")
 	active = false
 	dying = true
 	death_timer = 0.0
@@ -915,7 +920,7 @@ func _return_to_menu() -> void:
 	if get_tree():
 		if RunManager.handle_boss_victory():
 			return
-		get_tree().change_scene_to_file("res://scenes/app/MainMenu.tscn")
+		SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _spawn_death_explosion() -> void:

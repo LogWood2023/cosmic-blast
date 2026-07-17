@@ -53,9 +53,9 @@ func _refresh() -> void:
 	var preferred_family := String(run_manager.shop_preferred_family)
 	_sync_family_focus_option(preferred_family)
 	if int(free_reroll_summary.get("remaining", 0)) > 0:
-		reroll_button.text = "免矿重抽"
+		reroll_button.text = "免费刷新商品"
 	else:
-		reroll_button.text = "重抽 %d" % reroll_cost
+		reroll_button.text = "刷新商品 %d" % reroll_cost
 	reroll_button.disabled = int(run_manager.minerals) < reroll_cost
 	_refresh_shop_guidance(run_manager)
 

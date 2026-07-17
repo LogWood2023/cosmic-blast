@@ -43,12 +43,43 @@ const FAMILY_BOSS_EHP_MULTIPLIERS: Dictionary = {
 	"神明使者": 1.04,
 }
 
+const FAMILY_ARCHIVE_TEXT: Dictionary = {
+	"星间巨构": "五席留下的军用巨构残片仍在执行封锁指令。它们用装甲、冲锋与牵引把空域压成无法回旋的走廊。",
+	"天堂号": "天堂号的自动舰队把秩序理解为火力覆盖。它们会先占住射线，再把每条安全航线逐步切碎。",
+	"扭曲星核": "扭曲星核的实验残留会改变弹道与位置关系。面对它们，边界、障碍和原本安全的距离都可能成为威胁。",
+	"地狱之眼": "地狱之眼以审判和错觉夺走判断。它们不只造成伤害，也会让你误判位置、方向与下一次攻击。",
+	"神明使者": "神明使者的残存信号把护航协议变成追猎指令。它们擅长突进、闪现与从背后切断航线。",
+}
+
 
 static func get_enemy(id: String) -> Dictionary:
 	for enemy in ENEMIES:
 		if enemy.id == id:
 			return enemy
 	return {}
+
+
+static func get_codex_entry(id: String) -> Dictionary:
+	var enemy := get_enemy(id)
+	if enemy.is_empty():
+		return {}
+	var family := String(enemy.get("family", ""))
+	return {
+		"id": String(enemy.get("id", "")),
+		"name": String(enemy.get("name", "未知敌人")),
+		"family": family,
+		"mechanic": String(enemy.get("mechanic", "未记录战斗行为。")),
+		"archive": String(FAMILY_ARCHIVE_TEXT.get(family, "来源记录缺失；保持距离并优先确认攻击方式。")),
+	}
+
+
+static func get_all_codex_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for enemy in ENEMIES:
+		var entry := get_codex_entry(String(enemy.get("id", "")))
+		if not entry.is_empty():
+			entries.append(entry)
+	return entries
 
 
 static func get_budgeted_enemy(behavior: int, stage: int, advanced_crisis: Dictionary = {}) -> Dictionary:
