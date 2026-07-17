@@ -8,6 +8,7 @@ const RunContentFacadeScript := preload("res://scripts/core/run_content/RunConte
 const RunMutationSetScript := preload("res://scripts/core/run_content/RunMutationSet.gd")
 const BalanceTelemetryScript := preload("res://scripts/core/BalanceTelemetry.gd")
 const AdvancedCrisisResolverScript := preload("res://scripts/core/AdvancedCrisisResolver.gd")
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
 
 const WORLD_MAP_SCENE: String = "res://scenes/app/WorldMap.tscn"
 const EXPLORE_ROOM_SCENE: String = "res://scenes/gameplay/explore/ExploreRoom.tscn"
@@ -19,7 +20,7 @@ const NODE_EVENT: String = "event"
 const NODE_REWARD: String = "reward"
 const NODE_SPECIAL: String = "special"
 
-const CRISIS_THRESHOLDS: Array[int] = [5, 12, 21]
+var CRISIS_THRESHOLDS: Array[int] = [5, 12, 21]
 const BOSS_ALERT_PREVIEWS: Dictionary = {
 	"res://scenes/gameplay/boss/BossBattle_Frontier.tscn": {"name": "星海前锋", "test_text": "测试通告：前锋舰队已完成坐标校准，正在评估方舟的征服价值。"},
 	"res://scenes/gameplay/boss/BossBattle_PeachBlossom.tscn": {"name": "桃源乡", "test_text": "测试通告：乐园协议正在抹除航图中的不稳定变量。"},
@@ -742,12 +743,13 @@ const SPECIAL_BONUS_PROFILES: Array[Dictionary] = [
 	},
 ]
 const TIER_REWARD_MULTS: Array[float] = [1.0, 1.25, 1.55]
-const TIER_EQUIPMENT_DROP_CHANCES: Array[float] = [0.28, 0.36, 0.48]
-const MAX_READABLE_EQUIPMENT_DROP_CHANCE: float = 0.85
+var TIER_EQUIPMENT_DROP_CHANCES: Array[float] = [0.28, 0.36, 0.48]
+var MAX_READABLE_EQUIPMENT_DROP_CHANCE: float = 0.85
 const TIER_RISK_LEVELS: Array[int] = [1, 3, 5]
-const SHOP_OFFER_COUNT: int = 12
-const SHOP_REROLL_BASE_COST: int = 18
-const SHOP_REROLL_COST_STEP: int = 12
+var SHOP_OFFER_COUNT: int = 12
+var SHOP_REROLL_BASE_COST: int = 18
+var SHOP_REROLL_COST_STEP: int = 10
+var SHOP_REROLL_REPEAT_STEP: int = 14
 const SHOP_FOCUS_MIN_OFFERS: int = 7
 const SHOP_ORE_SOURCE_MIN_OFFERS: int = 3
 const REWARD_CACHE_MINERAL_MULT_BONUS: float = 0.18
@@ -1977,7 +1979,26 @@ var balance_telemetry: BalanceTelemetry = BalanceTelemetryScript.new()
 
 
 func _ready() -> void:
+	_apply_master_balance()
 	_ensure_run_content_facade()
+
+
+func _apply_master_balance() -> void:
+	CRISIS_THRESHOLDS = [
+		int(BalanceServiceScript.get_stage_value("pacing", "crisis_thresholds", 1, 5)),
+		int(BalanceServiceScript.get_stage_value("pacing", "crisis_thresholds", 2, 12)),
+		int(BalanceServiceScript.get_stage_value("pacing", "crisis_thresholds", 3, 21)),
+	]
+	TIER_EQUIPMENT_DROP_CHANCES = [
+		float(BalanceServiceScript.get_stage_value("economy", "equipment_drop_chance", 1, 0.28)),
+		float(BalanceServiceScript.get_stage_value("economy", "equipment_drop_chance", 2, 0.36)),
+		float(BalanceServiceScript.get_stage_value("economy", "equipment_drop_chance", 3, 0.48)),
+	]
+	MAX_READABLE_EQUIPMENT_DROP_CHANCE = float(BalanceServiceScript.get_value("economy", "equipment_drop_chance_cap", 0.85))
+	SHOP_OFFER_COUNT = int(BalanceServiceScript.get_value("economy", "shop_offer_count", SHOP_OFFER_COUNT))
+	SHOP_REROLL_BASE_COST = int(BalanceServiceScript.get_value("economy", "reroll_base", SHOP_REROLL_BASE_COST))
+	SHOP_REROLL_COST_STEP = int(BalanceServiceScript.get_value("economy", "reroll_stage_step", SHOP_REROLL_COST_STEP))
+	SHOP_REROLL_REPEAT_STEP = int(BalanceServiceScript.get_value("economy", "reroll_repeat_step", SHOP_REROLL_REPEAT_STEP))
 
 
 func start_new_run() -> void:
@@ -1995,8 +2016,8 @@ func start_new_run() -> void:
 	advanced_crisis_level = selected_advanced_crisis_level
 	crisis_modifier_snapshot = AdvancedCrisisResolverScript.new().resolve(advanced_crisis_level)
 	balance_telemetry.record("run_started", {"crisis_level": crisis_level, "advanced_crisis_level": advanced_crisis_level})
-	compute_capacity = 5
-	minerals = 0
+	compute_capacity = int(BalanceServiceScript.get_value("economy", "starting_compute", 5))
+	minerals = int(BalanceServiceScript.get_value("economy", "starting_minerals", 0))
 	completed_node_count = 0
 	current_node_id = -1
 	current_room_mineral_mult = 1.0
@@ -2872,7 +2893,11 @@ func start_explore_node(node_id: int) -> bool:
 	current_node_id = node_id
 	pending_room_loot = _empty_loot()
 	var node_type := String(node.get("type", NODE_BATTLE))
-	var room_config: Dictionary = {}
+	var room_stage := _get_current_stage()
+	var room_config: Dictionary = {
+		"enemy_spawn_interval": float(BalanceServiceScript.get_stage_value("exploration", "patrol_spawn_interval", room_stage, 30.0)),
+		"max_patrol_enemy_count": int(BalanceServiceScript.get_stage_value("exploration", "patrol_enemy_cap", room_stage, 10)),
+	}
 	_apply_node_room_config(room_config, node)
 	if node_type == NODE_BATTLE:
 		var battle_config: Dictionary = node.get("battle_room_config", {})
@@ -3069,7 +3094,7 @@ func get_shop_reroll_cost() -> int:
 	if _get_free_shop_reroll_count() > 0:
 		return 0
 	var economy := _get_advanced_crisis_domain("economy")
-	return SHOP_REROLL_BASE_COST + _get_current_stage() * 10 + shop_reroll_count * 14 + int(economy.get("reroll_base_bonus", 0))
+	return SHOP_REROLL_BASE_COST + _get_current_stage() * SHOP_REROLL_COST_STEP + shop_reroll_count * SHOP_REROLL_REPEAT_STEP + int(economy.get("reroll_base_bonus", 0))
 
 
 func get_free_shop_reroll_summary() -> Dictionary:

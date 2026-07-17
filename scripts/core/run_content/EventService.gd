@@ -3,6 +3,7 @@ extends RefCounted
 ## Loads event assets and applies deterministic eligibility/variety rules.
 
 const EVENT_DIRECTORY: String = "res://data/events"
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
 const LEGACY_ID_MIGRATIONS: Dictionary = {
 	"procurement_discount": "procurement_future",
 	"procurement_reroll_voucher": "procurement_future",
@@ -84,9 +85,71 @@ func _load_definitions() -> void:
 		if definition == null or definition.event_id.is_empty() or definition.options.size() < 2:
 			push_error("EventService: invalid event resource %s" % filename)
 			continue
+		_apply_master_balance(definition)
 		_definitions.append(definition)
 		_by_id[definition.event_id] = definition
 	_definitions.sort_custom(func(a: EventDefinition, b: EventDefinition) -> bool: return a.event_id < b.event_id)
+
+
+func _apply_master_balance(definition: EventDefinition) -> void:
+	var record := BalanceServiceScript.get_record_snapshot("event", definition.event_id)
+	if record.is_empty():
+		return
+	var attributes: Dictionary = record.attributes
+	var payload := Dictionary(attributes.get("payload", {}))
+	definition.balance_payload = payload.duplicate(true)
+	definition.title = String(record.get("name", definition.title))
+	definition.weight = float(attributes.get("weight", definition.weight))
+	definition.family_tag = String(attributes.get("family", definition.family_tag))
+	var risk := int(attributes.get("risk", 0))
+	definition.category = "safe" if risk <= 0 else ("gamble" if risk >= 2 else ("bridge" if String(attributes.get("role", "")) == "bridge" else "risk"))
+	definition.is_unique = bool(payload.get("unique", definition.is_unique))
+	if payload.has("requires"):
+		definition.prerequisites["required_families"] = Array(payload.requires)
+	var duration := int(attributes.get("duration_nodes", 0))
+	if duration > 0 and not definition.options.is_empty():
+		definition.options[0].duration_nodes = duration
+	for option_index in mini(2, definition.options.size()):
+		var prefix := "a." if option_index == 0 else "b."
+		for payload_key_variant in payload:
+			var payload_key := String(payload_key_variant)
+			if payload_key.begins_with(prefix):
+				_apply_option_amount(definition.options[option_index], payload_key.trim_prefix(prefix), payload[payload_key_variant])
+
+
+func _apply_option_amount(option: EventOptionData, key: String, value: Variant) -> void:
+	var cost_kind := "hp" if key == "hp_loss" else ("minerals" if key in ["mineral_cost", "prepay", "stake"] else "")
+	if not cost_kind.is_empty():
+		for cost in option.costs:
+			if String(cost.get("kind", "")) == cost_kind:
+				_set_amount(cost, value)
+				return
+	var action := ""
+	match key:
+		"minerals": action = "grant_minerals"
+		"heal": action = "heal"
+		"compute": action = "grant_compute"
+		"crisis": action = "add_crisis"
+	if not action.is_empty():
+		for effect in option.effects:
+			if String(effect.get("action", "")) == action:
+				_set_amount(effect, value)
+				return
+	for effect in option.effects:
+		if String(effect.get("action", "")) == "add_event_contract":
+			var contract_payload := Dictionary(effect.get("payload", {}))
+			contract_payload[key] = value
+			effect["payload"] = contract_payload
+			return
+
+
+func _set_amount(entry: Dictionary, value: Variant) -> void:
+	if value is PackedInt32Array:
+		entry["amount_by_stage"] = value
+		entry.erase("amount")
+	else:
+		entry["amount"] = int(value)
+		entry.erase("amount_by_stage")
 
 
 func _definition_conditions_met(definition: EventDefinition, snapshot: Dictionary, node: Dictionary) -> bool:

@@ -1,0 +1,298 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_6bh1d"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_gbu6c"]
+
+[sub_resource type="Resource" id="Resource_dqk7t"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "run_fast_minutes"
+display_name = "胡局完整局时"
+raw_value = "36"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+raw_attributes = "payload=min=32;max=40"
+notes = "用于快速决策和胡局"
+
+[sub_resource type="Resource" id="Resource_s141r"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "run_p50_minutes"
+display_name = "普通成功局时P50"
+raw_value = "48"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+raw_attributes = "payload=min=45;max=52"
+notes = "正式航程第一平衡目标"
+
+[sub_resource type="Resource" id="Resource_5q15w"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "run_p90_minutes"
+display_name = "谨慎搜刮局时P90"
+raw_value = "58"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+raw_attributes = "payload=min=55;max=60"
+notes = "超过60分钟视为节奏失败"
+
+[sub_resource type="Resource" id="Resource_7xhq5"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "config"
+record_id = "completed_nodes"
+display_name = "结算节点总数"
+raw_value = "21"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+notes = "不含三场Boss结算"
+
+[sub_resource type="Resource" id="Resource_fhegh"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "config"
+record_id = "stage_completed_nodes"
+display_name = "各阶段结算节点"
+raw_stage_values = PackedStringArray("5", "7", "9")
+unit = "count"
+data_type = "int"
+formula = "stage_sum=21"
+notes = "对应危机阈值增量"
+
+[sub_resource type="Resource" id="Resource_0w41e"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "config"
+record_id = "crisis_thresholds"
+display_name = "Boss危机阈值"
+raw_stage_values = PackedStringArray("5", "12", "21")
+unit = "crisis"
+data_type = "int"
+notes = "保持现有航程锚点"
+
+[sub_resource type="Resource" id="Resource_7lkut"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "config"
+record_id = "boss_count"
+display_name = "Boss场数"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+notes = "每阶段一场"
+
+[sub_resource type="Resource" id="Resource_2knh6"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "map_candidate_nodes"
+display_name = "航图候选节点"
+raw_value = "50"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=min=45;max=55"
+notes = "实际只完成21个"
+
+[sub_resource type="Resource" id="Resource_e0on7"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "completed_battle_nodes"
+display_name = "完成探索战斗节点"
+raw_value = "8.5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "float"
+raw_attributes = "payload=min=8;max=9"
+notes = "P50计算使用8.5"
+
+[sub_resource type="Resource" id="Resource_tqdvr"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "completed_event_nodes"
+display_name = "完成事件节点"
+raw_value = "6"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=min=5;max=7"
+notes = "24项事件库的单局中位数"
+
+[sub_resource type="Resource" id="Resource_gcb4d"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "completed_reward_nodes"
+display_name = "完成奖励节点"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=min=1;max=3"
+notes = "Boss奖励另计"
+
+[sub_resource type="Resource" id="Resource_tmutb"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "completed_beacon_nodes"
+display_name = "激活信标节点"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=max_with_event=3"
+notes = "默认2个可达信标"
+
+[sub_resource type="Resource" id="Resource_3ofjq"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "completed_shop_nodes"
+display_name = "商店整理次数"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=min=2;max=3"
+notes = "不作为结算节点时只计时间"
+
+[sub_resource type="Resource" id="Resource_qnbny"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "explore_room_minutes"
+display_name = "探索房P50时长"
+raw_value = "4"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+raw_attributes = "payload=min=3;max=5"
+notes = "按75%搜刮"
+
+[sub_resource type="Resource" id="Resource_jw56j"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "explore_room_hu_minutes"
+display_name = "胡局探索房P50时长"
+raw_value = "2.2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+raw_attributes = "payload=min=1.5;max=3"
+notes = "不要求继续保持4分钟"
+
+[sub_resource type="Resource" id="Resource_m0qy5"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "event_choice_seconds"
+display_name = "事件选择P50时长"
+raw_value = "32"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "int"
+raw_attributes = "payload=min=20;max=45"
+notes = "含阅读和确认"
+
+[sub_resource type="Resource" id="Resource_eyejv"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "reward_choice_seconds"
+display_name = "奖励选择P50时长"
+raw_value = "30"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "int"
+raw_attributes = "payload=min=20;max=40"
+notes = "三选一"
+
+[sub_resource type="Resource" id="Resource_h6kmm"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "beacon_choice_seconds"
+display_name = "信标选择P50时长"
+raw_value = "30"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "int"
+raw_attributes = "payload=min=20;max=45"
+notes = "三选一"
+
+[sub_resource type="Resource" id="Resource_mpant"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "shop_seconds"
+display_name = "单次商店整理P50"
+raw_value = "60"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "int"
+raw_attributes = "payload=min=30;max=90"
+notes = "含装配调整"
+
+[sub_resource type="Resource" id="Resource_lkqto"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "target"
+record_id = "route_overhead_minutes"
+display_name = "航图移动和过场预算"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+notes = "P50总时长余量"
+
+[sub_resource type="Resource" id="Resource_xbhap"]
+script = ExtResource("1_6bh1d")
+schema_version = "1.0"
+domain = "pacing"
+kind = "derived"
+record_id = "run_p50_calculated"
+display_name = "计算完整局时P50"
+raw_value = "48.4"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minutes"
+data_type = "float"
+formula = "8.5*4+6*32/60+2*0.5+2*0.5+2*1+82/60+106/60+126/60+2"
+notes = "与48分钟目标一致"
+
+[resource]
+script = ExtResource("2_gbu6c")
+schema_version = "1.0"
+domain = "pacing"
+records = Array[Resource]([SubResource("Resource_dqk7t"), SubResource("Resource_s141r"), SubResource("Resource_5q15w"), SubResource("Resource_7xhq5"), SubResource("Resource_fhegh"), SubResource("Resource_0w41e"), SubResource("Resource_7lkut"), SubResource("Resource_2knh6"), SubResource("Resource_e0on7"), SubResource("Resource_tqdvr"), SubResource("Resource_gcb4d"), SubResource("Resource_tmutb"), SubResource("Resource_3ofjq"), SubResource("Resource_qnbny"), SubResource("Resource_jw56j"), SubResource("Resource_m0qy5"), SubResource("Resource_eyejv"), SubResource("Resource_h6kmm"), SubResource("Resource_mpant"), SubResource("Resource_lkqto"), SubResource("Resource_xbhap")])

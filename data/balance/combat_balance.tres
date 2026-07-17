@@ -1,6 +1,9 @@
-[gd_resource type="Resource" script_class="CombatBalanceConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="CombatBalanceConfig" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/balance/CombatBalanceConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/balance/CombatBalanceConfig.gd" id="1_p2lvv"]
 
 [resource]
-script = ExtResource("1")
+script = ExtResource("1_p2lvv")
+enemy_stage_multipliers = PackedFloat32Array(1, 2.1, 4.3)
+elite_ehp = PackedInt32Array(4800, 9600, 20400)
+boss_ehp = PackedInt32Array(5600, 14500, 36000)

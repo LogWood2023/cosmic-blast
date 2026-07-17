@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_v3tum"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_pom1i"]
+
+[sub_resource type="Resource" id="Resource_oinse"]
+script = ExtResource("1_v3tum")
+schema_version = "1.0"
+domain = "meta"
+kind = "schema"
+record_id = "balance_schema_version"
+display_name = "平衡表结构版本"
+raw_value = "1.0"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "version"
+data_type = "string"
+notes = "修改列结构时递增"
+
+[sub_resource type="Resource" id="Resource_7ajvs"]
+script = ExtResource("1_v3tum")
+schema_version = "1.0"
+domain = "meta"
+kind = "schema"
+record_id = "balance_content_version"
+display_name = "平衡内容版本"
+raw_value = "2026.07.16.1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "version"
+data_type = "string"
+notes = "首轮实际数值基准"
+
+[sub_resource type="Resource" id="Resource_icmfa"]
+script = ExtResource("1_v3tum")
+schema_version = "1.0"
+domain = "meta"
+kind = "schema"
+record_id = "runtime_source_policy"
+display_name = "运行时数据策略"
+raw_value = "generated_resources"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "policy"
+data_type = "string"
+raw_attributes = "payload=source=master_tsv;runtime=readonly_tres"
+notes = "TSV 为编辑源；游戏读取生成的只读 Resource"
+
+[resource]
+script = ExtResource("2_pom1i")
+schema_version = "1.0"
+domain = "meta"
+records = Array[Resource]([SubResource("Resource_oinse"), SubResource("Resource_7ajvs"), SubResource("Resource_icmfa")])

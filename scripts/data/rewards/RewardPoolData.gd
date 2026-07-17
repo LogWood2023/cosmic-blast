@@ -9,3 +9,4 @@ extends Resource
 @export var min_stage: int = 1
 @export var reward_types: PackedStringArray = PackedStringArray()
 @export var tags: PackedStringArray = PackedStringArray()
+@export var balance_payload: Dictionary = {}

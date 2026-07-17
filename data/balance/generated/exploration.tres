@@ -1,0 +1,149 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_gddkr"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_aow11"]
+
+[sub_resource type="Resource" id="Resource_nff37"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "salvage_normal_value"
+display_name = "普通矿脉回收价值"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "salvage_point"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_gqjf7"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "salvage_chest_value"
+display_name = "宝箱回收价值"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "salvage_point"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_hamm0"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "salvage_elite_cache_value"
+display_name = "精英缓存回收价值"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "salvage_point"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_vyg8y"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "salvage_special_value"
+display_name = "特殊目标回收价值"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "salvage_point"
+data_type = "int"
+raw_attributes = "payload=min=3;max=8"
+notes = "由房间档案指定"
+
+[sub_resource type="Resource" id="Resource_03raf"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "salvage_reveal_ratio"
+display_name = "显露撤离和高价值目标"
+raw_value = "0.5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_d88s4"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "salvage_evac_ratio"
+display_name = "激活撤离点"
+raw_value = "0.65"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_0lbuf"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "target"
+record_id = "salvage_p50_ratio"
+display_name = "实际搜刮P50"
+raw_value = "0.75"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+raw_attributes = "payload=min=0.70;max=0.80"
+notes = "主经济计算使用75%"
+
+[sub_resource type="Resource" id="Resource_g1uri"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "frontload_reward_share"
+display_name = "前70%内容收益占比"
+raw_value = "0.825"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+raw_attributes = "payload=min=0.80;max=0.85"
+notes = "减少强制清图"
+
+[sub_resource type="Resource" id="Resource_ui5pm"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "tail_reward_share"
+display_name = "后30%内容收益占比"
+raw_value = "0.175"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+raw_attributes = "payload=min=0.15;max=0.20"
+notes = "提供额外求胡机会"
+
+[sub_resource type="Resource" id="Resource_7fy6i"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "patrol_spawn_interval"
+display_name = "巡逻基础生成间隔"
+raw_stage_values = PackedStringArray("35", "30", "25")
+unit = "seconds"
+data_type = "float"
+notes = "战斗档案最多浮动25%"
+
+[sub_resource type="Resource" id="Resource_ogsf4"]
+script = ExtResource("1_gddkr")
+schema_version = "1.0"
+domain = "exploration"
+kind = "config"
+record_id = "patrol_enemy_cap"
+display_name = "常态同时敌人数上限"
+raw_stage_values = PackedStringArray("8", "10", "12")
+unit = "count"
+data_type = "int"
+
+[resource]
+script = ExtResource("2_aow11")
+schema_version = "1.0"
+domain = "exploration"
+records = Array[Resource]([SubResource("Resource_nff37"), SubResource("Resource_gqjf7"), SubResource("Resource_hamm0"), SubResource("Resource_vyg8y"), SubResource("Resource_03raf"), SubResource("Resource_d88s4"), SubResource("Resource_0lbuf"), SubResource("Resource_g1uri"), SubResource("Resource_ui5pm"), SubResource("Resource_7fy6i"), SubResource("Resource_ogsf4")])

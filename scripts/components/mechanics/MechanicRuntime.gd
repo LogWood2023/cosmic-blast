@@ -1,12 +1,14 @@
 class_name MechanicRuntime
 extends Node
 
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
+
 signal effect_triggered(effect_id: String, payload: Dictionary)
 signal lineage_debugged(trigger: String, payload: Dictionary)
 
-const MAX_GENERATION: int = 3
+var MAX_GENERATION: int = 3
 const MAX_EVENTS_PER_SECOND: int = 30
-const GENERATION_PROC_COEFFICIENTS: PackedFloat32Array = [1.0, 0.65, 0.35, 0.15]
+var GENERATION_PROC_COEFFICIENTS: PackedFloat32Array = [1.0, 0.65, 0.35, 0.15]
 const SUPPORTED_TRIGGERS: PackedStringArray = ["on_shoot", "on_hit", "on_kill", "on_dash", "on_dash_hit", "on_heavy_hit", "on_frenzy_start", "on_drone_action", "on_mineral_collected"]
 const SUPPORTED_ACTIONS: PackedStringArray = ["spawn_projectile", "apply_mark", "area_damage", "modify_cooldown", "add_heat", "drone_action", "modify_resource"]
 const SUPPORTED_RULE_KEYS: PackedStringArray = ["projectile_split_once", "frenzy_overheat_bank", "dash_charge_refund", "drone_hit_proc"]
@@ -20,6 +22,16 @@ var _active_rule_keys: Dictionary = {}
 var _window_started_msec: int = 0
 var _window_event_count: int = 0
 var _effect_window_counts: Dictionary = {}
+
+
+func _init() -> void:
+	MAX_GENERATION = int(BalanceServiceScript.get_value("mechanic", "max_trigger_generation", MAX_GENERATION))
+	var payload := Dictionary(BalanceServiceScript.get_attributes("mechanic", "generation_proc_coefficients").get("payload", {}))
+	var coefficients := PackedFloat32Array()
+	for generation in range(MAX_GENERATION + 1):
+		coefficients.append(float(payload.get(str(generation), 1.0 if generation == 0 else 0.0)))
+	if coefficients.size() == MAX_GENERATION + 1:
+		GENERATION_PROC_COEFFICIENTS = coefficients
 
 func set_effects(effects: Array[MechanicEffectData]) -> void:
 	_effects = effects.duplicate()

@@ -1,4 +1,5 @@
 extends Node
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
 ## 全局游戏管理器（Autoload 单例）
 
 var score: int = 0
@@ -8,7 +9,7 @@ var player_hp: int:
 		return _player_hp
 	set(value):
 		_set_player_hp(value)
-const PLAYER_MAX_HP: int = 100
+var PLAYER_MAX_HP: int = 100
 var elapsed: float = 0.0
 var frenzy_value: float = 0.0
 var frenzy_active: bool = false
@@ -21,17 +22,17 @@ var _preflight_starting_heat: float = 0.0
 var _preflight_heat_cap_bonus: float = 0.0
 var _frenzy_gain_window_started_msec: int = 0
 var _frenzy_gain_this_window: float = 0.0
-const FRENZY_MAX: float = 100.0
-const FRENZY_DURATION: float = 5.0
-const FRENZY_DAMAGE_TAKEN_MULT: float = 0.6
-const FRENZY_FIRE_RATE_MULT: float = 0.625
-const FRENZY_PRIMARY_HIT_HEAT: float = 2.5
-const FRENZY_SECONDARY_HIT_HEAT: float = 1.0
-const FRENZY_NORMAL_KILL_HEAT: float = 3.0
-const FRENZY_ELITE_KILL_HEAT: float = 12.0
-const FRENZY_DAMAGE_HEAT_CAP: float = 8.0
-const FRENZY_STANDARD_GAIN_CAP: float = 12.0
-const FRENZY_HELL_EYE_GAIN_CAP: float = 24.0
+var FRENZY_MAX: float = 100.0
+var FRENZY_DURATION: float = 5.0
+var FRENZY_DAMAGE_TAKEN_MULT: float = 0.6
+var FRENZY_FIRE_RATE_MULT: float = 0.625
+var FRENZY_PRIMARY_HIT_HEAT: float = 2.5
+var FRENZY_SECONDARY_HIT_HEAT: float = 1.0
+var FRENZY_NORMAL_KILL_HEAT: float = 3.0
+var FRENZY_ELITE_KILL_HEAT: float = 12.0
+var FRENZY_DAMAGE_HEAT_CAP: float = 8.0
+var FRENZY_STANDARD_GAIN_CAP: float = 12.0
+var FRENZY_HELL_EYE_GAIN_CAP: float = 24.0
 
 var bgm_player: AudioStreamPlayer
 const BGM_PATH: String = "res://assets/audio/bgm.mp3"
@@ -168,6 +169,7 @@ var _frame_budget_frame: int = -1
 
 
 func _ready() -> void:
+	_apply_master_balance()
 	_initialize_stutter_log()
 	if DisplayServer.get_name() == "headless":
 		return
@@ -177,6 +179,22 @@ func _ready() -> void:
 	bgm_player.stream = load(BGM_PATH)
 	bgm_player.play()
 	bgm_player.finished.connect(bgm_player.play)
+
+
+func _apply_master_balance() -> void:
+	PLAYER_MAX_HP = int(BalanceServiceScript.get_value("player", "player_max_hp", PLAYER_MAX_HP))
+	_player_hp = clampi(_player_hp, 0, PLAYER_MAX_HP)
+	FRENZY_MAX = float(BalanceServiceScript.get_value("frenzy", "frenzy_max_heat", FRENZY_MAX))
+	FRENZY_DURATION = float(BalanceServiceScript.get_value("frenzy", "frenzy_duration", FRENZY_DURATION))
+	FRENZY_DAMAGE_TAKEN_MULT = float(BalanceServiceScript.get_value("frenzy", "frenzy_damage_taken_mult", FRENZY_DAMAGE_TAKEN_MULT))
+	FRENZY_FIRE_RATE_MULT = float(BalanceServiceScript.get_value("frenzy", "frenzy_fire_interval_mult", FRENZY_FIRE_RATE_MULT))
+	FRENZY_PRIMARY_HIT_HEAT = float(BalanceServiceScript.get_value("frenzy", "frenzy_primary_hit_heat", FRENZY_PRIMARY_HIT_HEAT))
+	FRENZY_SECONDARY_HIT_HEAT = float(BalanceServiceScript.get_value("frenzy", "frenzy_secondary_hit_heat", FRENZY_SECONDARY_HIT_HEAT))
+	FRENZY_NORMAL_KILL_HEAT = float(BalanceServiceScript.get_value("frenzy", "frenzy_normal_kill_heat", FRENZY_NORMAL_KILL_HEAT))
+	FRENZY_ELITE_KILL_HEAT = float(BalanceServiceScript.get_value("frenzy", "frenzy_elite_kill_heat", FRENZY_ELITE_KILL_HEAT))
+	FRENZY_DAMAGE_HEAT_CAP = float(BalanceServiceScript.get_value("frenzy", "frenzy_damage_heat_cap", FRENZY_DAMAGE_HEAT_CAP))
+	FRENZY_STANDARD_GAIN_CAP = float(BalanceServiceScript.get_value("frenzy", "frenzy_standard_gain_cap", FRENZY_STANDARD_GAIN_CAP))
+	FRENZY_HELL_EYE_GAIN_CAP = float(BalanceServiceScript.get_value("frenzy", "frenzy_hell_eye_gain_cap", FRENZY_HELL_EYE_GAIN_CAP))
 
 
 func _notification(what: int) -> void:

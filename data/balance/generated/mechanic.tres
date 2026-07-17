@@ -1,0 +1,99 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_2nyke"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_q17kc"]
+
+[sub_resource type="Resource" id="Resource_162tr"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "cap"
+record_id = "max_trigger_generation"
+display_name = "最大触发世代"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "generation"
+data_type = "int"
+notes = "世代0至3"
+
+[sub_resource type="Resource" id="Resource_i0nmy"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "config"
+record_id = "generation_proc_coefficients"
+display_name = "世代触发系数"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "array"
+raw_attributes = "payload=0=1.0;1=0.65;2=0.35;3=0.15"
+notes = "同谱系逐代衰减"
+
+[sub_resource type="Resource" id="Resource_ndg8f"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "cap"
+record_id = "projectile_soft_cap"
+display_name = "玩家弹体软预算"
+raw_value = "180"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "projectile_per_second"
+data_type = "int"
+notes = "超过后合并纯视觉弹体"
+
+[sub_resource type="Resource" id="Resource_y8gcm"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "cap"
+record_id = "projectile_hard_cap"
+display_name = "玩家弹体硬上限"
+raw_value = "260"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "projectile_per_second"
+data_type = "int"
+notes = "不能静默删除主体攻击"
+
+[sub_resource type="Resource" id="Resource_tcw78"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "config"
+record_id = "default_copy_proc"
+display_name = "复制命中默认触发系数"
+raw_value = "0.35"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+notes = "僚机和信标复制的默认值"
+
+[sub_resource type="Resource" id="Resource_5t4fd"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "config"
+record_id = "cross_family_inherit_min"
+display_name = "跨家族继承下限"
+raw_value = "0.35"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_g61wj"]
+script = ExtResource("1_2nyke")
+schema_version = "1.0"
+domain = "mechanic"
+kind = "config"
+record_id = "cross_family_inherit_max"
+display_name = "跨家族继承上限"
+raw_value = "0.65"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+
+[resource]
+script = ExtResource("2_q17kc")
+schema_version = "1.0"
+domain = "mechanic"
+records = Array[Resource]([SubResource("Resource_162tr"), SubResource("Resource_i0nmy"), SubResource("Resource_ndg8f"), SubResource("Resource_y8gcm"), SubResource("Resource_tcw78"), SubResource("Resource_5t4fd"), SubResource("Resource_g61wj")])

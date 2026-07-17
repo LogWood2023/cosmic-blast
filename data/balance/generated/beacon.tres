@@ -1,0 +1,388 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_i5kcw"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_h6eaq"]
+
+[sub_resource type="Resource" id="Resource_yiv5v"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "system"
+record_id = "beacon_base_count"
+display_name = "基础可达信标数"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "family=general;payload=event_bonus_max=1;active_cap=3"
+
+[sub_resource type="Resource" id="Resource_kc0iy"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "system"
+record_id = "beacon_choice_count"
+display_name = "每个信标候选数"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "family=general;payload=family=1;general_or_bridge=1;economy_or_defense=1"
+
+[sub_resource type="Resource" id="Resource_p6pfv"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "system"
+record_id = "beacon_echo_nodes"
+display_name = "航路回响持续节点"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "completed_node"
+data_type = "int"
+raw_attributes = "family=general;payload=family_weight_mult=2;guaranteed_related_content=1"
+notes = "不直接增伤"
+
+[sub_resource type="Resource" id="Resource_putlw"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "vector_route_beacon"
+display_name = "矢量航路信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=information;weight=1;risk=0;rule_key=route_reroll;payload=reroll_unvisited_per_stage=1;preview_before_after=1"
+notes = "通用"
+
+[sub_resource type="Resource" id="Resource_q31e6"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "echo_archive_beacon"
+display_name = "回声档案信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=amplifier;weight=1;risk=0;rule_key=reward_family_echo;payload=first_pick_per_stage=1;next_draft_same_family=1;different_role=1"
+notes = "通用"
+
+[sub_resource type="Resource" id="Resource_kaeuh"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "reverse_auction_beacon"
+display_name = "逆向拍卖信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=0.8;risk=0;rule_key=shop_reverse_auction;payload=marked_slot_per_shop=1;discount_per_node=10;min_price_mult=0.5;once_per_stage=1"
+notes = "经济"
+
+[sub_resource type="Resource" id="Resource_u8mlp"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "salvage_pawn_beacon"
+display_name = "残件典当信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=0.8;risk=0;rule_key=shop_salvage;payload=scrap_per_shop=1;refund_price_mult=0.7;next_draft_same_role=1;exclude_boss=1"
+notes = "经济"
+
+[sub_resource type="Resource" id="Resource_xgpfo"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "ark_bulkhead_beacon"
+display_name = "方舟隔舱信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=stabilizer;weight=0.8;risk=0;rule_key=heavy_hit_cap;payload=first_heavy_per_room=1;damage_cap=25;invulnerable_seconds=0.8"
+notes = "防御"
+
+[sub_resource type="Resource" id="Resource_ldttx"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "phase_shelter_beacon"
+display_name = "相位庇护信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=stabilizer;weight=0.8;risk=0;rule_key=dash_warning_shield;payload=perfect_dash_through_warning=1;temporary_shield=12;cooldown=8"
+notes = "防御"
+
+[sub_resource type="Resource" id="Resource_rf001"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "colossus_mirror_ram"
+display_name = "镜甲折返信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=colossus;role=starter;weight=1.2;risk=0;rule_key=dash_refund;payload=normal_hits=3;elite_or_boss_hits=1;refund_charges=1;cooldown=6"
+notes = "巨构"
+
+[sub_resource type="Resource" id="Resource_hw07q"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "colossus_seismic_spool"
+display_name = "地震卷轴信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=colossus;role=starter;weight=1.2;risk=0;rule_key=dash_aftershock;payload=aftershock_on_dash_end=1;if_existing=second_delayed_aftershock;recursive=0"
+notes = "巨构"
+
+[sub_resource type="Resource" id="Resource_01gnl"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "colossus_inertia_escrow"
+display_name = "惯性托管信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=colossus;role=stabilizer;weight=1.1;risk=0;rule_key=dash_damage_escrow;payload=delay_damage_during_dash=1;hit_cancel_share=0.5;cannot_reduce_below_one=1"
+notes = "巨构"
+
+[sub_resource type="Resource" id="Resource_g53sq"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "colossus_mass_exchange"
+display_name = "质量交换信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=colossus;role=bridge;weight=1.1;risk=0;rule_key=mass_mark_shrapnel;payload=main_hit_marks=1;dash_consumes_mark=1;shrapnel_count=4;proc=0.35"
+notes = "巨构"
+
+[sub_resource type="Resource" id="Resource_46fns"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "paradise_skyline_chain"
+display_name = "天幕弹链信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=paradise;role=starter;weight=1.2;risk=0;rule_key=periodic_volley;payload=volley_every_shots=6;volley_bullets=5;duplicate_full_event=0"
+notes = "天堂"
+
+[sub_resource type="Resource" id="Resource_ehh2w"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "paradise_shrapnel_charter"
+display_name = "破片宪章信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=paradise;role=starter;weight=1.2;risk=0;rule_key=projectile_split_once;payload=split_on_first_hit=1;children=2;proc=0.35;children_can_split=0"
+notes = "天堂"
+
+[sub_resource type="Resource" id="Resource_hrj6v"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "paradise_return_fire"
+display_name = "回航火线信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=paradise;role=amplifier;weight=1.1;risk=0;rule_key=projectile_return;payload=return_if_missed=1;retarget_once=1;damage_mult=0.5;proc=0.5"
+notes = "天堂"
+
+[sub_resource type="Resource" id="Resource_xwejs"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "paradise_orbit_magazine"
+display_name = "轨道弹仓信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=paradise;role=converter;weight=1.1;risk=0;rule_key=kill_store_orbit;payload=kills_per_orbit=8;storage_cap=4;release_on_dash=1;boss_uses_damage_threshold=1"
+notes = "天堂"
+
+[sub_resource type="Resource" id="Resource_nldpr"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "warped_tidal_lens"
+display_name = "潮汐透镜信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=warped;role=starter;weight=1.2;risk=0;rule_key=projectile_orbit_retry;payload=half_orbit_after_overshoot=1;retry_once=1"
+notes = "星核"
+
+[sub_resource type="Resource" id="Resource_baqoi"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "warped_event_horizon"
+display_name = "事件视界信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=warped;role=starter;weight=1.2;risk=0;rule_key=death_gravity_well;payload=first_pulled_death=1;well_duration=1.5;cooldown=5"
+notes = "星核"
+
+[sub_resource type="Resource" id="Resource_y31yp"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "warped_curved_path"
+display_name = "曲率航迹信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=warped;role=amplifier;weight=1.1;risk=0;rule_key=split_retarget;payload=missed_split_retarget=1;correction_once=1;homing_inherit=0.6"
+notes = "星核"
+
+[sub_resource type="Resource" id="Resource_44e0v"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "warped_singularity_credit"
+display_name = "奇点赊账信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=warped;role=converter;weight=1.1;risk=0;rule_key=pull_threshold_burst;payload=pulled_targets=5;area_burst=1;source_cooldown=6"
+notes = "星核"
+
+[sub_resource type="Resource" id="Resource_18o74"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "hell_eye_redline_iris"
+display_name = "赤线虹膜信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=starter;weight=1.2;risk=0;rule_key=frenzy_overheat_bank;payload=overheat_bank_cap=30;return_after_frenzy=1"
+notes = "地狱"
+
+[sub_resource type="Resource" id="Resource_tvrjm"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "hell_eye_fever_relay"
+display_name = "热病中继信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=starter;weight=1.2;risk=0;rule_key=heavy_hit_trigger_frenzy;payload=min_heat=60;heavy_hit_enters_frenzy=1;uses_per_room=1;damage_still_applies=1"
+notes = "地狱"
+
+[sub_resource type="Resource" id="Resource_suvo7"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "hell_eye_ash_covenant"
+display_name = "灰烬契约信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=amplifier;weight=1.1;risk=0;rule_key=frenzy_room_heat_carry;payload=finish_room_in_frenzy=1;next_room_heat=25"
+notes = "地狱"
+
+[sub_resource type="Resource" id="Resource_goeoc"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "hell_eye_pain_prism"
+display_name = "痛觉棱镜信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=converter;weight=1.1;risk=0;rule_key=frenzy_heal_defer;payload=deferred_heal_share=0.4;settle_after_frenzy=1;heat_from_deferred=1;cap=25"
+notes = "地狱"
+
+[sub_resource type="Resource" id="Resource_fkpgy"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "divine_shared_trigger"
+display_name = "共触圣谕信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=divine;role=bridge;weight=1.2;risk=0;rule_key=drone_player_onhit;payload=drone_hit_triggers_player_onhit=1;proc=0.35;preserve_lineage=1"
+notes = "神使"
+
+[sub_resource type="Resource" id="Resource_tbo7i"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "divine_seraph_recall"
+display_name = "圣羽召回信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=divine;role=amplifier;weight=1.1;risk=0;rule_key=frenzy_reset_drone;payload=on_frenzy_start=1;reset_oldest_drone_skill=1;reset_all=0"
+notes = "神使"
+
+[sub_resource type="Resource" id="Resource_3cixv"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "divine_choir_protocol"
+display_name = "合唱协议信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=divine;role=converter;weight=1.1;risk=0;rule_key=drone_family_choir;payload=different_family_drones=3;same_target=1;choir_shot=1;target_cooldown=3"
+notes = "神使"
+
+[sub_resource type="Resource" id="Resource_futr2"]
+script = ExtResource("1_i5kcw")
+schema_version = "1.0"
+domain = "beacon"
+kind = "definition"
+record_id = "divine_formation_command"
+display_name = "阵列指令信标"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=divine;role=starter;weight=1.2;risk=0;duration_nodes=2;rule_key=dash_drone_focus;payload=on_dash_end=1;gather_at_endpoint=1;focus_elite_or_boss_seconds=2"
+notes = "神使"
+
+[resource]
+script = ExtResource("2_h6eaq")
+schema_version = "1.0"
+domain = "beacon"
+records = Array[Resource]([SubResource("Resource_yiv5v"), SubResource("Resource_kc0iy"), SubResource("Resource_p6pfv"), SubResource("Resource_putlw"), SubResource("Resource_q31e6"), SubResource("Resource_kaeuh"), SubResource("Resource_u8mlp"), SubResource("Resource_xgpfo"), SubResource("Resource_ldttx"), SubResource("Resource_rf001"), SubResource("Resource_hw07q"), SubResource("Resource_01gnl"), SubResource("Resource_g53sq"), SubResource("Resource_46fns"), SubResource("Resource_ehh2w"), SubResource("Resource_hrj6v"), SubResource("Resource_xwejs"), SubResource("Resource_nldpr"), SubResource("Resource_baqoi"), SubResource("Resource_y31yp"), SubResource("Resource_44e0v"), SubResource("Resource_18o74"), SubResource("Resource_tvrjm"), SubResource("Resource_suvo7"), SubResource("Resource_goeoc"), SubResource("Resource_fkpgy"), SubResource("Resource_tbo7i"), SubResource("Resource_3cixv"), SubResource("Resource_futr2")])

@@ -1,4 +1,5 @@
 extends Area2D
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
 ## 玩家 —— HP 制，键盘移动 + 鼠标瞄准射击
 
 signal dash_charges_changed(current_charges: int, maximum_charges: int)
@@ -21,6 +22,7 @@ var collision_radius: float = 27.0
 var _run_bullet_count: int = 1
 var _run_spread_degrees: float = 0.0
 var _run_bullet_speed_mult: float = 1.0
+var _run_projectile_damage_mult: float = 1.0
 var _run_bullet_split_count: int = 0
 var _run_bullet_split_spread_degrees: float = 0.0
 var _run_bullet_split_damage_mult: float = 0.0
@@ -78,19 +80,20 @@ var _was_frenzy_active: bool = false
 
 const OBSTACLE_CACHE_INTERVAL: float = 0.45
 const OBSTACLE_QUERY_EXTRA_MARGIN: float = 180.0
-const DASH_DISTANCE: float = 420.0
-const DASH_SPEED: float = 2400.0
-const DASH_MAX_CHARGES: int = 2
-const DASH_CHARGE_RECOVERY_SECONDS: float = 1.8
-const DASH_BASE_DAMAGE_MULT: float = 0.75
+var DASH_DISTANCE: float = 420.0
+var DASH_SPEED: float = 2400.0
+var DASH_MAX_CHARGES: int = 2
+var DASH_CHARGE_RECOVERY_SECONDS: float = 1.8
+var DASH_BASE_DAMAGE_MULT: float = 0.75
+var DASH_INVULNERABLE_TAIL: float = 0.05
 const DASH_STEP_DISTANCE: float = 44.0
 const DASH_START_CLEARANCE_DISTANCE: float = 64.0
 const DASH_OBSTACLE_EXTRA_MARGIN: float = 8.0
 const DASH_REFLECT_DAMAGE_MULT: int = 3
 const DASH_AFTERIMAGE_INTERVAL: float = 0.035
 const DASH_AFTERIMAGE_LIFETIME: float = 0.22
-const DASH_ENEMY_HIT_RADIUS: float = 52.0
-const DASH_BOSS_HIT_RADIUS: float = 120.0
+var DASH_ENEMY_HIT_RADIUS: float = 52.0
+var DASH_BOSS_HIT_RADIUS: float = 120.0
 const DASH_CHAIN_RANGE: float = 720.0   # 智能导向：转向下一敌人的搜索范围
 const DASH_TRAIL_RADIUS: float = 96.0   # 能量尾迹：沿途伤害半径
 const CHARGE_MAX_TIME: float = 1.2      # 按住蓄力：满蓄所需时长
@@ -226,6 +229,7 @@ const HURT_SOUND = preload("res://assets/audio/player_hurt.wav")
 
 
 func _ready() -> void:
+	_apply_master_balance()
 	screen_size = get_viewport().get_visible_rect().size
 	if movement_bounds.size == Vector2.ZERO:
 		movement_bounds = Rect2(Vector2.ZERO, screen_size)
@@ -239,6 +243,20 @@ func _ready() -> void:
 	_dash_charges = DASH_MAX_CHARGES
 	mechanic_runtime.effect_triggered.connect(_on_mechanic_effect_triggered)
 	dash_charges_changed.emit(_dash_charges, DASH_MAX_CHARGES)
+
+
+func _apply_master_balance() -> void:
+	speed = float(BalanceServiceScript.get_value("player", "player_move_speed", speed))
+	fire_rate = float(BalanceServiceScript.get_value("player", "base_fire_interval", fire_rate))
+	atk = int(BalanceServiceScript.get_value("player", "base_attack", atk))
+	DASH_DISTANCE = float(BalanceServiceScript.get_value("dash", "dash_distance", DASH_DISTANCE))
+	DASH_SPEED = float(BalanceServiceScript.get_value("dash", "dash_speed", DASH_SPEED))
+	DASH_MAX_CHARGES = int(BalanceServiceScript.get_value("dash", "dash_charges", DASH_MAX_CHARGES))
+	DASH_CHARGE_RECOVERY_SECONDS = float(BalanceServiceScript.get_value("dash", "dash_charge_seconds", DASH_CHARGE_RECOVERY_SECONDS))
+	DASH_BASE_DAMAGE_MULT = float(BalanceServiceScript.get_value("dash", "dash_base_damage_mult", DASH_BASE_DAMAGE_MULT))
+	DASH_INVULNERABLE_TAIL = float(BalanceServiceScript.get_value("dash", "dash_invulnerable_tail", DASH_INVULNERABLE_TAIL))
+	DASH_ENEMY_HIT_RADIUS = float(BalanceServiceScript.get_value("dash", "dash_enemy_hit_radius", DASH_ENEMY_HIT_RADIUS))
+	DASH_BOSS_HIT_RADIUS = float(BalanceServiceScript.get_value("dash", "dash_boss_hit_radius", DASH_BOSS_HIT_RADIUS))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -377,7 +395,7 @@ func _spawn_player_bullet(direction: Vector2) -> void:
 	var bullet = bullet_scene.instantiate()
 	var forward := direction.normalized()
 	bullet.direction = forward
-	bullet.atk = maxi(1, int(round(float(atk) * GameManager.get_outgoing_damage_multiplier())))
+	bullet.atk = maxi(1, int(round(float(atk) * _run_projectile_damage_mult * GameManager.get_outgoing_damage_multiplier())))
 	if bullet.get("speed") != null:
 		bullet.speed = float(bullet.speed) * _run_bullet_speed_mult
 	if bullet.get("split_count") != null:
@@ -428,6 +446,7 @@ func _apply_run_equipment() -> void:
 	_run_bullet_count = maxi(1, int(stats.get("bullet_count", 1)))
 	_run_spread_degrees = maxf(0.0, float(stats.get("spread_degrees", 0.0)))
 	_run_bullet_speed_mult = maxf(0.1, float(stats.get("bullet_speed_mult", 1.0)))
+	_run_projectile_damage_mult = maxf(0.01, float(stats.get("projectile_damage_mult", 1.0)))
 	_run_bullet_split_count = maxi(0, int(stats.get("bullet_split_count", 0)))
 	_run_bullet_split_spread_degrees = maxf(0.0, float(stats.get("bullet_split_spread_degrees", 0.0)))
 	_run_bullet_split_damage_mult = maxf(0.0, float(stats.get("bullet_split_damage_mult", 0.0)))
@@ -1505,7 +1524,7 @@ func _start_dash(input_dir: Vector2) -> void:
 	monitoring = false
 	monitorable = false
 	invincible = true
-	invincible_timer = maxf(invincible_timer, _dash_remaining_distance / maxf(_dash_velocity.length(), 1.0) + 0.05)
+	invincible_timer = maxf(invincible_timer, _dash_remaining_distance / maxf(_dash_velocity.length(), 1.0) + DASH_INVULNERABLE_TAIL)
 	current_velocity = _dash_velocity
 	_spawn_dash_afterimage()
 	RunManager.balance_telemetry.record("dash_started", {"charges_after": _dash_charges})

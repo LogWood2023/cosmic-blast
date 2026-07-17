@@ -2,6 +2,8 @@ class_name AdvancedCrisisResolver
 extends RefCounted
 ## Resolves cumulative, copy-on-read crisis domains. Consumers never mutate Resources.
 
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
+
 const DATA_PATHS: PackedStringArray = [
 	"res://data/advanced_crisis/crisis_01.tres", "res://data/advanced_crisis/crisis_02.tres",
 	"res://data/advanced_crisis/crisis_03.tres", "res://data/advanced_crisis/crisis_04.tres",
@@ -16,12 +18,8 @@ func resolve(level: int) -> Dictionary:
 	var domains := _default_domains()
 	var modifier_ids: PackedStringArray = []
 	for index in range(normalized):
-		var data := load(DATA_PATHS[index]) as Resource
-		if data == null:
-			push_error("AdvancedCrisisResolver failed to load crisis data %d." % (index + 1))
-			continue
-		modifier_ids.append(data.crisis_id)
-		_merge_domains(domains, data.modifiers)
+		modifier_ids.append("crisis_%d" % (index + 1))
+		_merge_domains(domains, BalanceServiceScript.get_crisis_modifiers(index + 1))
 	var enemy: Dictionary = domains.enemy
 	var boss: Dictionary = domains.boss
 	return {

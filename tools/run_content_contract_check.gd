@@ -3,9 +3,6 @@ extends Node
 const BalanceService := preload("res://scripts/core/BalanceService.gd")
 
 var _failed: bool = false
-var _balance := BalanceService.new()
-
-
 func _ready() -> void:
 	call_deferred("_run")
 
@@ -20,13 +17,12 @@ func _run() -> void:
 
 
 func _check_balance_contract() -> void:
-	_balance._ready()
-	_assert(_balance.get_stage_for_crisis(0) == 1, "Crisis 0 should be stage 1.")
-	_assert(_balance.get_stage_for_crisis(5) == 2, "Crisis 5 should be stage 2.")
-	_assert(_balance.get_stage_for_crisis(12) == 3, "Crisis 12 should be stage 3.")
-	_assert(_balance.get_damage(&"normal") == 5, "Normal damage budget should be 5.")
-	_assert(_balance.get_elite_ehp(3) == 20400, "Stage 3 elite EHP should be 20400.")
-	_assert(_balance.get_boss_ehp(2) == 14500, "Stage 2 boss EHP should be 14500.")
+	_assert(BalanceService.get_stage_for_crisis(0) == 1, "Crisis 0 should be stage 1.")
+	_assert(BalanceService.get_stage_for_crisis(5) == 2, "Crisis 5 should be stage 2.")
+	_assert(BalanceService.get_stage_for_crisis(12) == 3, "Crisis 12 should be stage 3.")
+	_assert(BalanceService.get_damage(&"normal") == 5, "Normal damage budget should be 5.")
+	_assert(BalanceService.get_elite_ehp(3) == 20400, "Stage 3 elite EHP should be 20400.")
+	_assert(BalanceService.get_boss_ehp(2) == 14500, "Stage 2 boss EHP should be 14500.")
 
 
 func _check_context_and_mutation_contract() -> void:

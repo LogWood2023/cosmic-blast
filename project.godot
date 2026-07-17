@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+BalanceService="*res://scripts/core/BalanceService.gd"
 SettingsManager="*res://scripts/core/SettingsManager.gd"
 GameManager="*res://scripts/core/GameManager.gd"
 RunManager="*res://scripts/core/RunManager.gd"

@@ -14,6 +14,7 @@ extends Resource
 @export var is_unique: bool = true
 @export var prerequisites: Dictionary = {}
 @export var options: Array[EventOptionData] = []
+@export var balance_payload: Dictionary = {}
 
 
 func supports_stage(stage: int) -> bool:

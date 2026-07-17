@@ -1,0 +1,140 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_888nu"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_3ws5j"]
+
+[sub_resource type="Resource" id="Resource_ixb8s"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_charges"
+display_name = "冲刺充能数"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+notes = "默认用于躲避"
+
+[sub_resource type="Resource" id="Resource_gwceu"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_charge_seconds"
+display_name = "单次充能恢复"
+raw_value = "1.8"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+notes = "两次完整恢复3.6秒"
+
+[sub_resource type="Resource" id="Resource_dfdvs"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_distance"
+display_name = "冲刺距离"
+raw_value = "420"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "pixel"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_2oqyb"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_speed"
+display_name = "冲刺速度"
+raw_value = "2400"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "pixel_per_second"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_yn45s"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "derived"
+record_id = "dash_duration"
+display_name = "冲刺持续时间"
+raw_value = "0.175"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+formula = "dash_distance/dash_speed"
+notes = "实际实现可取0.18"
+
+[sub_resource type="Resource" id="Resource_s6rhx"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_invulnerable_tail"
+display_name = "冲刺额外无敌尾帧"
+raw_value = "0.05"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+notes = "不得更长"
+
+[sub_resource type="Resource" id="Resource_lc8qc"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_base_damage_mult"
+display_name = "基础冲刺撞击倍率"
+raw_value = "0.75"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "attack_multiplier"
+data_type = "float"
+raw_attributes = "payload=min=0.5;max=1.0"
+notes = "无巨构时不能成为主输出"
+
+[sub_resource type="Resource" id="Resource_i6feq"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_enemy_hit_radius"
+display_name = "普通敌人命中半径"
+raw_value = "52"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "pixel"
+data_type = "float"
+notes = "当前手感锚点"
+
+[sub_resource type="Resource" id="Resource_ka04o"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "config"
+record_id = "dash_boss_hit_radius"
+display_name = "Boss命中半径"
+raw_value = "120"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "pixel"
+data_type = "float"
+notes = "补偿Boss体型"
+
+[sub_resource type="Resource" id="Resource_6r8y4"]
+script = ExtResource("1_888nu")
+schema_version = "1.0"
+domain = "dash"
+kind = "target"
+record_id = "dash_default_dps_share"
+display_name = "默认冲刺伤害占比上限"
+raw_value = "0.1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+notes = "普通构筑总伤害不超过10%"
+
+[resource]
+script = ExtResource("2_3ws5j")
+schema_version = "1.0"
+domain = "dash"
+records = Array[Resource]([SubResource("Resource_ixb8s"), SubResource("Resource_gwceu"), SubResource("Resource_dfdvs"), SubResource("Resource_2oqyb"), SubResource("Resource_yn45s"), SubResource("Resource_s6rhx"), SubResource("Resource_lc8qc"), SubResource("Resource_i6feq"), SubResource("Resource_ka04o"), SubResource("Resource_6r8y4")])

@@ -6,7 +6,22 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$GodotExe = "E:\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64.exe"
+$GodotExe = $env:GODOT_EXE
+if ([string]::IsNullOrWhiteSpace($GodotExe) -or -not (Test-Path -LiteralPath $GodotExe)) {
+	$GodotExe = @(
+		"H:\Godot_v4.6.2\Godot_v4.6.2-stable_win64.exe",
+		"E:\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64.exe"
+	) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+}
+if ([string]::IsNullOrWhiteSpace($GodotExe)) {
+	$GodotExe = Get-Process -Name "Godot*" -ErrorAction SilentlyContinue |
+		Where-Object { -not [string]::IsNullOrWhiteSpace($_.Path) } |
+		Select-Object -First 1 -ExpandProperty Path
+}
+if ([string]::IsNullOrWhiteSpace($GodotExe) -or -not (Test-Path -LiteralPath $GodotExe)) {
+	Write-Error "Godot executable not found. Set GODOT_EXE or update tools/godot_headless.ps1."
+	exit 127
+}
 $LogDir = Join-Path $ProjectRoot ".godot\headless_logs"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 

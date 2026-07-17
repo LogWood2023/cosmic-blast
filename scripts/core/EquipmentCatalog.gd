@@ -1,6 +1,8 @@
 class_name EquipmentCatalog
 extends RefCounted
 
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
+
 const TYPE_WEAPON: String = "weapon"
 const TYPE_AUX: String = "aux"
 
@@ -26,6 +28,8 @@ const EFFECT_RESOURCE_PATHS: Dictionary = {
 }
 
 static var _auxiliary_catalog_cache: Dictionary = {}
+static var _balance_item_cache: Dictionary = {}
+static var _balance_item_ids: Array[String] = []
 
 const WEAPONS: Dictionary = {
 	"pulse_cannon": {
@@ -909,7 +913,7 @@ static func get_item(id: String) -> Dictionary:
 
 
 static func has_item(id: String) -> bool:
-	return WEAPONS.has(id) or _get_auxiliary_catalog().has(id)
+	return not _get_balance_item(id).is_empty() or WEAPONS.has(id) or _get_auxiliary_catalog().has(id)
 
 
 static func get_type(id: String) -> String:
@@ -1002,6 +1006,9 @@ static func get_bridge_tags(id: String) -> PackedStringArray:
 
 
 static func get_all_item_ids() -> Array[String]:
+	_ensure_balance_item_ids()
+	if not _balance_item_ids.is_empty():
+		return _balance_item_ids.duplicate()
 	var ids: Array[String] = []
 	for item_id in WEAPONS.keys():
 		ids.append(String(item_id))
@@ -1039,16 +1046,16 @@ static func get_boss_drop_stage(id: String) -> int:
 
 static func get_weapon_item_ids() -> Array[String]:
 	var ids: Array[String] = []
-	for id in WEAPONS.keys():
-		ids.append(String(id))
+	for id in get_all_item_ids():
+		if get_type(id) == TYPE_WEAPON:
+			ids.append(id)
 	return ids
 
 
 static func get_auxiliary_item_ids(include_boss_drops: bool = true) -> Array[String]:
 	var ids: Array[String] = []
-	for id in _get_auxiliary_catalog().keys():
-		var item_id := String(id)
-		if include_boss_drops or not is_boss_drop(item_id):
+	for item_id in get_all_item_ids():
+		if get_type(item_id) == TYPE_AUX and (include_boss_drops or not is_boss_drop(item_id)):
 			ids.append(item_id)
 	return ids
 
@@ -1390,6 +1397,7 @@ static func make_player_stats(weapon_id: String, aux_ids: Array[String]) -> Dict
 		weapon = get_item("pulse_cannon")
 	var stats := {
 		"atk_bonus": int(weapon.get("atk_bonus", 0)),
+		"projectile_damage_mult": float(weapon.get("projectile_damage_mult", 1.0)),
 		"fire_rate_mult": float(weapon.get("fire_rate_mult", 1.0)),
 		"speed_mult": 1.0,
 		"bullet_count": int(weapon.get("bullet_count", 1)),
@@ -1554,12 +1562,37 @@ static func _get_auxiliary_catalog() -> Dictionary:
 
 
 static func _get_item_ref(id: String) -> Dictionary:
+	var base: Dictionary = {}
 	if WEAPONS.has(id):
-		return WEAPONS[id]
-	var auxiliary_catalog := _get_auxiliary_catalog()
-	if auxiliary_catalog.has(id):
-		return auxiliary_catalog[id]
-	return {}
+		base = Dictionary(WEAPONS[id]).duplicate(true)
+	else:
+		var auxiliary_catalog := _get_auxiliary_catalog()
+		if auxiliary_catalog.has(id):
+			base = Dictionary(auxiliary_catalog[id]).duplicate(true)
+	var imported := _get_balance_item(id)
+	if imported.is_empty():
+		return base
+	for key in imported:
+		base[key] = imported[key]
+	return base
+
+
+static func _get_balance_item(id: String) -> Dictionary:
+	if _balance_item_cache.has(id):
+		return Dictionary(_balance_item_cache[id])
+	var imported: Dictionary = BalanceServiceScript.get_equipment_snapshot(id)
+	if not imported.is_empty():
+		_balance_item_cache[id] = imported
+	return imported
+
+
+static func _ensure_balance_item_ids() -> void:
+	if not _balance_item_ids.is_empty():
+		return
+	for record in BalanceServiceScript.get_domain_records("equipment"):
+		if String(record.get("kind", "")) in ["weapon", "auxiliary"]:
+			_balance_item_ids.append(String(record.get("id", "")))
+	_balance_item_ids.sort()
 
 
 static func _make_expansion_auxiliary(row: Dictionary) -> Dictionary:
@@ -1650,6 +1683,9 @@ static func _apply_mechanic_metadata(item_id: String, item: Dictionary) -> void:
 
 
 static func _get_primary_mechanic_role(item_id: String, item: Dictionary) -> String:
+	var explicit_role := String(item.get("role", ""))
+	if not explicit_role.is_empty() and explicit_role != "main_weapon":
+		return explicit_role
 	var family := String(item.get("family", FAMILY_GENERAL))
 	if family == FAMILY_GENERAL:
 		if float(item.get("mineral_bonus", 0.0)) > 0.0 or bool(item.get("reveal_map", false)):
@@ -1670,12 +1706,9 @@ static func _get_primary_mechanic_role(item_id: String, item: Dictionary) -> Str
 
 static func _get_raw_family_item_ids(family: String) -> Array[String]:
 	var ids: Array[String] = []
-	for item_id in WEAPONS.keys():
-		if String(WEAPONS[item_id].get("family", FAMILY_GENERAL)) == family:
-			ids.append(String(item_id))
-	for item_id in _get_auxiliary_catalog().keys():
-		if String(_get_auxiliary_catalog()[item_id].get("family", FAMILY_GENERAL)) == family:
-			ids.append(String(item_id))
+	for item_id in get_all_item_ids():
+		if String(_get_item_ref(item_id).get("family", FAMILY_GENERAL)) == family:
+			ids.append(item_id)
 	ids.sort()
 	return ids
 

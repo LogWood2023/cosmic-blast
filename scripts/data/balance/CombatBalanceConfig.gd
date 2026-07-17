@@ -3,6 +3,9 @@ extends Resource
 
 ## Immutable combat budgets. Keys are intentionally stable contract identifiers.
 @export var player_max_hp: int = 100
+@export var player_move_speed: float = 300.0
+@export var player_base_attack: int = 10
+@export var player_base_fire_interval: float = 0.25
 @export var damage_values: Dictionary = {
 	"dot_min": 1,
 	"dot_max": 3,
@@ -20,6 +23,10 @@ extends Resource
 @export var dash_charge_seconds: float = 1.8
 @export var dash_distance: float = 420.0
 @export var dash_speed: float = 2400.0
+@export var dash_invulnerable_tail: float = 0.05
+@export var dash_base_damage_mult: float = 0.75
+@export var dash_enemy_hit_radius: float = 52.0
+@export var dash_boss_hit_radius: float = 120.0
 
 
 func get_damage(category: StringName) -> int:

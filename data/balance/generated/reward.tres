@@ -1,0 +1,127 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_f5bqs"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_mv5yq"]
+
+[sub_resource type="Resource" id="Resource_5ua31"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "stable_supply"
+display_name = "稳定补给"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=stabilizer;weight=1;risk=0;payload=minerals=45/70/105;repair=26/34/42;mixed_share=0.5"
+notes = "三选一最多一张纯矿物"
+
+[sub_resource type="Resource" id="Resource_if2tw"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "equipment_draft"
+display_name = "装备三选一"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=0;payload=candidates=3;family_match_min=1;missing_role_min=1;duplicates=0"
+notes = "常规求胡入口"
+
+[sub_resource type="Resource" id="Resource_q58yx"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "mechanic_starter"
+display_name = "机制启动器"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=starter;weight=0.8;risk=0;payload=candidates=3;rarity=common|rare;affordable_compute=1"
+notes = "第一Boss前构筑修复"
+
+[sub_resource type="Resource" id="Resource_8bdes"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "mechanic_amplifier"
+display_name = "机制放大器"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=amplifier;weight=0.75;risk=0;payload=matching_amplifiers=2;general_stabilizer=1"
+notes = "根据已有启动器生成"
+
+[sub_resource type="Resource" id="Resource_nljfr"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "cross_family_bridge"
+display_name = "跨家族桥接"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=bridge;weight=0.45;risk=1;payload=matching_bridges=2;general_bridge=1;stage_min=2"
+notes = "第一阶段默认不出现"
+
+[sub_resource type="Resource" id="Resource_6eyag"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "repair_compute"
+display_name = "修复与算力"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=stabilizer;weight=0.8;risk=0;payload=repair=32/42/52;compute_free=1;compute_paid=2;paid_cost=24/36/52;paid_cap_per_stage=1"
+notes = "处理容量瓶颈"
+
+[sub_resource type="Resource" id="Resource_kg6ud"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "high_risk_ore"
+display_name = "高风险富矿"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=0.55;risk=2;payload=risky_minerals=75/120/180;next_battle_elite=1;safe_minerals=55/85/125"
+notes = "风险完整预告"
+
+[sub_resource type="Resource" id="Resource_whiwf"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "pool"
+record_id = "family_archive"
+display_name = "家族档案"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=0.8;risk=0;payload=candidates=3;roles_unique=1;route_family=1"
+notes = "强化航路身份"
+
+[sub_resource type="Resource" id="Resource_q5lj0"]
+script = ExtResource("1_f5bqs")
+schema_version = "1.0"
+domain = "reward"
+kind = "boss"
+record_id = "boss_reward_four_choice"
+display_name = "Boss后四选一"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=0;payload=boss_item=1;synergy_item=1;bridge_item=1;maintenance=1;maintenance_compute=2;maintenance_heal=25/35/45"
+notes = "第一Boss无双家族时桥接改启动器"
+
+[resource]
+script = ExtResource("2_mv5yq")
+schema_version = "1.0"
+domain = "reward"
+records = Array[Resource]([SubResource("Resource_5ua31"), SubResource("Resource_if2tw"), SubResource("Resource_q58yx"), SubResource("Resource_8bdes"), SubResource("Resource_nljfr"), SubResource("Resource_6eyag"), SubResource("Resource_kg6ud"), SubResource("Resource_whiwf"), SubResource("Resource_q5lj0")])

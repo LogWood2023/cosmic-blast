@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_om71i"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_urkvy"]
+
+[sub_resource type="Resource" id="Resource_un0cr"]
+script = ExtResource("1_om71i")
+schema_version = "1.0"
+domain = "elite"
+kind = "budget"
+record_id = "elite_ehp"
+display_name = "精英有效生命"
+raw_stage_values = PackedStringArray("4800", "9600", "20400")
+unit = "ehp"
+data_type = "int"
+formula = "round(normal_build_dps*60)"
+notes = "含护盾闪现和不可攻击时间"
+
+[sub_resource type="Resource" id="Resource_21111"]
+script = ExtResource("1_om71i")
+schema_version = "1.0"
+domain = "elite"
+kind = "target"
+record_id = "elite_ttk"
+display_name = "精英目标TTK"
+raw_stage_values = PackedStringArray("61.5", "60", "60")
+unit = "seconds"
+data_type = "float"
+formula = "elite_ehp/normal_build_dps"
+notes = "目标约1分钟"
+
+[sub_resource type="Resource" id="Resource_lohqc"]
+script = ExtResource("1_om71i")
+schema_version = "1.0"
+domain = "elite"
+kind = "target"
+record_id = "elite_room_probability"
+display_name = "战斗房精英概率"
+raw_value = "0.25"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+raw_attributes = "payload=min=0.2;max=0.3"
+notes = "一局完整精英战2至4场"
+
+[resource]
+script = ExtResource("2_urkvy")
+schema_version = "1.0"
+domain = "elite"
+records = Array[Resource]([SubResource("Resource_un0cr"), SubResource("Resource_21111"), SubResource("Resource_lohqc")])

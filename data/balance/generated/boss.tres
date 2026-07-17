@@ -1,0 +1,130 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_gqugq"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_61uaq"]
+
+[sub_resource type="Resource" id="Resource_cmtak"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "budget"
+record_id = "boss_base_ehp"
+display_name = "Boss基准EHP"
+raw_stage_values = PackedStringArray("5600", "14500", "36000")
+unit = "ehp"
+data_type = "int"
+notes = "总机制EHP预算"
+
+[sub_resource type="Resource" id="Resource_3nu17"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "budget"
+record_id = "boss_forced_downtime"
+display_name = "Boss强制不可攻击预算"
+raw_stage_values = PackedStringArray("10", "15", "20")
+unit = "seconds"
+data_type = "int"
+notes = "超出部分必须从EHP扣除"
+
+[sub_resource type="Resource" id="Resource_o48nc"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "target"
+record_id = "boss_normal_ttk"
+display_name = "Boss正常构筑总TTK"
+raw_stage_values = PackedStringArray("82", "106", "126")
+unit = "seconds"
+data_type = "int"
+formula = "boss_base_ehp/normal_build_dps+downtime"
+notes = "分别位于三阶段目标中段"
+
+[sub_resource type="Resource" id="Resource_jx0tj"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "target"
+record_id = "boss_highroll_ttk"
+display_name = "Boss胡局总TTK"
+raw_stage_values = PackedStringArray("39", "43", "50")
+unit = "seconds"
+data_type = "int"
+formula = "boss_base_ehp/highroll_build_dps+downtime"
+notes = "极端联动允许更快"
+
+[sub_resource type="Resource" id="Resource_hii83"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "family"
+record_id = "boss_colossus_ehp"
+display_name = "星间巨构Boss总EHP"
+raw_stage_values = PackedStringArray("6160", "15950", "39600")
+unit = "ehp"
+data_type = "int"
+raw_attributes = "family=colossus;cap=1.1;rule_key=boss_ehp;payload=family_mult=1.10"
+formula = "boss_base_ehp*1.10"
+notes = "较慢且厚重"
+
+[sub_resource type="Resource" id="Resource_sk5ng"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "family"
+record_id = "boss_paradise_ehp"
+display_name = "天堂号Boss总EHP"
+raw_stage_values = PackedStringArray("5320", "13775", "34200")
+unit = "ehp"
+data_type = "int"
+raw_attributes = "family=paradise;cap=0.95;rule_key=boss_ehp;payload=family_mult=0.95"
+formula = "boss_base_ehp*0.95"
+notes = "弹幕空间压力换取较低EHP"
+
+[sub_resource type="Resource" id="Resource_c2gtt"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "family"
+record_id = "boss_warped_ehp"
+display_name = "扭曲星核Boss总EHP"
+raw_stage_values = PackedStringArray("5880", "15225", "37800")
+unit = "ehp"
+data_type = "int"
+raw_attributes = "family=warped;cap=1.05;rule_key=boss_ehp;payload=family_mult=1.05"
+formula = "boss_base_ehp*1.05"
+notes = "护盾和牵引计入总EHP"
+
+[sub_resource type="Resource" id="Resource_1qdbm"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "family"
+record_id = "boss_hell_eye_ehp"
+display_name = "地狱之眼Boss总EHP"
+raw_stage_values = PackedStringArray("5600", "14500", "36000")
+unit = "ehp"
+data_type = "int"
+raw_attributes = "family=hell_eye;cap=1.0;rule_key=boss_ehp;payload=family_mult=1.00"
+formula = "boss_base_ehp"
+notes = "依靠节奏干扰"
+
+[sub_resource type="Resource" id="Resource_rkrve"]
+script = ExtResource("1_gqugq")
+schema_version = "1.0"
+domain = "boss"
+kind = "family"
+record_id = "boss_divine_ehp"
+display_name = "神明使者Boss总EHP"
+raw_stage_values = PackedStringArray("5040", "13050", "32400")
+unit = "ehp"
+data_type = "int"
+raw_attributes = "family=divine;cap=0.9;rule_key=boss_ehp;payload=family_mult=0.90"
+formula = "boss_base_ehp*0.90"
+notes = "闪现和召唤已计入预算"
+
+[resource]
+script = ExtResource("2_61uaq")
+schema_version = "1.0"
+domain = "boss"
+records = Array[Resource]([SubResource("Resource_cmtak"), SubResource("Resource_3nu17"), SubResource("Resource_o48nc"), SubResource("Resource_jx0tj"), SubResource("Resource_hii83"), SubResource("Resource_sk5ng"), SubResource("Resource_c2gtt"), SubResource("Resource_1qdbm"), SubResource("Resource_rkrve")])

@@ -1,0 +1,409 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_ofmry"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_jvdgg"]
+
+[sub_resource type="Resource" id="Resource_6ns1t"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "base"
+record_id = "starting_minerals"
+display_name = "开局矿物"
+raw_value = "0"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+notes = "不做默认购买礼包"
+
+[sub_resource type="Resource" id="Resource_qsr41"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "base"
+record_id = "starting_compute"
+display_name = "开局算力"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "compute"
+data_type = "int"
+notes = "每结算节点加1"
+
+[sub_resource type="Resource" id="Resource_6iaba"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "progression"
+record_id = "compute_before_boss"
+display_name = "Boss前可用算力"
+raw_stage_values = PackedStringArray("10", "17", "26")
+unit = "compute"
+data_type = "int"
+formula = "5+cumulative_completed_nodes"
+notes = "支撑3/5/8平均3算力装备"
+
+[sub_resource type="Resource" id="Resource_s3g46"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "equipped_aux_before_boss"
+display_name = "Boss前累计装配"
+raw_stage_values = PackedStringArray("3", "5", "8")
+unit = "equipment_count"
+data_type = "int"
+notes = "用户确认的累计目标"
+
+[sub_resource type="Resource" id="Resource_7n5ld"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "owned_aux_before_boss"
+display_name = "Boss前累计拥有"
+raw_stage_values = PackedStringArray("5", "9", "16")
+unit = "equipment_count"
+data_type = "int"
+raw_attributes = "payload=ranges=4-6|8-11|14-18"
+notes = "用于草案和保底模拟"
+
+[sub_resource type="Resource" id="Resource_ip84e"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "used_compute_before_boss"
+display_name = "Boss前已用算力"
+raw_stage_values = PackedStringArray("9", "16", "25")
+unit = "compute"
+data_type = "int"
+raw_attributes = "payload=ranges=8-10|15-17|23-26"
+notes = "保留少量换装余地"
+
+[sub_resource type="Resource" id="Resource_lc17b"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "explore_income_p50"
+display_name = "75%搜刮单房收入"
+raw_stage_values = PackedStringArray("65", "100", "148")
+unit = "minerals"
+data_type = "int"
+raw_attributes = "payload=ranges=55-75|85-115|125-170"
+notes = "取区间中位"
+
+[sub_resource type="Resource" id="Resource_1p1wn"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "cumulative_income_before_boss"
+display_name = "累计毛收入P50"
+raw_stage_values = PackedStringArray("210", "575", "1250")
+unit = "minerals"
+data_type = "int"
+raw_attributes = "payload=ranges=180-240|500-650|1100-1400"
+notes = "包含事件和奖励"
+
+[sub_resource type="Resource" id="Resource_ekfpl"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "safe_event_value_p50"
+display_name = "安全事件等价价值P50"
+raw_stage_values = PackedStringArray("38", "55", "78")
+unit = "minerals_equivalent"
+data_type = "int"
+raw_attributes = "payload=ranges=30-45|45-65|65-90"
+notes = "用于事件抽取模拟"
+
+[sub_resource type="Resource" id="Resource_ky7hj"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "risk_event_success_value_p50"
+display_name = "风险事件成功等价价值P50"
+raw_stage_values = PackedStringArray("55", "82", "118")
+unit = "minerals_equivalent"
+data_type = "int"
+raw_attributes = "payload=ranges=45-65|70-95|100-135"
+notes = "约为安全事件的1.25至1.45倍"
+
+[sub_resource type="Resource" id="Resource_goah8"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "target"
+record_id = "reward_node_value_p50"
+display_name = "奖励节点等价价值P50"
+raw_stage_values = PackedStringArray("68", "102", "150")
+unit = "minerals_equivalent"
+data_type = "int"
+raw_attributes = "payload=ranges=55-80|85-120|125-175"
+notes = "奖励节点不含隐性惩罚"
+
+[sub_resource type="Resource" id="Resource_thi8x"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "price"
+record_id = "common_equipment_price"
+display_name = "普通装备价格"
+raw_value = "70"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+raw_attributes = "payload=min=50;max=90"
+notes = "规则简单且可独立启动"
+
+[sub_resource type="Resource" id="Resource_mihlm"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "price"
+record_id = "rare_equipment_price"
+display_name = "稀有装备价格"
+raw_value = "128"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+raw_attributes = "payload=min=100;max=155"
+notes = "提供放大或桥接"
+
+[sub_resource type="Resource" id="Resource_jdi0h"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "price"
+record_id = "epic_equipment_price"
+display_name = "史诗装备价格"
+raw_value = "195"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+raw_attributes = "payload=min=170;max=220"
+notes = "规则复杂但不纯堆倍率"
+
+[sub_resource type="Resource" id="Resource_xpu2k"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "price"
+record_id = "boss_equipment_price"
+display_name = "Boss装备价格"
+raw_value = "0"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+raw_attributes = "payload=purchasable=false"
+notes = "只能Boss奖励获得"
+
+[sub_resource type="Resource" id="Resource_cciyy"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "shop_offer_count"
+display_name = "商店总槽位"
+raw_value = "12"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_ohdow"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "shop_general_slots"
+display_name = "商店通用候选"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_toy5r"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "shop_family_slots"
+display_name = "商店主家族候选"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_m4vn1"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "shop_build_slots"
+display_name = "商店构筑补齐候选"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=roles=amplifier|bridge"
+notes = "根据已有启动器生成"
+
+[sub_resource type="Resource" id="Resource_a1m83"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "shop_survival_slots"
+display_name = "商店生存经济候选"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_4qkds"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "shop_wildcard_slots"
+display_name = "商店通配候选"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "count"
+data_type = "int"
+raw_attributes = "payload=epic_guarantee_crisis=12"
+
+[sub_resource type="Resource" id="Resource_kdum8"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "reroll_base"
+display_name = "付费重抽基础项"
+raw_value = "18"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+
+[sub_resource type="Resource" id="Resource_kq14h"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "reroll_stage_step"
+display_name = "付费重抽阶段增量"
+raw_value = "10"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+notes = "阶段从1开始"
+
+[sub_resource type="Resource" id="Resource_ftk3h"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "reroll_repeat_step"
+display_name = "本局已付费重抽增量"
+raw_value = "14"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "minerals"
+data_type = "int"
+notes = "次数从0开始"
+
+[sub_resource type="Resource" id="Resource_pua4w"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "derived"
+record_id = "first_reroll_cost"
+display_name = "各阶段首次重抽"
+raw_stage_values = PackedStringArray("28", "38", "48")
+unit = "minerals"
+data_type = "int"
+formula = "18+stage*10+0*14"
+
+[sub_resource type="Resource" id="Resource_d1smn"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "derived"
+record_id = "second_reroll_cost"
+display_name = "各阶段第二次重抽"
+raw_stage_values = PackedStringArray("42", "52", "62")
+unit = "minerals"
+data_type = "int"
+formula = "18+stage*10+1*14"
+
+[sub_resource type="Resource" id="Resource_1jqi4"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "config"
+record_id = "equipment_drop_chance"
+display_name = "基础装备检出率"
+raw_stage_values = PackedStringArray("0.28", "0.36", "0.48")
+unit = "ratio"
+data_type = "float"
+notes = "按节点阶段"
+
+[sub_resource type="Resource" id="Resource_4skup"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "cap"
+record_id = "equipment_drop_chance_cap"
+display_name = "装备检出率硬上限"
+raw_value = "0.85"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+notes = "保留非装备结果"
+
+[sub_resource type="Resource" id="Resource_bkvin"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "pity"
+record_id = "equipment_dry_nodes"
+display_name = "装备保底连续空窗"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "completed_node"
+data_type = "int"
+notes = "下一奖励锁定装备草案"
+
+[sub_resource type="Resource" id="Resource_u2slx"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "pity"
+record_id = "starter_dry_drafts"
+display_name = "启动器保底空窗"
+raw_value = "4"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "draft"
+data_type = "int"
+notes = "下一构筑卡必含启动器"
+
+[sub_resource type="Resource" id="Resource_u2wi1"]
+script = ExtResource("1_ofmry")
+schema_version = "1.0"
+domain = "economy"
+kind = "pity"
+record_id = "amplifier_dry_drafts"
+display_name = "匹配放大器保底空窗"
+raw_value = "4"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "draft"
+data_type = "int"
+notes = "已有启动器时计数"
+
+[resource]
+script = ExtResource("2_jvdgg")
+schema_version = "1.0"
+domain = "economy"
+records = Array[Resource]([SubResource("Resource_6ns1t"), SubResource("Resource_qsr41"), SubResource("Resource_6iaba"), SubResource("Resource_s3g46"), SubResource("Resource_7n5ld"), SubResource("Resource_ip84e"), SubResource("Resource_lc17b"), SubResource("Resource_1p1wn"), SubResource("Resource_ekfpl"), SubResource("Resource_ky7hj"), SubResource("Resource_goah8"), SubResource("Resource_thi8x"), SubResource("Resource_mihlm"), SubResource("Resource_jdi0h"), SubResource("Resource_xpu2k"), SubResource("Resource_cciyy"), SubResource("Resource_ohdow"), SubResource("Resource_toy5r"), SubResource("Resource_m4vn1"), SubResource("Resource_a1m83"), SubResource("Resource_4qkds"), SubResource("Resource_kdum8"), SubResource("Resource_kq14h"), SubResource("Resource_ftk3h"), SubResource("Resource_pua4w"), SubResource("Resource_d1smn"), SubResource("Resource_1jqi4"), SubResource("Resource_4skup"), SubResource("Resource_bkvin"), SubResource("Resource_u2slx"), SubResource("Resource_u2wi1")])

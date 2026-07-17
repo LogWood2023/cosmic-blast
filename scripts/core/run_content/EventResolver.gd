@@ -159,7 +159,7 @@ func _cost_amount(option: EventOptionData, cost: Dictionary, stage: int, context
 
 func _effect_amount(definition: EventDefinition, option: EventOptionData, effect: Dictionary, stage: int, context: RunContentContext) -> int:
 	var amount := option.get_stage_amount(effect, stage)
-	if String(effect.get("action", "")) == "grant_minerals" and _risk_for_category(definition.category) >= 2:
+	if String(effect.get("action", "")) == "grant_minerals" and _risk_for_category(definition.category) >= 1:
 		amount = int(round(float(amount) * float(_event_modifiers(context).get("high_risk_reward_mult", 1.0))))
 	return amount
 

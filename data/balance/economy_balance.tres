@@ -1,6 +1,11 @@
-[gd_resource type="Resource" script_class="EconomyBalanceConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EconomyBalanceConfig" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/balance/EconomyBalanceConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/balance/EconomyBalanceConfig.gd" id="1_vbh0r"]
 
 [resource]
-script = ExtResource("1")
+script = ExtResource("1_vbh0r")
+reward_minerals_range = Vector2i(45, 105)
+reward_repair_range = Vector2i(26, 52)
+shop_reroll_base_cost = 18
+equipment_drop_chance_range = Vector2(0.28, 0.48)
+equipment_drop_chances = PackedFloat32Array(0.28, 0.36, 0.48)

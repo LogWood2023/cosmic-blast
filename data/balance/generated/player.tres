@@ -1,0 +1,227 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_8hwii"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_mietu"]
+
+[sub_resource type="Resource" id="Resource_1h6mq"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "base"
+record_id = "player_max_hp"
+display_name = "玩家最大生命"
+raw_value = "100"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "hp"
+data_type = "int"
+notes = "不做局外纵向增长"
+
+[sub_resource type="Resource" id="Resource_pnkwi"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "base"
+record_id = "player_move_speed"
+display_name = "玩家移动速度"
+raw_value = "300"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "pixel_per_second"
+data_type = "float"
+notes = "当前手感锚点"
+
+[sub_resource type="Resource" id="Resource_gtxu1"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "base"
+record_id = "base_attack"
+display_name = "脉冲机炮单发伤害"
+raw_value = "10"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "damage"
+data_type = "int"
+notes = "白板基准"
+
+[sub_resource type="Resource" id="Resource_jpj0o"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "base"
+record_id = "base_fire_interval"
+display_name = "脉冲机炮射击间隔"
+raw_value = "0.25"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+notes = "每秒4发"
+
+[sub_resource type="Resource" id="Resource_hw74k"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "derived"
+record_id = "base_single_target_dps"
+display_name = "白板理论单体DPS"
+raw_value = "40"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "dps"
+data_type = "float"
+formula = "base_attack/base_fire_interval"
+notes = "靶场实测需接近该值"
+
+[sub_resource type="Resource" id="Resource_eoo36"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "damage"
+record_id = "dot_damage"
+display_name = "轻微擦伤或DoT"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "damage_per_second"
+data_type = "int"
+raw_attributes = "payload=min=1;max=3"
+notes = "不能单独快速致死"
+
+[sub_resource type="Resource" id="Resource_wa8dk"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "damage"
+record_id = "normal_hit_damage"
+display_name = "普通攻击伤害"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "damage"
+data_type = "int"
+notes = "满血承受20次"
+
+[sub_resource type="Resource" id="Resource_g6jkw"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "damage"
+record_id = "danger_hit_damage"
+display_name = "危险普通攻击伤害"
+raw_value = "10"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "damage"
+data_type = "int"
+raw_attributes = "payload=min=8;max=12"
+notes = "用于高威胁普通怪"
+
+[sub_resource type="Resource" id="Resource_bdqgu"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "damage"
+record_id = "heavy_hit_damage"
+display_name = "重击伤害"
+raw_value = "36"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "damage"
+data_type = "int"
+raw_attributes = "payload=min=34;max=40"
+notes = "三次致死且必须预警"
+
+[sub_resource type="Resource" id="Resource_umdf2"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "derived"
+record_id = "normal_hits_to_die"
+display_name = "满血普通攻击承受次数"
+raw_value = "20"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "hit_count"
+data_type = "float"
+formula = "100/5"
+notes = "第20次归零"
+
+[sub_resource type="Resource" id="Resource_uc5pq"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "derived"
+record_id = "danger_hits_to_die"
+display_name = "满血危险攻击承受次数"
+raw_value = "10"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "hit_count"
+data_type = "float"
+formula = "100/10"
+notes = "不应作为常态弹幕"
+
+[sub_resource type="Resource" id="Resource_y668o"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "derived"
+record_id = "heavy_hits_to_die"
+display_name = "满血重击承受次数"
+raw_value = "2.78"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "hit_count"
+data_type = "float"
+formula = "100/36"
+notes = "第三次重击致死"
+
+[sub_resource type="Resource" id="Resource_kngp0"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "damage"
+record_id = "normal_iframe"
+display_name = "普通受击无敌帧"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+notes = "阻止同源多段秒杀"
+
+[sub_resource type="Resource" id="Resource_0e757"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "damage"
+record_id = "heavy_iframe"
+display_name = "重击受击无敌帧"
+raw_value = "0.8"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+raw_attributes = "payload=min=0.7;max=1.0"
+notes = "重击仍只能结算一次"
+
+[sub_resource type="Resource" id="Resource_tnf7a"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "recovery"
+record_id = "visible_healing_budget"
+display_name = "阶段新增可见治疗"
+raw_stage_values = PackedStringArray("32", "45", "58")
+unit = "hp"
+data_type = "int"
+raw_attributes = "payload=ranges=25-40|35-55|45-70"
+notes = "取区间中位用于模拟"
+
+[sub_resource type="Resource" id="Resource_acrvy"]
+script = ExtResource("1_8hwii")
+schema_version = "1.0"
+domain = "player"
+kind = "target"
+record_id = "boss_entry_hp_p50"
+display_name = "Boss入场生命P50"
+raw_value = "80"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "hp"
+data_type = "int"
+raw_attributes = "payload=min=70;max=90"
+notes = "含正常探索损耗"
+
+[resource]
+script = ExtResource("2_mietu")
+schema_version = "1.0"
+domain = "player"
+records = Array[Resource]([SubResource("Resource_1h6mq"), SubResource("Resource_pnkwi"), SubResource("Resource_gtxu1"), SubResource("Resource_jpj0o"), SubResource("Resource_hw74k"), SubResource("Resource_eoo36"), SubResource("Resource_wa8dk"), SubResource("Resource_g6jkw"), SubResource("Resource_bdqgu"), SubResource("Resource_umdf2"), SubResource("Resource_uc5pq"), SubResource("Resource_y668o"), SubResource("Resource_kngp0"), SubResource("Resource_0e757"), SubResource("Resource_tnf7a"), SubResource("Resource_acrvy")])

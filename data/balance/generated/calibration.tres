@@ -1,0 +1,107 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_p26k7"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_2ghgc"]
+
+[sub_resource type="Resource" id="Resource_41uwu"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "wide_scan"
+display_name = "宽域扫描"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=information;weight=1;risk=0;payload=reveal_future_layers=2;unlock=initial;direct_power=0"
+notes = "每局只选一项"
+
+[sub_resource type="Resource" id="Resource_2uimb"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "procurement_voucher"
+display_name = "采购凭证"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=1;risk=0;payload=free_first_shop_reroll=1;unlock=initial"
+
+[sub_resource type="Resource" id="Resource_uce7s"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "resonance_compass"
+display_name = "共振罗盘"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=information;weight=1;risk=0;payload=choose_family=1;first_drafts=4;family_weight_mult=2;general_weight_mult=0.7;unlock=initial"
+
+[sub_resource type="Resource" id="Resource_vilmx"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "emergency_bulkhead"
+display_name = "应急隔舱"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=stabilizer;weight=1;risk=0;payload=trigger_hp=20;heal=20;invulnerable_seconds=1;starting_mineral_debt=25;unlock=reach_boss_2"
+
+[sub_resource type="Resource" id="Resource_kj521"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "overclock_lease"
+display_name = "算力租约"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=0;payload=starting_compute_add=2;shop_price_mult=1.08;unlock=defeat_boss_1"
+
+[sub_resource type="Resource" id="Resource_b7x58"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "frenzy_preheat"
+display_name = "热机协议"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=starter;weight=1;risk=0;payload=starting_heat=40;heat_gain_cap_add=2;healing_mult=0.85;unlock=reach_final_boss"
+
+[sub_resource type="Resource" id="Resource_djq0q"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "salvage_probe"
+display_name = "回收探针"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=1;risk=0;payload=mark_high_value_on_start=1;mineral_mult=1.08;patrol_cap_add=1;unlock=defeat_boss_2"
+
+[sub_resource type="Resource" id="Resource_07u7n"]
+script = ExtResource("1_p26k7")
+schema_version = "1.0"
+domain = "calibration"
+kind = "definition"
+record_id = "chaos_seed"
+display_name = "混沌种子"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=starter;weight=1;risk=0;payload=start_random_common_aux=1;uses_compute=1;stage1_family_shop_focus=0;unlock=first_clear"
+
+[resource]
+script = ExtResource("2_2ghgc")
+schema_version = "1.0"
+domain = "calibration"
+records = Array[Resource]([SubResource("Resource_41uwu"), SubResource("Resource_2uimb"), SubResource("Resource_uce7s"), SubResource("Resource_vilmx"), SubResource("Resource_kj521"), SubResource("Resource_b7x58"), SubResource("Resource_djq0q"), SubResource("Resource_07u7n")])

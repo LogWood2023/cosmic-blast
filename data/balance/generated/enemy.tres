@@ -1,0 +1,143 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_3e6wd"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_6r2lk"]
+
+[sub_resource type="Resource" id="Resource_y0lkl"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "config"
+record_id = "enemy_base_hp"
+display_name = "普通怪基础HP"
+raw_value = "240"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "hp"
+data_type = "int"
+notes = "由3秒标准怪TTK反推"
+
+[sub_resource type="Resource" id="Resource_0eids"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "config"
+record_id = "enemy_stage_multiplier"
+display_name = "普通怪阶段倍率"
+raw_stage_values = PackedStringArray("1", "2.1", "4.3")
+unit = "multiplier"
+data_type = "float"
+notes = "近似跟随正常构筑DPS增长"
+
+[sub_resource type="Resource" id="Resource_b0te8"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "archetype"
+record_id = "enemy_fragile_hp"
+display_name = "脆弱普通怪HP"
+raw_stage_values = PackedStringArray("192", "403", "826")
+unit = "hp"
+data_type = "int"
+raw_attributes = "family=general;rule_key=enemy_hp;payload=behavior_mult=0.8"
+formula = "round(240*stage_mult*0.8)"
+notes = "TTK约2.5秒"
+
+[sub_resource type="Resource" id="Resource_kvn0k"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "archetype"
+record_id = "enemy_standard_hp"
+display_name = "标准普通怪HP"
+raw_stage_values = PackedStringArray("240", "504", "1032")
+unit = "hp"
+data_type = "int"
+raw_attributes = "family=general;rule_key=enemy_hp;payload=behavior_mult=1.0"
+formula = "round(240*stage_mult)"
+notes = "TTK约3.1秒"
+
+[sub_resource type="Resource" id="Resource_a16xq"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "archetype"
+record_id = "enemy_durable_hp"
+display_name = "耐久普通怪HP"
+raw_stage_values = PackedStringArray("324", "680", "1393")
+unit = "hp"
+data_type = "int"
+raw_attributes = "family=general;rule_key=enemy_hp;payload=behavior_mult=1.35"
+formula = "round(240*stage_mult*1.35)"
+notes = "TTK约4.2秒"
+
+[sub_resource type="Resource" id="Resource_8ce27"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "archetype"
+record_id = "enemy_danger_core_hp"
+display_name = "危险核心HP"
+raw_stage_values = PackedStringArray("408", "857", "1754")
+unit = "hp"
+data_type = "int"
+raw_attributes = "family=general;rule_key=enemy_hp;payload=behavior_mult=1.7"
+formula = "round(240*stage_mult*1.7)"
+notes = "TTK约5.3秒"
+
+[sub_resource type="Resource" id="Resource_k1i1j"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "derived"
+record_id = "enemy_fragile_ttk"
+display_name = "脆弱普通怪TTK"
+raw_stage_values = PackedStringArray("2.46", "2.52", "2.43")
+unit = "seconds"
+data_type = "float"
+formula = "enemy_fragile_hp/normal_build_dps"
+notes = "落入2至5秒"
+
+[sub_resource type="Resource" id="Resource_6b2o1"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "derived"
+record_id = "enemy_standard_ttk"
+display_name = "标准普通怪TTK"
+raw_stage_values = PackedStringArray("3.08", "3.15", "3.04")
+unit = "seconds"
+data_type = "float"
+formula = "enemy_standard_hp/normal_build_dps"
+notes = "落入2至5秒"
+
+[sub_resource type="Resource" id="Resource_rc4p4"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "derived"
+record_id = "enemy_durable_ttk"
+display_name = "耐久普通怪TTK"
+raw_stage_values = PackedStringArray("4.15", "4.25", "4.10")
+unit = "seconds"
+data_type = "float"
+formula = "enemy_durable_hp/normal_build_dps"
+notes = "落入2至5秒"
+
+[sub_resource type="Resource" id="Resource_h7u2c"]
+script = ExtResource("1_3e6wd")
+schema_version = "1.0"
+domain = "enemy"
+kind = "derived"
+record_id = "enemy_danger_core_ttk"
+display_name = "危险核心TTK"
+raw_stage_values = PackedStringArray("5.23", "5.36", "5.16")
+unit = "seconds"
+data_type = "float"
+formula = "enemy_danger_core_hp/normal_build_dps"
+notes = "危险怪落入5至8秒下沿"
+
+[resource]
+script = ExtResource("2_6r2lk")
+schema_version = "1.0"
+domain = "enemy"
+records = Array[Resource]([SubResource("Resource_y0lkl"), SubResource("Resource_0eids"), SubResource("Resource_b0te8"), SubResource("Resource_kvn0k"), SubResource("Resource_a16xq"), SubResource("Resource_8ce27"), SubResource("Resource_k1i1j"), SubResource("Resource_6b2o1"), SubResource("Resource_rc4p4"), SubResource("Resource_h7u2c")])

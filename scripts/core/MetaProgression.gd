@@ -2,6 +2,8 @@ class_name MetaProgression
 extends Node
 ## Versioned, horizontal-only preflight progression. No permanent stat upgrades live here.
 
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
+
 const SAVE_VERSION: int = 2
 const SAVE_PATH: String = "user://meta_progression.json"
 const CALIBRATION_IDS: PackedStringArray = ["wide_scan", "procurement_voucher", "resonance_compass", "emergency_bulkhead", "overclock_lease", "frenzy_preheat", "salvage_probe", "chaos_seed"]
@@ -41,7 +43,16 @@ func _ready() -> void:
 
 func get_calibration_data(calibration_id: String) -> CalibrationData:
 	var path := String(CALIBRATION_PATHS.get(calibration_id, ""))
-	return load(path) as CalibrationData if not path.is_empty() else null
+	var loaded := load(path) as CalibrationData if not path.is_empty() else null
+	if loaded == null:
+		return null
+	var calibration := loaded.duplicate(true) as CalibrationData
+	var record := BalanceServiceScript.get_record_snapshot("calibration", calibration_id)
+	if not record.is_empty():
+		calibration.display_name = String(record.get("name", calibration.display_name))
+		calibration.effects = BalanceServiceScript.get_calibration_effects(calibration_id)
+		calibration.unlock_condition = String(Dictionary(record.attributes).get("payload", {}).get("unlock", calibration.unlock_condition))
+	return calibration
 
 
 func get_selected_calibration_snapshot() -> Dictionary:

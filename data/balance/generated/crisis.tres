@@ -1,0 +1,150 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_hn645"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_a80rt"]
+
+[sub_resource type="Resource" id="Resource_gdx5w"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_1"
+display_name = "巡逻增压"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=patrol_interval_mult=0.90;enemy_cap_add=1"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_l11d6"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_2"
+display_name = "紧缩采购"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=shop_price_mult=1.10;reroll_base_add=10"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_407pd"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_3"
+display_name = "精英回声"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=elite_family_affix=1;elite_ehp_mult=1.10"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_w8l1w"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_4"
+display_name = "高价契约"
+raw_value = "4"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=event_cost_mult=1.20;high_risk_reward_mult=1.10"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_e7lwx"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_5"
+display_name = "首轮裁决"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=boss_ehp_mult=1.10;boss_enhance_at_hp_ratio=0.60"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_oe3ek"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_6"
+display_name = "危险残区"
+raw_value = "6"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=trap_count_mult=1.20;damage_category_cap=1"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_8cbdi"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_7"
+display_name = "修复匮乏"
+raw_value = "7"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=healing_mult=0.75;minimum_heal=1"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_i4pru"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_8"
+display_name = "混编猎队"
+raw_value = "8"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=mixed_family_wave_chance=0.30;second_family=1"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_d1rlh"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_9"
+display_name = "深层裁决"
+raw_value = "9"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=boss_skill_cooldown_mult=0.90;family_enhanced_move=1"
+notes = "累计生效"
+
+[sub_resource type="Resource" id="Resource_4g2ro"]
+script = ExtResource("1_hn645")
+schema_version = "1.0"
+domain = "crisis"
+kind = "definition"
+record_id = "crisis_10"
+display_name = "最终否决"
+raw_value = "10"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "level"
+data_type = "record"
+raw_attributes = "family=general;weight=1;risk=1;payload=active_conditions=3;final_boss_random_family_verdict=1"
+notes = "累计生效"
+
+[resource]
+script = ExtResource("2_a80rt")
+schema_version = "1.0"
+domain = "crisis"
+records = Array[Resource]([SubResource("Resource_gdx5w"), SubResource("Resource_l11d6"), SubResource("Resource_407pd"), SubResource("Resource_w8l1w"), SubResource("Resource_e7lwx"), SubResource("Resource_oe3ek"), SubResource("Resource_8cbdi"), SubResource("Resource_i4pru"), SubResource("Resource_d1rlh"), SubResource("Resource_4g2ro")])

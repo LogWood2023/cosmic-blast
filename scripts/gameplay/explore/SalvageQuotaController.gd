@@ -1,15 +1,22 @@
 class_name SalvageQuotaController
 extends Node
 
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
+
 signal salvage_progress_changed(collected_value: int, total_value: int, ratio: float)
 signal evacuation_unlocked
 
-const EVACUATION_RATIO: float = 0.65
-const GUIDANCE_RATIO: float = 0.50
+var EVACUATION_RATIO: float = 0.65
+var GUIDANCE_RATIO: float = 0.50
 
 var total_value: int = 0
 var collected_value: int = 0
 var evacuation_is_unlocked: bool = false
+
+
+func _init() -> void:
+	EVACUATION_RATIO = float(BalanceServiceScript.get_value("exploration", "salvage_evac_ratio", EVACUATION_RATIO))
+	GUIDANCE_RATIO = float(BalanceServiceScript.get_value("exploration", "salvage_reveal_ratio", GUIDANCE_RATIO))
 
 
 func register_value(value: int) -> void:

@@ -1,5 +1,7 @@
 extends Node
 
+const BalanceServiceScript := preload("res://scripts/core/BalanceService.gd")
+
 const ENEMIES: Array[Dictionary] = [
 	{"id":"ColossusShardArm","name":"巨构碎臂","family":"星间巨构","behavior":0,"hp":30,"damage":12,"size":Vector2(84,108),"color":Color(0.45,0.47,0.52,1),"accent":Color(1,0.22,0.12,1),"pos":Vector2(960,160),"mechanic":"突入战场后会短暂蓄势并锁定闯入者方位，随后以重臂贯穿航道，逼迫目标离开直线航迹。"},
 	{"id":"ColossusShieldBee","name":"装甲盾蜂","family":"星间巨构","behavior":1,"hp":42,"damage":8,"size":Vector2(96,76),"color":Color(0.34,0.38,0.42,1),"accent":Color(1,0.55,0.18,1),"pos":Vector2(960,170),"mechanic":"受击时展开短促护盾，硬化外壳会削弱来袭火力；护盾未熄时再次受击，将把能量束折返给锁定目标，并持续压向目标前方。"},
@@ -56,18 +58,18 @@ static func get_budgeted_enemy(behavior: int, stage: int, advanced_crisis: Dicti
 	var normalized_stage := clampi(stage, 1, 3)
 	var within_family_index := behavior % 5
 	if within_family_index < NORMAL_BEHAVIOR_COUNT:
-		var behavior_factor: float = [0.8, 1.0, 1.35][within_family_index]
+		var archetype_ids := ["enemy_fragile_hp", "enemy_standard_hp", "enemy_durable_hp"]
 		enemy["tier"] = "normal"
-		enemy["ehp"] = int(round(float(NORMAL_BASE_EHP) * STAGE_MULTIPLIERS[normalized_stage - 1] * behavior_factor))
+		enemy["ehp"] = int(BalanceServiceScript.get_stage_value("enemy", archetype_ids[within_family_index], normalized_stage, enemy.get("hp", NORMAL_BASE_EHP)))
 		enemy["damage_category"] = "normal" if within_family_index == 0 else "dangerous"
-		enemy["damage"] = 5 if within_family_index == 0 else 10
+		enemy["damage"] = int(BalanceServiceScript.get_value("player", "normal_hit_damage", 5)) if within_family_index == 0 else int(BalanceServiceScript.get_value("player", "danger_hit_damage", 10))
 	else:
 		enemy["tier"] = "elite"
 		var enemy_modifiers := Dictionary(advanced_crisis.get("enemy", advanced_crisis))
-		enemy["ehp"] = int(round(float(ELITE_EHP[normalized_stage - 1]) * float(enemy_modifiers.get("elite_ehp_mult", 1.0))))
+		enemy["ehp"] = int(round(float(BalanceServiceScript.get_stage_value("elite", "elite_ehp", normalized_stage, ELITE_EHP[normalized_stage - 1])) * float(enemy_modifiers.get("elite_ehp_mult", 1.0))))
 		enemy["family_affix_count"] = int(enemy_modifiers.get("elite_family_affix_count", 0))
 		enemy["damage_category"] = "dangerous"
-		enemy["damage"] = 12
+		enemy["damage"] = int(Dictionary(BalanceServiceScript.get_attributes("player", "danger_hit_damage").get("payload", {})).get("max", 12))
 	enemy["hp"] = enemy["ehp"]
 	enemy["stage"] = normalized_stage
 	return enemy
@@ -75,15 +77,15 @@ static func get_budgeted_enemy(behavior: int, stage: int, advanced_crisis: Dicti
 
 static func get_boss_budget(family: String, stage: int, advanced_crisis: Dictionary = {}) -> Dictionary:
 	var normalized_stage := clampi(stage, 1, 3)
-	var family_mult := float(FAMILY_BOSS_EHP_MULTIPLIERS.get(family, 1.0))
+	var family_mult: float = BalanceServiceScript.get_boss_family_multiplier(family)
 	var boss_modifiers := Dictionary(advanced_crisis.get("boss", advanced_crisis))
 	return {
 		"family": family,
 		"stage": normalized_stage,
-		"ehp": int(round(float(BOSS_EHP[normalized_stage - 1]) * family_mult * float(boss_modifiers.get("ehp_mult", 1.0)))),
-		"normal_damage": 5,
-		"dangerous_damage": 12,
-		"heavy_damage": 40,
+		"ehp": int(round(float(BalanceServiceScript.get_stage_value("boss", "boss_base_ehp", normalized_stage, BOSS_EHP[normalized_stage - 1])) * family_mult * float(boss_modifiers.get("ehp_mult", 1.0)))),
+		"normal_damage": int(BalanceServiceScript.get_value("player", "normal_hit_damage", 5)),
+		"dangerous_damage": int(Dictionary(BalanceServiceScript.get_attributes("player", "danger_hit_damage").get("payload", {})).get("max", 12)),
+		"heavy_damage": int(Dictionary(BalanceServiceScript.get_attributes("player", "heavy_hit_damage").get("payload", {})).get("max", 40)),
 		"phase_count": 3 + int(boss_modifiers.get("phase_enrage_count", 0)),
 		"phase_enrage_threshold": float(boss_modifiers.get("phase_enrage_threshold", 0.0)),
 		"phase_enrage_count": int(boss_modifiers.get("phase_enrage_count", 0)),

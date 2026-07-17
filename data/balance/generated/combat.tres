@@ -1,0 +1,99 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_a18m8"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_dcv7m"]
+
+[sub_resource type="Resource" id="Resource_4hfyv"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "dps"
+record_id = "normal_build_dps"
+display_name = "正常构筑有效DPS"
+raw_stage_values = PackedStringArray("78", "160", "340")
+unit = "dps"
+data_type = "int"
+raw_attributes = "payload=ranges=70-85|145-175|300-380"
+notes = "Boss和敌人HP反推基准"
+
+[sub_resource type="Resource" id="Resource_m4lpj"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "dps"
+record_id = "formed_build_dps"
+display_name = "成型构筑有效DPS"
+raw_stage_values = PackedStringArray("140", "320", "640")
+unit = "dps"
+data_type = "int"
+raw_attributes = "payload=multipliers=3.5|8|16"
+notes = "用于单家族成型测试"
+
+[sub_resource type="Resource" id="Resource_oilmr"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "dps"
+record_id = "highroll_build_dps"
+display_name = "胡局有效DPS"
+raw_stage_values = PackedStringArray("195", "525", "1200")
+unit = "dps"
+data_type = "int"
+raw_attributes = "payload=ranges=170-220|450-600|1000-1400"
+notes = "允许破坏普通战斗节奏"
+
+[sub_resource type="Resource" id="Resource_ns6v4"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "dps"
+record_id = "normal_build_multiplier"
+display_name = "正常构筑综合倍率"
+raw_stage_values = PackedStringArray("1.95", "4", "8.5")
+unit = "multiplier"
+data_type = "float"
+formula = "normal_build_dps/40"
+notes = "综合效率而非面板攻击"
+
+[sub_resource type="Resource" id="Resource_xn70t"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "dps"
+record_id = "formed_build_multiplier"
+display_name = "成型构筑综合倍率"
+raw_stage_values = PackedStringArray("3.5", "8", "16")
+unit = "multiplier"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_h0vo1"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "dps"
+record_id = "highroll_build_multiplier"
+display_name = "胡局综合倍率"
+raw_stage_values = PackedStringArray("4.875", "13.125", "30")
+unit = "multiplier"
+data_type = "float"
+formula = "highroll_build_dps/40"
+notes = "终局落在25至35倍中部"
+
+[sub_resource type="Resource" id="Resource_3ili3"]
+script = ExtResource("1_a18m8")
+schema_version = "1.0"
+domain = "combat"
+kind = "cap"
+record_id = "pure_stat_efficiency_cap"
+display_name = "纯攻击射速弹量总效率上限"
+raw_value = "2"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "multiplier"
+data_type = "float"
+notes = "其余倍率必须来自机制"
+
+[resource]
+script = ExtResource("2_dcv7m")
+schema_version = "1.0"
+domain = "combat"
+records = Array[Resource]([SubResource("Resource_4hfyv"), SubResource("Resource_m4lpj"), SubResource("Resource_oilmr"), SubResource("Resource_ns6v4"), SubResource("Resource_xn70t"), SubResource("Resource_h0vo1"), SubResource("Resource_3ili3")])

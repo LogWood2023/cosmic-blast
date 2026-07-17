@@ -1,0 +1,205 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_mvoer"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_wyexx"]
+
+[sub_resource type="Resource" id="Resource_dd1ei"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_max_heat"
+display_name = "热量上限"
+raw_value = "100"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_mnl1s"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_duration"
+display_name = "狂热持续时间"
+raw_value = "5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+notes = "保持短爆发窗口"
+
+[sub_resource type="Resource" id="Resource_li1ok"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "target"
+record_id = "frenzy_standard_charge_seconds"
+display_name = "标准构筑充能时间"
+raw_value = "10"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "seconds"
+data_type = "float"
+notes = "与5秒爆发形成1比2节拍"
+
+[sub_resource type="Resource" id="Resource_uekb8"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "derived"
+record_id = "frenzy_standard_uptime"
+display_name = "标准狂热覆盖率"
+raw_value = "0.333"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+formula = "5/(10+5)"
+notes = "目标范围25%至40%"
+
+[sub_resource type="Resource" id="Resource_pj2vf"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "target"
+record_id = "frenzy_hell_eye_uptime"
+display_name = "地狱之眼成型覆盖率"
+raw_value = "0.58"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "ratio"
+data_type = "float"
+raw_attributes = "payload=min=0.5;max=0.7"
+notes = "有效获取约20至24热量每秒"
+
+[sub_resource type="Resource" id="Resource_vcdyh"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_primary_hit_heat"
+display_name = "主体直接命中热量"
+raw_value = "2.5"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_hplmk"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_secondary_hit_heat"
+display_name = "次级命中基础热量"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat"
+data_type = "float"
+formula = "1*proc_coefficient"
+notes = "按触发系数衰减"
+
+[sub_resource type="Resource" id="Resource_ycsxn"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_normal_kill_heat"
+display_name = "普通击杀热量"
+raw_value = "3"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_oc52k"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_elite_kill_heat"
+display_name = "精英击杀热量"
+raw_value = "12"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_cy840"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_damage_heat_cap"
+display_name = "单次受伤热量上限"
+raw_value = "8"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat"
+data_type = "float"
+formula = "min(damage*0.5|8)"
+notes = "防止重击直接充满"
+
+[sub_resource type="Resource" id="Resource_ktjvw"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_standard_gain_cap"
+display_name = "非地狱热量每秒上限"
+raw_value = "12"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat_per_second"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_apk1e"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_hell_eye_gain_cap"
+display_name = "地狱成型热量每秒上限"
+raw_value = "24"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "heat_per_second"
+data_type = "float"
+raw_attributes = "payload=early=18;formed=24"
+notes = "足以支持约55%覆盖"
+
+[sub_resource type="Resource" id="Resource_1nv7t"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_fire_interval_mult"
+display_name = "狂热射击间隔倍率"
+raw_value = "0.625"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "multiplier"
+data_type = "float"
+raw_attributes = "payload=min=0.60;max=0.65"
+notes = "取区间中位"
+
+[sub_resource type="Resource" id="Resource_23mtr"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_damage_taken_mult"
+display_name = "狂热承伤倍率"
+raw_value = "0.6"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "multiplier"
+data_type = "float"
+
+[sub_resource type="Resource" id="Resource_qwp7w"]
+script = ExtResource("1_mvoer")
+schema_version = "1.0"
+domain = "frenzy"
+kind = "config"
+record_id = "frenzy_base_damage_mult"
+display_name = "狂热基础伤害倍率"
+raw_value = "1"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "multiplier"
+data_type = "float"
+notes = "独立伤害乘区留给装备"
+
+[resource]
+script = ExtResource("2_wyexx")
+schema_version = "1.0"
+domain = "frenzy"
+records = Array[Resource]([SubResource("Resource_dd1ei"), SubResource("Resource_mnl1s"), SubResource("Resource_li1ok"), SubResource("Resource_uekb8"), SubResource("Resource_pj2vf"), SubResource("Resource_vcdyh"), SubResource("Resource_hplmk"), SubResource("Resource_ycsxn"), SubResource("Resource_oc52k"), SubResource("Resource_cy840"), SubResource("Resource_ktjvw"), SubResource("Resource_apk1e"), SubResource("Resource_1nv7t"), SubResource("Resource_23mtr"), SubResource("Resource_qwp7w")])

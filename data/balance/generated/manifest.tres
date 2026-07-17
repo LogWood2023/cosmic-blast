@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="BalanceManifestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceManifestData.gd" id="1_la48s"]
+
+[resource]
+script = ExtResource("1_la48s")
+schema_version = "1.0"
+content_version = "2026.07.16.1"
+source_sha256 = "b4d59168458d933833216c4652efc310f62060bcafdc96307c0f0a938f1c7cbf"
+total_records = 373
+domain_counts = {
+"beacon": 29,
+"boss": 9,
+"calibration": 8,
+"combat": 7,
+"crisis": 10,
+"dash": 10,
+"economy": 31,
+"elite": 3,
+"enemy": 10,
+"equipment": 150,
+"event": 24,
+"exploration": 11,
+"frenzy": 15,
+"mechanic": 7,
+"meta": 3,
+"pacing": 21,
+"player": 16,
+"reward": 9
+}

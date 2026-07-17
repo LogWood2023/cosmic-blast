@@ -1,0 +1,322 @@
+[gd_resource type="Resource" script_class="BalanceDomainData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceRecord.gd" id="1_ymwhk"]
+[ext_resource type="Script" path="res://scripts/data/balance/BalanceDomainData.gd" id="2_n0igx"]
+
+[sub_resource type="Resource" id="Resource_ti5qi"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "old_supply_chain"
+display_name = "旧时代补给链"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=1.2;risk=0;payload=a.minerals=32/48/70;b.heal=18/24/30"
+notes = "安全收益"
+
+[sub_resource type="Resource" id="Resource_3p42i"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "ark_medical_relay"
+display_name = "方舟医疗中继"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=stabilizer;weight=1.05;risk=0;payload=a.heal=28/36/44;a.overflow_to_mineral=0.5;b.emergency_heal=16;b.trigger_hp=30;b.uses=1"
+notes = "安全收益"
+
+[sub_resource type="Resource" id="Resource_ye1v5"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "lost_cartographer"
+display_name = "失联测绘员"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=information;weight=0.85;risk=0;payload=a.reveal_layers=2;a.reroll_unvisited=1;b.minerals=22/34/50"
+notes = "安全收益"
+
+[sub_resource type="Resource" id="Resource_mb1fh"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "sealed_weapon_cache"
+display_name = "密封武备缓存"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=starter;weight=0.8;risk=1;payload=a.hp_loss=8/10/12;a.draft=3;b.minerals=28/42/62;disable_a_if_lethal=1"
+notes = "风险交易"
+
+[sub_resource type="Resource" id="Resource_p3avl"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "overdrawn_core"
+display_name = "透支核心"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=0.55;risk=2;payload=a.compute=2;a.hp_loss=12;a.crisis=1;b.compute=1;b.mineral_cost=35/50/70;unique=1"
+notes = "风险交易"
+
+[sub_resource type="Resource" id="Resource_oja8m"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "volatile_incubator"
+display_name = "不稳热巢"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=starter;weight=0.65;risk=1;duration_nodes=2;payload=a.start_heat=60;a.combat_rooms=2;a.extra_elite_cache=1;b.minerals=24/36/52;b.heat=20"
+notes = "风险交易"
+
+[sub_resource type="Resource" id="Resource_a5ahq"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "salvage_contract"
+display_name = "回收承包合约"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=0.75;risk=2;duration_nodes=2;payload=a.explore_income_mult=1.30;a.crisis_per_settlement=1;b.minerals=18/28/42"
+notes = "延迟契约"
+
+[sub_resource type="Resource" id="Resource_g22gi"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "marked_bounty"
+display_name = "标记悬赏"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=amplifier;weight=0.65;risk=1;duration_nodes=2;payload=a.target_elite=1;a.reward_matching_draft=3;a.expire_penalty=0;b.minerals=20/30/44"
+notes = "延迟契约"
+
+[sub_resource type="Resource" id="Resource_hifsb"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "procurement_future"
+display_name = "采购远期单"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=0.6;risk=1;duration_nodes=3;payload=a.prepay=30/45/65;a.next_shop_first_price_mult=0.5;a.terminal_if_no_shop=1;b.minerals=18/28/40"
+notes = "延迟契约"
+
+[sub_resource type="Resource" id="Resource_lwmm7"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "scrap_exchange"
+display_name = "残件置换台"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=converter;weight=0.6;risk=1;payload=a.destroy_nonboss=1;a.same_rarity_draft=3;a.same_family_min=1;b.refund_price_mult=0.6"
+notes = "构筑转化"
+
+[sub_resource type="Resource" id="Resource_a4m0v"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "role_inverter"
+display_name = "职能逆变器"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=converter;weight=0.5;risk=1;payload=a.swap_role=starter|amplifier;a.same_family=1;a.inventory_delta=0;require_legal_target=1;b.minerals=22/34/50"
+notes = "构筑转化"
+
+[sub_resource type="Resource" id="Resource_adeug"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "bridge_forge"
+display_name = "桥接锻炉"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=bridge;weight=0.45;risk=1;payload=a.consume_common=1;a.bridge_draft=3;b.next_bridge_pity=1"
+notes = "构筑转化"
+
+[sub_resource type="Resource" id="Resource_qm5yw"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "colossus_impact_route"
+display_name = "巨构撞角航线"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=colossus;role=starter;weight=0.55;risk=1;duration_nodes=3;rule_key=dash_refund;payload=a.hp_loss=7;a.charge_refund=0.5;a.mass_mark_aftershock=1;b.minerals=22/34/50;a.shop_focus=colossus"
+notes = "家族路线"
+
+[sub_resource type="Resource" id="Resource_nmpb1"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "paradise_barrage_route"
+display_name = "天堂齐射排程"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=paradise;role=starter;weight=0.55;risk=1;duration_nodes=3;rule_key=periodic_volley;payload=a.mineral_cost=18/26/38;a.volley_every_shots=6;a.proc=0.35;b.minerals=24/36/52;a.shop_focus=paradise"
+notes = "家族路线"
+
+[sub_resource type="Resource" id="Resource_uea7l"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "warped_tide_route"
+display_name = "星核潮汐窗口"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=warped;role=starter;weight=0.55;risk=1;duration_nodes=3;rule_key=death_gravity_well;payload=a.crisis=1;a.gravity_well_on_first_pulled_death=1;b.heal=20/28/36;a.shop_focus=warped"
+notes = "家族路线"
+
+[sub_resource type="Resource" id="Resource_iw1tb"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "hell_eye_redline_route"
+display_name = "赤线热病签"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=hell_eye;role=starter;weight=0.55;risk=2;duration_nodes=3;rule_key=frenzy_heat_carry;payload=a.hp_loss=6;a.crisis=1;a.heat_carry=25;a.first_heavy_keeps_chain=1;b.minerals=20/32/46;a.shop_focus=hell_eye"
+notes = "家族路线"
+
+[sub_resource type="Resource" id="Resource_qng7s"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "divine_seraph_route"
+display_name = "圣羽护航令"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=divine;role=starter;weight=0.55;risk=1;duration_nodes=3;rule_key=drone_copy_shot;payload=a.mineral_cost=16/24/34;a.drone_hits_per_copy=12;a.proc=0.35;b.heal=22/30/38;a.shop_focus=divine"
+notes = "家族路线"
+
+[sub_resource type="Resource" id="Resource_ap0s3"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "gravity_shrapnel_treaty"
+display_name = "引力破片协定"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=paradise;role=bridge;weight=0.35;risk=1;duration_nodes=3;rule_key=split_inherit_homing;payload=a.homing_inherit=0.60;a.pull_inherit=0.35;a.pity_after_triggers=60;b.minerals=28/42/60;requires=paradise|warped"
+notes = "跨家族桥接"
+
+[sub_resource type="Resource" id="Resource_qm4rx"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "seraph_furnace_treaty"
+display_name = "圣羽热炉协定"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=divine;role=bridge;weight=0.35;risk=1;duration_nodes=3;rule_key=drone_heat;payload=a.heat_per_drone_hit=0.5;a.heat_per_second_cap=4;a.reset_oldest_drone_skill=1;b.heal=24/32/40;requires=divine|hell_eye"
+notes = "跨家族桥接"
+
+[sub_resource type="Resource" id="Resource_cku6m"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "rammed_magazine_treaty"
+display_name = "撞角弹仓协定"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=colossus;role=bridge;weight=0.35;risk=1;duration_nodes=3;rule_key=dash_fan_shot;payload=a.fan_bullets=5;a.proc=0.35;a.cooldown=2;b.minerals=30/46/66;requires=colossus|paradise"
+notes = "跨家族桥接"
+
+[sub_resource type="Resource" id="Resource_5sctv"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "quiet_channel"
+display_name = "静默航道"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=converter;weight=0.45;risk=1;payload=a.convert_battle_to_reward=1;a.next_battle_threat_add=1;b.minerals=24/36/54;exclude=boss|mandatory|visited"
+notes = "局势改变"
+
+[sub_resource type="Resource" id="Resource_il1nw"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "family_aftershock"
+display_name = "家族余震"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=converter;weight=0.45;risk=1;duration_nodes=3;payload=a.choose_family=1;a.bias_nodes=3;a.guarantee_family_beacon=1;a.allow_mixed_enemy=1;b.minerals=26/40/58"
+notes = "局势改变"
+
+[sub_resource type="Resource" id="Resource_16xkl"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "quantum_crate"
+display_name = "量子货箱"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;weight=0.55;risk=2;payload=a.crates=3;a.equipment_chance=0.55;a.mineral_chance=0.35;a.ambush_chance=0.10;a.minerals=60/90/130;a.ambush_win_equipment=1;a.fail_floor=24/36/52;b.minerals=24/36/52"
+notes = "资源赌博且显示概率"
+
+[sub_resource type="Resource" id="Resource_xxivs"]
+script = ExtResource("1_ymwhk")
+schema_version = "1.0"
+domain = "event"
+kind = "definition"
+record_id = "ore_pledge"
+display_name = "富矿押注"
+raw_stage_values = PackedStringArray("", "", "")
+unit = "record"
+data_type = "record"
+raw_attributes = "family=general;role=economy;weight=0.65;risk=1;payload=a.stake=25/40/60;a.next_explore_target=0.70;a.success_return_mult=2.4;a.fail_refund_mult=0.6;a.defer_until_explore=1;b.minerals=18/28/40"
+notes = "玩家可控赌博"
+
+[resource]
+script = ExtResource("2_n0igx")
+schema_version = "1.0"
+domain = "event"
+records = Array[Resource]([SubResource("Resource_ti5qi"), SubResource("Resource_3p42i"), SubResource("Resource_ye1v5"), SubResource("Resource_mb1fh"), SubResource("Resource_p3avl"), SubResource("Resource_oja8m"), SubResource("Resource_a5ahq"), SubResource("Resource_g22gi"), SubResource("Resource_hifsb"), SubResource("Resource_lwmm7"), SubResource("Resource_a4m0v"), SubResource("Resource_adeug"), SubResource("Resource_qm5yw"), SubResource("Resource_nmpb1"), SubResource("Resource_uea7l"), SubResource("Resource_iw1tb"), SubResource("Resource_qng7s"), SubResource("Resource_ap0s3"), SubResource("Resource_qm4rx"), SubResource("Resource_cku6m"), SubResource("Resource_5sctv"), SubResource("Resource_il1nw"), SubResource("Resource_16xkl"), SubResource("Resource_xxivs")])
