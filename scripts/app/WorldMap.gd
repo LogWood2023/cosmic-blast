@@ -20,6 +20,7 @@ var _pending_reward_seed: int = -1
 var _pending_boss_reward_popup_summary: Dictionary = {}
 var _pending_special_bonus_popup_summary: Dictionary = {}
 var _startup_popup_queue: Array[Callable] = []
+var _pending_alert_intro_family := ""
 
 @onready var crisis_segments: HBoxContainer = $TopBar/CrisisSegments
 @onready var crisis_warning_tape: Control = $CrisisWarningMask/CrisisWarningTape
@@ -42,6 +43,7 @@ var _startup_popup_queue: Array[Callable] = []
 
 func _ready() -> void:
 	CombatUiMotion.bind_tree(self)
+	var transition_holds_settlement := SceneTransition.is_waiting_for_settlement()
 	if not RunManager.is_formal_run_active():
 		RunManager.start_new_run()
 	var alert_intro_family: String = ""
@@ -57,21 +59,23 @@ func _ready() -> void:
 	map_viewport.connect("node_selected", _on_map_node_selected)
 	map_viewport.call("reset_view")
 	_refresh_all()
-	if not alert_intro_family.is_empty():
+	if not alert_intro_family.is_empty() and transition_holds_settlement:
+		_pending_alert_intro_family = alert_intro_family
+	elif not alert_intro_family.is_empty():
 		call_deferred("_play_crisis_alert_intro", alert_intro_family)
 	# 入场弹窗排队依次展示；此前三个同帧打开会互相 queue_free，玩家只看到最后一个
-	if not _pending_special_bonus_popup_summary.is_empty():
+	if not transition_holds_settlement and not _pending_special_bonus_popup_summary.is_empty():
 		_startup_popup_queue.append(_show_pending_special_bonus_popup)
 	# SceneTransition keeps its cover up and owns the reward picker until a
 	# choice is made. Other entries (such as a resumed save) still use the map UI.
-	if not SceneTransition.is_waiting_for_boss_reward():
+	if not transition_holds_settlement:
 		if not _pending_boss_reward_popup_summary.is_empty():
 			_startup_popup_queue.append(_show_pending_boss_reward_popup)
 		elif RunManager.has_method("get_pending_boss_reward_summary"):
 			_pending_boss_reward_popup_summary = Dictionary(RunManager.get_pending_boss_reward_summary())
 			if not _pending_boss_reward_popup_summary.is_empty():
 				_startup_popup_queue.append(_show_pending_boss_reward_popup)
-	if not _startup_popup_queue.is_empty() and not SceneTransition.is_waiting_for_boss_reward():
+	if not _startup_popup_queue.is_empty() and not transition_holds_settlement:
 		call_deferred("_show_next_startup_popup")
 
 
@@ -120,7 +124,7 @@ func _consume_explore_completion_feedback() -> String:
 	var beacon_echo_feedback := _make_beacon_echo_feedback(summary)
 	if not beacon_echo_feedback.is_empty():
 		lines.append(beacon_echo_feedback)
-	if not activated_names.is_empty():
+	if not activated_names.is_empty() and not SceneTransition.is_waiting_for_settlement():
 		_pending_special_bonus_popup_summary = {
 			"activated_names": activated_names,
 			"beacon_echo_routes": Array(summary.get("beacon_echo_routes", [])).duplicate(true),
@@ -142,7 +146,7 @@ func _consume_boss_completion_feedback() -> String:
 	var summary := Dictionary(RunManager.call("consume_last_boss_completion_summary"))
 	if summary.is_empty() or not bool(summary.get("ok", false)):
 		return ""
-	if not SceneTransition.is_waiting_for_boss_reward():
+	if not SceneTransition.is_waiting_for_settlement():
 		_pending_boss_reward_popup_summary = summary.duplicate(true)
 	return _make_boss_completion_feedback(summary)
 
@@ -436,6 +440,20 @@ func _refresh_details() -> void:
 			lines.append("")
 			lines.append("[color=#ff4f6a][b]执行体锁定：%s[/b][/color]" % boss_name)
 			lines.append(String(boss_preview.get("forecast_text", "首领预报：未知首领正在接近。")))
+	if is_base:
+		_append_active_event_contract_lines(lines)
+		_append_active_special_bonus_lines(lines)
+		_append_active_special_beacon_resonance_lines(lines)
+		_append_route_directive_lines(lines)
+	else:
+		_append_route_plan_lines(lines, node)
+		_append_ore_source_room_effect_lines(lines, node)
+		_append_opportunity_lines(lines, node)
+		_append_beacon_echo_lines(lines, node)
+		_append_reward_cache_calibration_lines(lines, node)
+		_append_boss_aftershock_lines(lines, node)
+		_append_run_condition_lines(lines, node)
+		_append_modifier_lines(lines, node)
 	details_body.text = "\n".join(lines)
 	action_button.visible = true
 	action_button.disabled = false
@@ -874,6 +892,18 @@ func _on_boss_reward_selected(item_id: String) -> void:
 func on_boss_reward_claimed(result: Dictionary) -> void:
 	_set_message("已收入机库：%s。" % String(result.get("item_name", "未知装备")))
 	_refresh_all()
+	if not _startup_popup_queue.is_empty():
+		call_deferred("_show_next_startup_popup")
+
+
+func on_settlement_sequence_completed() -> void:
+	_pending_special_bonus_popup_summary.clear()
+	_pending_boss_reward_popup_summary.clear()
+	_refresh_all()
+	if not _pending_alert_intro_family.is_empty():
+		var alert_family := _pending_alert_intro_family
+		_pending_alert_intro_family = ""
+		call_deferred("_play_crisis_alert_intro", alert_family)
 	if not _startup_popup_queue.is_empty():
 		call_deferred("_show_next_startup_popup")
 

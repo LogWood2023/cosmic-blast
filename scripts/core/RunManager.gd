@@ -1955,6 +1955,7 @@ var last_node_completion_summary: Dictionary = {}
 var active_special_bonus_ids: Array[String] = []
 var active_event_contracts: Array[Dictionary] = []
 var active_route_directives: Array[Dictionary] = []
+var retired_route_directive_ids: Array[String] = []
 var active_run_conditions: Array[Dictionary] = []
 var force_next_event_id: String = ""
 var shop_offer_ids: Array[String] = []
@@ -2037,6 +2038,7 @@ func start_new_run() -> void:
 	active_special_bonus_ids.clear()
 	active_event_contracts.clear()
 	active_route_directives.clear()
+	retired_route_directive_ids.clear()
 	active_run_conditions.clear()
 	force_next_event_id = ""
 	_reset_shop_state()
@@ -2122,6 +2124,7 @@ func cancel_run() -> void:
 	active_special_bonus_ids.clear()
 	active_event_contracts.clear()
 	active_route_directives.clear()
+	retired_route_directive_ids.clear()
 	active_run_conditions.clear()
 	force_next_event_id = ""
 	_reset_shop_state()
@@ -2164,6 +2167,7 @@ func save_run() -> void:
 		"active_special_bonus_ids": active_special_bonus_ids,
 		"active_event_contracts": active_event_contracts,
 		"active_route_directives": active_route_directives,
+		"retired_route_directive_ids": retired_route_directive_ids,
 		"active_run_conditions": active_run_conditions,
 		"force_next_event_id": force_next_event_id,
 		"shop_offer_ids": shop_offer_ids,
@@ -2239,9 +2243,11 @@ func load_saved_run() -> bool:
 	active_special_bonus_ids.assign(data.get("active_special_bonus_ids", []))
 	active_event_contracts.assign(data.get("active_event_contracts", []))
 	active_route_directives.assign(data.get("active_route_directives", []))
+	retired_route_directive_ids.assign(data.get("retired_route_directive_ids", []))
 	var needs_route_directive_refresh := active_route_directives.size() != ROUTE_DIRECTIVE_COUNT
 	for raw_directive in active_route_directives:
-		if not Dictionary(raw_directive).has("target_behavior"):
+		var directive := Dictionary(raw_directive)
+		if not directive.has("id") or not directive.has("goal_type") or not directive.has("reward"):
 			needs_route_directive_refresh = true
 			break
 	if needs_route_directive_refresh:
@@ -2634,15 +2640,7 @@ func get_route_directive_summaries() -> Array:
 
 
 func get_route_directive_profiles() -> Array:
-	var profiles: Array = []
-	for behavior in ROUTE_DIRECTIVE_ELITE_BEHAVIORS:
-		var enemy: Dictionary = Dictionary(DesignedEnemyCatalog.ENEMIES[behavior])
-		profiles.append({
-			"target_behavior": behavior,
-			"target_name": String(enemy.get("name", "精英敌机")),
-			"family_name": String(enemy.get("family", "未知")),
-		})
-	return profiles
+	return ROUTE_DIRECTIVE_PROFILES.duplicate(true)
 
 
 func get_reward_profiles() -> Array:
@@ -3702,6 +3700,13 @@ func _complete_current_node(success: bool) -> Dictionary:
 	var special_refresh := _refresh_special_bonus_nodes()
 	var beacon_echo_routes: Array = special_refresh.get("beacon_echo_routes", [])
 	var activated_special_ids: Array = special_refresh.get("activated_specials", [])
+	var route_update := _advance_route_directives_on_node_complete(node, activated_special_ids)
+	var completed_route_directives: Array = Array(loot_summary.get("completed_route_directives", [])).duplicate(true)
+	completed_route_directives.append_array(Array(route_update.get("completed_directives", [])))
+	var new_route_directives: Array = Array(loot_summary.get("new_route_directives", [])).duplicate(true)
+	new_route_directives.append_array(Array(route_update.get("new_directives", [])))
+	var route_directive_rewards := Dictionary(loot_summary.get("route_directive_rewards", {})).duplicate(true)
+	_merge_route_directive_reward_summary(route_directive_rewards, Dictionary(route_update.get("reward_summary", {})))
 	var summary := {
 		"ok": true,
 		"node_id": completion_node_id,
@@ -3720,6 +3725,12 @@ func _complete_current_node(success: bool) -> Dictionary:
 		"expired_event_contract_count": expired_contracts.size(),
 		"expired_event_contracts": expired_contracts,
 		"active_event_contracts": get_active_event_contracts(),
+		"equipment": Array(loot_summary.get("equipment", [])).duplicate(),
+		"equipment_names": Array(loot_summary.get("equipment_names", [])).duplicate(),
+		"completed_route_directives": completed_route_directives,
+		"new_route_directives": new_route_directives,
+		"route_directive_rewards": route_directive_rewards,
+		"shop_directive_focus_changed": bool(route_directive_rewards.get("shop_focus_changed", false)),
 		"active_route_directives": get_route_directive_summaries(),
 	}
 	last_node_completion_summary = summary.duplicate(true)
@@ -3736,15 +3747,24 @@ func _commit_pending_room_loot() -> Dictionary:
 	var evac_bonus := int(floor(float(base_minerals) * float(get_player_stats().get("evac_mineral_bonus", 0.0))))
 	var total_minerals := base_minerals + bonus + contract_bonus + evac_bonus
 	minerals += total_minerals
+	var committed_equipment: Array[String] = []
+	var committed_equipment_names: Array[String] = []
 	for item_id in pending_room_loot.get("equipment", []):
 		if EquipmentCatalogScript.has_item(item_id) and not equipment_inventory.has(item_id):
 			equipment_inventory.append(item_id)
+			committed_equipment.append(String(item_id))
+			committed_equipment_names.append(EquipmentCatalogScript.get_display_name(String(item_id)))
 	return {
 		"base_minerals": base_minerals,
 		"mineral_bonus_added": bonus,
 		"event_contract_minerals_added": contract_bonus,
 		"minerals_committed": total_minerals,
 		"event_contracts_applied": contract_bonus_summary.get("contracts", []),
+		"equipment": committed_equipment,
+		"equipment_names": committed_equipment_names,
+		"completed_route_directives": Array(pending_room_loot.get("completed_route_directives", [])).duplicate(true),
+		"new_route_directives": Array(pending_room_loot.get("new_route_directives", [])).duplicate(true),
+		"route_directive_rewards": Dictionary(pending_room_loot.get("route_directive_rewards", {})).duplicate(true),
 	}
 
 
@@ -4378,60 +4398,77 @@ func _empty_loot() -> Dictionary:
 	return {
 		"minerals": 0,
 		"equipment": [],
+		"completed_route_directives": [],
+		"new_route_directives": [],
+		"route_directive_rewards": {},
 	}
 
 
 func _generate_route_directives() -> void:
 	active_route_directives.clear()
+	retired_route_directive_ids.clear()
 	_refill_route_directives()
 
 
 func _refill_route_directives() -> Array[Dictionary]:
 	var added: Array[Dictionary] = []
-	var blocked_behaviors: Array[int] = []
+	var blocked_ids: Array[String] = retired_route_directive_ids.duplicate()
 	for raw_directive in active_route_directives:
-		blocked_behaviors.append(int(Dictionary(raw_directive).get("target_behavior", -1)))
+		blocked_ids.append(String(Dictionary(raw_directive).get("id", "")))
 	while active_route_directives.size() < ROUTE_DIRECTIVE_COUNT:
-		var directive := _make_random_route_directive(blocked_behaviors)
+		var directive := _make_random_route_directive(blocked_ids)
 		if directive.is_empty():
-			break
+			retired_route_directive_ids.clear()
+			blocked_ids.clear()
+			for raw_active in active_route_directives:
+				blocked_ids.append(String(Dictionary(raw_active).get("id", "")))
+			directive = _make_random_route_directive(blocked_ids)
+			if directive.is_empty():
+				break
 		active_route_directives.append(directive)
-		blocked_behaviors.append(int(directive.get("target_behavior", -1)))
+		blocked_ids.append(String(directive.get("id", "")))
 		added.append(_make_route_directive_summary(directive))
 	return added
 
 
-func _make_random_route_directive(blocked_behaviors: Array[int]) -> Dictionary:
-	var candidates: Array[int] = []
-	for behavior in ROUTE_DIRECTIVE_ELITE_BEHAVIORS:
-		if not blocked_behaviors.has(behavior):
-			candidates.append(behavior)
+func _make_random_route_directive(blocked_ids: Array[String]) -> Dictionary:
+	var candidates: Array[Dictionary] = []
+	for raw_profile in ROUTE_DIRECTIVE_PROFILES:
+		var profile := Dictionary(raw_profile)
+		if not blocked_ids.has(String(profile.get("id", ""))):
+			candidates.append(profile)
 	if candidates.is_empty():
-		for behavior in ROUTE_DIRECTIVE_ELITE_BEHAVIORS:
-			candidates.append(behavior)
-	var target_behavior: int = int(candidates.pick_random())
-	var enemy: Dictionary = Dictionary(DesignedEnemyCatalog.ENEMIES[target_behavior])
-	var enemy_name := String(enemy.get("name", "精英敌机"))
-	var family_name := String(enemy.get("family", "未知"))
-	var reward_minerals := randi_range(ROUTE_DIRECTIVE_MINERAL_REWARD_MIN, ROUTE_DIRECTIVE_MINERAL_REWARD_MAX)
-	return {
-		"directive_id": "%s_%d" % [String(enemy.get("id", "elite")), Time.get_ticks_usec()],
-		"target_behavior": target_behavior,
-		"target_name": enemy_name,
-		"family_name": family_name,
-		"description": "击毁%s（%s协议下属）" % [enemy_name, family_name],
-		"reward_minerals": reward_minerals,
-	}
+		return {}
+	var directive := Dictionary(candidates.pick_random()).duplicate(true)
+	directive["current"] = 0
+	directive["completed"] = false
+	directive["claimed"] = false
+	return directive
 
 
 func _make_route_directive_summary(directive: Dictionary) -> Dictionary:
+	var current := int(directive.get("current", 0))
+	var required := maxi(1, int(directive.get("required", 1)))
+	var reward := Dictionary(directive.get("reward", {}))
+	var reward_minerals := int(reward.get("minerals", directive.get("reward_minerals", 0)))
 	return {
-		"directive_id": String(directive.get("directive_id", "")),
+		"directive_id": String(directive.get("id", directive.get("directive_id", ""))),
+		"id": String(directive.get("id", directive.get("directive_id", ""))),
 		"target_behavior": int(directive.get("target_behavior", -1)),
-		"target_name": String(directive.get("target_name", "精英敌机")),
-		"family_name": String(directive.get("family_name", "未知")),
-		"description": String(directive.get("description", "击毁精英敌机")),
-		"reward_minerals": int(directive.get("reward_minerals", 0)),
+		"target_name": String(directive.get("target_name", "")),
+		"family_name": String(directive.get("family_name", "")),
+		"title": String(directive.get("title", "航路指令")),
+		"description": String(directive.get("description", "完成方舟航路目标。")),
+		"goal_type": String(directive.get("goal_type", "")),
+		"target": String(directive.get("target", "")),
+		"current": current,
+		"required": required,
+		"progress_text": "进度 %d/%d" % [mini(current, required), required],
+		"reward": reward.duplicate(true),
+		"reward_text": String(directive.get("reward_text", "星髓矿 +%d" % reward_minerals)),
+		"reward_minerals": reward_minerals,
+		"reward_result": Dictionary(directive.get("reward_result", {})).duplicate(true),
+		"completed": bool(directive.get("completed", false)),
 	}
 
 
@@ -4492,6 +4529,53 @@ func _count_available_special_bonus_nodes() -> int:
 	return count
 
 
+func _advance_route_directives_on_node_complete(completed_node: Dictionary, activated_special_ids: Array) -> Dictionary:
+	var completed: Array[Dictionary] = []
+	var remaining: Array[Dictionary] = []
+	var reward_summary: Dictionary = {}
+	for raw_directive in active_route_directives:
+		var directive := Dictionary(raw_directive).duplicate(true)
+		if _route_directive_matches_node(directive, completed_node, activated_special_ids):
+			directive["current"] = int(directive.get("current", 0)) + 1
+		var required := maxi(1, int(directive.get("required", 1)))
+		if int(directive.get("current", 0)) < required:
+			remaining.append(directive)
+			continue
+		directive["completed"] = true
+		directive["claimed"] = true
+		var reward_result := _grant_route_directive_reward(directive)
+		directive["reward_result"] = reward_result
+		completed.append(_make_route_directive_summary(directive))
+		_merge_route_directive_reward_summary(reward_summary, reward_result)
+		var directive_id := String(directive.get("id", directive.get("directive_id", "")))
+		if not directive_id.is_empty() and not retired_route_directive_ids.has(directive_id):
+			retired_route_directive_ids.append(directive_id)
+	active_route_directives = remaining
+	var added := _refill_route_directives()
+	return {
+		"completed_directives": completed,
+		"new_directives": added,
+		"reward_summary": reward_summary,
+	}
+
+
+func _route_directive_matches_node(directive: Dictionary, completed_node: Dictionary, activated_special_ids: Array) -> bool:
+	match String(directive.get("goal_type", "")):
+		"complete_nodes":
+			return true
+		"complete_type":
+			return String(completed_node.get("type", "")) == String(directive.get("target", ""))
+		"complete_family":
+			var plan := Dictionary(completed_node.get("route_plan", {}))
+			var family := String(plan.get("family", completed_node.get("family_bias", "")))
+			return family == String(directive.get("target", ""))
+		"complete_ore_source":
+			return String(completed_node.get("ore_source_bias", "")) == String(directive.get("target", ""))
+		"activate_special":
+			return not activated_special_ids.is_empty()
+	return false
+
+
 func record_route_directive_elite_kill(behavior: int) -> Dictionary:
 	if not is_formal_run_active():
 		return {}
@@ -4509,12 +4593,25 @@ func record_route_directive_elite_kill(behavior: int) -> Dictionary:
 		completed.append(_make_route_directive_summary(directive))
 	active_route_directives = remaining
 	var added := _refill_route_directives()
-	return {
+	var result := {
 		"completed": completed,
 		"added": added,
 		"minerals": minerals_granted,
 		"active": get_route_directive_summaries(),
 	}
+	if current_node_id > 0 and not completed.is_empty():
+		if pending_room_loot.is_empty():
+			pending_room_loot = _empty_loot()
+		var pending_completed: Array = pending_room_loot.get("completed_route_directives", [])
+		pending_completed.append_array(completed)
+		pending_room_loot["completed_route_directives"] = pending_completed
+		var pending_new: Array = pending_room_loot.get("new_route_directives", [])
+		pending_new.append_array(added)
+		pending_room_loot["new_route_directives"] = pending_new
+		var pending_rewards := Dictionary(pending_room_loot.get("route_directive_rewards", {}))
+		pending_rewards["minerals"] = int(pending_rewards.get("minerals", 0)) + minerals_granted
+		pending_room_loot["route_directive_rewards"] = pending_rewards
+	return result
 
 
 func _grant_route_directive_reward(directive: Dictionary) -> Dictionary:
@@ -5161,7 +5258,10 @@ func _add_branching_beacon_nodes(layers: Array[Array], rng: RandomNumberGenerato
 			"bonus_description": String(profile.get("bonus_description", "")),
 			"family_bias": String(profile.get("family_bias", "")),
 		})
-		_add_branching_link_if_clear(anchor_id, special_id)
+		# A signal beacon must remain reachable even when the straight visual link
+		# intersects the dense outer web. Connectivity takes priority at this point.
+		if not _add_branching_link_if_clear(anchor_id, special_id):
+			_add_link(anchor_id, special_id)
 
 
 func _generate_compact_spider_map() -> void:

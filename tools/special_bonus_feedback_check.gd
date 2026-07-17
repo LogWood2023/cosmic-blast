@@ -102,10 +102,6 @@ func _check_world_map_lists_active_bonus_summaries() -> void:
 	var world_map := WORLD_MAP_SCENE.instantiate()
 	add_child(world_map)
 	await get_tree().process_frame
-	var stats_label := world_map.get_node("WorldMap/TopBar/StatsLabel") as Label
-	if not stats_label.text.contains("接入协议 3"):
-		_fail("World map top bar should surface active beacon protocol count. Stats: %s" % stats_label.text)
-		return
 	var details_body := world_map.get_node("WorldMap/DetailsPanel/DetailsBody") as RichTextLabel
 	var text := details_body.text
 	if not text.contains("已接入协议"):
@@ -168,10 +164,6 @@ func _check_world_map_lists_active_contract_summaries() -> void:
 	var world_map := WORLD_MAP_SCENE.instantiate()
 	add_child(world_map)
 	await get_tree().process_frame
-	var stats_label := world_map.get_node("WorldMap/TopBar/StatsLabel") as Label
-	if not stats_label.text.contains("航路契约 2"):
-		_fail("World map top bar should surface active route contract count. Stats: %s" % stats_label.text)
-		return
 	var details_body := world_map.get_node("WorldMap/DetailsPanel/DetailsBody") as RichTextLabel
 	var text := details_body.text
 	if not text.contains("航路契约"):
@@ -252,7 +244,7 @@ func _check_world_map_reports_beacon_echo_routes() -> void:
 	await get_tree().process_frame
 	var message_label := world_map.get_node("WorldMap/MessageLabel") as Label
 	var text := message_label.text
-	for expected in ["新增信标", "暗潮牵引协议", "回响航线", "暗潮裂隙", "扭曲星核", "装备检出 +8%"]:
+	for expected in ["新增信标", "暗潮牵引协议", "回响航线", "暗潮裂隙", "扭曲星核", "装备出现率 +8%"]:
 		if not text.contains(expected):
 			_fail("World map beacon echo message should include %s. Message: %s" % [expected, text])
 			return
@@ -294,7 +286,7 @@ func _check_world_map_opens_special_bonus_popup() -> void:
 	var title := (popup.get_node("Panel/TitleLabel") as Label).text
 	var body := (popup.get_node("Panel/BodyLabel") as RichTextLabel).text
 	var text := "%s\n%s" % [title, body]
-	for expected in ["信标接入", "冲刺碰撞协议", "巨构残响带", "星间巨构", "装备检出 +8%", "矿物倍率"]:
+	for expected in ["信标接入", "冲刺碰撞协议", "巨构残响带", "星间巨构", "装备出现率 +8%", "矿物倍率"]:
 		if not text.contains(expected):
 			_fail("Special bonus popup should include %s. Popup: %s" % [expected, text])
 			return

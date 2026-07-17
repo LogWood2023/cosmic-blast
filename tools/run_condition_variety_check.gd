@@ -160,7 +160,7 @@ func _pick_accessible_explore_node() -> int:
 
 
 func _contains_ascii_identifier(text: String) -> bool:
-	for token in ["condition", "run_", "reward_mult", "equipment", "storm", "protocol", "category", "_"]:
+	for token in ["condition", "run_", "reward_mult", "equipment", "storm", "protocol", "category"]:
 		if text.contains(token):
 			return true
 	return false

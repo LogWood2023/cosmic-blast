@@ -141,7 +141,7 @@ func _check_world_map_opportunity_details() -> void:
 		return
 	var details_text := details_body.text
 	scene.queue_free()
-	if not details_text.contains("航行机会") or not details_text.contains("蓝图回声") or not details_text.contains("装备检出"):
+	if not details_text.contains("航行机会") or not details_text.contains("蓝图回声") or not details_text.contains("装备出现率"):
 		_fail("World map details should show opportunity title and effects. Details: %s" % details_text)
 
 

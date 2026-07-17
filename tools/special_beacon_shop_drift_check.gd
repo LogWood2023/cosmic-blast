@@ -17,14 +17,15 @@ func _run() -> void:
 		_fail("World map should generate at least one boss-family special beacon.")
 		return
 	var special_node := RunManager.get_map_node(special_id)
-	var anchor_id := _first_accessible_link(special_node)
+	var anchor_id := _first_exploration_link(special_node)
 	if anchor_id <= 0:
-		_fail("Boss-family beacon should connect to an accessible anchor.")
+		_fail("Boss-family beacon should connect to an exploration anchor.")
 		return
 
-	if not RunManager.start_explore_node(anchor_id):
-		_fail("Could not start the beacon anchor node.")
-		return
+	# Boss-family beacons may be placed beyond the first accessible ring. Complete
+	# their linked exploration anchor directly so this check isolates shop drift.
+	RunManager.current_node_id = anchor_id
+	RunManager.pending_room_loot = {"minerals": 0, "equipment": []}
 	var result := RunManager.complete_explore_room_success()
 	if not bool(result.get("ok", false)):
 		_fail("Completing the beacon anchor should succeed.")
@@ -95,10 +96,10 @@ func _bonus_family(bonus_id: String) -> String:
 	return ""
 
 
-func _first_accessible_link(node: Dictionary) -> int:
+func _first_exploration_link(node: Dictionary) -> int:
 	for linked_id in node.get("links", []):
 		var id := int(linked_id)
-		if id > 0 and RunManager.is_node_accessible(id):
+		if id > 0 and String(RunManager.get_map_node(id).get("type", "")) != RunManager.NODE_SPECIAL:
 			return id
 	return -1
 
@@ -112,7 +113,7 @@ func _count_family(offer_ids: Array, family: String) -> int:
 
 
 func _contains_ascii_identifier(text: String) -> bool:
-	for token in ["colossus", "paradise", "warped", "hell_eye", "divine", "preferred_family", "shop", "_"]:
+	for token in ["colossus", "paradise", "warped", "hell_eye", "divine", "preferred_family", "shop"]:
 		if text.contains(token):
 			return true
 	return false

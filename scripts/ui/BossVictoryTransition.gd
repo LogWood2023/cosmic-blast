@@ -40,9 +40,14 @@ var _title_rest_position := Vector2.ZERO
 var _status_rest_position := Vector2.ZERO
 var _is_transitioning := false
 var _is_boss_victory_transition := false
+var _waiting_for_settlement := false
 var _waiting_for_boss_reward := false
 var _is_claiming_boss_reward := false
 var _boss_reward_popup: Control
+var _settlement_popup_specs: Array[Dictionary] = []
+var _active_settlement_popup: Control
+var _transition_title := GENERIC_TITLE
+var _transition_status := GENERIC_STATUS
 
 
 func _ready() -> void:
@@ -53,19 +58,35 @@ func is_waiting_for_boss_reward() -> bool:
 	return _waiting_for_boss_reward
 
 
+func is_waiting_for_settlement() -> bool:
+	return _waiting_for_settlement
+
+
+func is_transitioning() -> bool:
+	return _is_transitioning
+
+
 func change_scene_to_file(scene_path: String) -> void:
-	_play_to_scene(scene_path, false)
+	_play_to_scene(scene_path, false, [], GENERIC_TITLE, GENERIC_STATUS)
 
 
 func play_boss_victory_to_scene(scene_path: String) -> void:
-	_play_to_scene(scene_path, true)
+	_play_to_scene(scene_path, true, [], GameCopy.text(&"ui.boss_victory.title"), BOSS_STATUS)
 
 
-func _play_to_scene(scene_path: String, is_boss_victory: bool) -> void:
+func play_settlement_to_scene(scene_path: String, popup_specs: Array[Dictionary], title: String = "结算传输", status: String = "正在核验回收清单") -> void:
+	_play_to_scene(scene_path, false, popup_specs, title, status)
+
+
+func _play_to_scene(scene_path: String, is_boss_victory: bool, popup_specs: Array[Dictionary], title: String, status: String) -> void:
 	if _is_transitioning or scene_path.is_empty():
 		return
 	_is_transitioning = true
 	_is_boss_victory_transition = is_boss_victory
+	_waiting_for_settlement = is_boss_victory or not popup_specs.is_empty()
+	_settlement_popup_specs = popup_specs.duplicate(true)
+	_transition_title = title
+	_transition_status = status
 	_ensure_overlay()
 	_update_overlay_copy()
 	_capture_current_frame()
@@ -97,10 +118,13 @@ func _play_to_scene(scene_path: String, is_boss_victory: bool) -> void:
 	await cover_tween.finished
 
 	_waiting_for_boss_reward = _is_boss_victory_transition and RunManager.has_pending_boss_reward()
+	_waiting_for_settlement = _waiting_for_boss_reward or not _settlement_popup_specs.is_empty()
 	var change_error := get_tree().change_scene_to_file(scene_path)
 	if change_error != OK:
 		push_error("执行体结算转场无法加载场景：%s" % scene_path)
 		_waiting_for_boss_reward = false
+		_waiting_for_settlement = false
+		_settlement_popup_specs.clear()
 		await _reveal_overlay()
 		return
 
@@ -111,7 +135,61 @@ func _play_to_scene(scene_path: String, is_boss_victory: bool) -> void:
 	if _waiting_for_boss_reward:
 		_show_boss_reward_popup()
 		return
+	if not _settlement_popup_specs.is_empty():
+		_show_next_settlement_popup()
+		return
+	_waiting_for_settlement = false
 	await _reveal_overlay()
+
+
+func _show_next_settlement_popup() -> void:
+	if is_instance_valid(_active_settlement_popup):
+		return
+	if _settlement_popup_specs.is_empty():
+		_finish_settlement_sequence()
+		return
+	var spec: Dictionary = _settlement_popup_specs.pop_front()
+	var popup_scene := spec.get("scene") as PackedScene
+	if popup_scene == null:
+		push_warning("结算弹窗配置缺少有效场景，已跳过。")
+		call_deferred("_show_next_settlement_popup")
+		return
+	_active_settlement_popup = popup_scene.instantiate() as Control
+	if not is_instance_valid(_active_settlement_popup):
+		push_warning("结算弹窗实例化失败，已跳过：%s" % popup_scene.resource_path)
+		call_deferred("_show_next_settlement_popup")
+		return
+	_root.add_child(_active_settlement_popup)
+	var completion_signal := StringName(spec.get("completion_signal", &"closed"))
+	if not _active_settlement_popup.has_signal(completion_signal):
+		push_warning("结算弹窗 %s 缺少完成信号 %s，已跳过。" % [_active_settlement_popup.name, completion_signal])
+		_active_settlement_popup.queue_free()
+		_active_settlement_popup = null
+		call_deferred("_show_next_settlement_popup")
+		return
+	_active_settlement_popup.connect(completion_signal, _on_settlement_popup_completed.bind(_active_settlement_popup), CONNECT_ONE_SHOT)
+	if _active_settlement_popup.has_method("setup"):
+		_active_settlement_popup.callv("setup", Array(spec.get("setup_args", [])))
+
+
+func _on_settlement_popup_completed(popup: Control) -> void:
+	if popup != _active_settlement_popup:
+		return
+	_active_settlement_popup = null
+	if is_instance_valid(popup):
+		popup.queue_free()
+	call_deferred("_show_next_settlement_popup")
+
+
+func _finish_settlement_sequence() -> void:
+	await _reveal_overlay()
+	_notify_settlement_sequence_completed()
+
+
+func _notify_settlement_sequence_completed() -> void:
+	var current_scene := get_tree().current_scene
+	if is_instance_valid(current_scene) and current_scene.has_method("on_settlement_sequence_completed"):
+		current_scene.call("on_settlement_sequence_completed")
 
 
 func _show_boss_reward_popup() -> void:
@@ -153,6 +231,7 @@ func _on_boss_reward_selected(item_id: String) -> void:
 		if is_instance_valid(current_scene) and current_scene.has_method("on_boss_reward_claimed"):
 			current_scene.call("on_boss_reward_claimed", result)
 	await _reveal_overlay()
+	_notify_settlement_sequence_completed()
 
 
 func _reveal_overlay() -> void:
@@ -172,7 +251,10 @@ func _reveal_overlay() -> void:
 	_is_transitioning = false
 	_is_boss_victory_transition = false
 	_is_claiming_boss_reward = false
+	_waiting_for_settlement = false
 	_waiting_for_boss_reward = false
+	_settlement_popup_specs.clear()
+	_active_settlement_popup = null
 
 
 func _ensure_overlay() -> void:
@@ -267,12 +349,8 @@ func _make_label(text: String, font_size: int, font_color: Color) -> Label:
 
 
 func _update_overlay_copy() -> void:
-	if _is_boss_victory_transition:
-		_title.text = GameCopy.text(&"ui.boss_victory.title")
-		_status.text = BOSS_STATUS
-		return
-	_title.text = GENERIC_TITLE
-	_status.text = GENERIC_STATUS
+	_title.text = _transition_title
+	_status.text = _transition_status
 
 
 func _reset_overlay() -> void:

@@ -19,16 +19,17 @@ func _run() -> void:
 		_fail("Special bonus node should not start active.")
 		return
 	var special_node := RunManager.get_map_node(special_id)
-	var linked_accessible := _first_accessible_link(special_node)
-	if linked_accessible <= 0:
-		_fail("Special bonus node should connect to a currently accessible node for the first activation check.")
+	var linked_anchor := _first_exploration_link(special_node)
+	if linked_anchor <= 0:
+		_fail("Special bonus node should connect to an exploration node for activation.")
 		return
 
 	var before_stats := RunManager.get_player_stats()
 
-	if not RunManager.start_explore_node(linked_accessible):
-		_fail("Could not start linked node for special bonus check.")
-		return
+	# Special nodes may now spawn deeper than the first accessible ring. Activate
+	# the linked anchor directly so this check covers beacon behavior, not routing.
+	RunManager.current_node_id = linked_anchor
+	RunManager.pending_room_loot = {"minerals": 0, "equipment": []}
 	var result := RunManager.complete_explore_room_success()
 	if not bool(result.get("ok", false)):
 		_fail("Completing linked node should succeed.")
@@ -36,7 +37,7 @@ func _run() -> void:
 	if not RunManager.is_special_bonus_active(special_id):
 		_fail("Completing a linked node should activate the connected special bonus node.")
 		return
-	await _check_special_beacon_echo(special_id, linked_accessible)
+	await _check_special_beacon_echo(special_id, linked_anchor)
 	if _failed:
 		return
 
@@ -57,10 +58,10 @@ func _first_special_node_id() -> int:
 	return -1
 
 
-func _first_accessible_link(node: Dictionary) -> int:
+func _first_exploration_link(node: Dictionary) -> int:
 	for linked_id in node.get("links", []):
 		var id := int(linked_id)
-		if id > 0 and RunManager.is_node_accessible(id):
+		if id > 0 and String(RunManager.get_map_node(id).get("type", "")) != RunManager.NODE_SPECIAL:
 			return id
 	return -1
 
@@ -99,7 +100,7 @@ func _check_special_beacon_echo(special_id: int, completed_anchor_id: int) -> vo
 	map_view.call("_refresh_details")
 	var details_body := map_view.get_node("DetailsPanel/DetailsBody") as RichTextLabel
 	var text := details_body.text
-	for expected in ["信标回响", "装备检出", "流派倾向"]:
+	for expected in ["信标回响", "装备出现率", "方舟航图"]:
 		if not text.contains(expected):
 			_fail("World map details should show beacon echo %s. Details: %s" % [expected, text])
 			return

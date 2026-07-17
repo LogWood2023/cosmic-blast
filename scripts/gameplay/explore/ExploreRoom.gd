@@ -108,6 +108,8 @@ const EXPLORE_REWARD_SCENE := preload("res://scenes/gameplay/explore/ExploreRewa
 const SPACE_CLUTTER_SCENE := preload("res://scenes/gameplay/explore/SpaceClutter.tscn")
 const EVACUATION_POINT_SCENE := preload("res://scenes/gameplay/explore/EvacuationPoint.tscn")
 const EVACUATION_SUCCESS_HUD_SCENE := preload("res://scenes/ui/EvacuationSuccessHUD.tscn")
+const SPECIAL_BONUS_POPUP_SCENE := preload("res://scenes/ui/world_map/SpecialBonusPopup.tscn")
+const ROUTE_DIRECTIVE_POPUP_SCENE := preload("res://scenes/ui/world_map/RouteDirectivePopup.tscn")
 const DESIGNED_ENEMY_SCENE := preload("res://scenes/entities/designed_enemies/DesignedEnemy.tscn")
 const DesignedEnemyScript = preload("res://scripts/entities/designed_enemies/DesignedEnemy.gd")
 const DesignedEnemyCatalog = preload("res://scripts/entities/designed_enemies/DesignedEnemyCatalog.gd")
@@ -1774,14 +1776,63 @@ func _is_evacuation_position_valid(pos: Vector2) -> bool:
 
 
 func _on_evacuation_completed() -> void:
-	_show_evacuation_success()
+	if SceneTransition.is_transitioning():
+		return
+	get_tree().paused = false
+	var target_scene := "res://scenes/app/MainMenu.tscn"
+	var summary := {
+		"ok": true,
+		"minerals_committed": 0,
+		"equipment_names": [],
+		"base_crisis_added": 0,
+		"event_contract_crisis_added": 0,
+	}
+	if RunManager.is_formal_run_active():
+		target_scene = RunManager.WORLD_MAP_SCENE
+		summary = RunManager.complete_explore_room_success()
+	else:
+		GameManager.player_hp = GameManager.PLAYER_MAX_HP
+		GameManager.elapsed = 0.0
+	var popup_specs := _build_explore_settlement_popup_specs(summary)
+	SceneTransition.play_settlement_to_scene(target_scene, popup_specs, "撤离结算", "正在核验回收清单")
 
 
-func _show_evacuation_success() -> void:
-	get_tree().paused = true
-	var hud = EVACUATION_SUCCESS_HUD_SCENE.instantiate()
-	hud.evacuate_pressed.connect(_on_evacuation_button_pressed)
-	ui_layer.add_child(hud)
+func _build_explore_settlement_popup_specs(summary: Dictionary) -> Array[Dictionary]:
+	var popup_specs: Array[Dictionary] = [{
+		"scene": EVACUATION_SUCCESS_HUD_SCENE,
+		"completion_signal": &"evacuate_pressed",
+		"setup_args": [summary.duplicate(true)],
+	}]
+	var activated_specials: Array = summary.get("activated_specials", [])
+	if not activated_specials.is_empty():
+		var activated_names: Array[String] = []
+		if RunManager.has_method("get_special_bonus_display_names"):
+			activated_names.assign(RunManager.call("get_special_bonus_display_names", activated_specials))
+		var special_summary := {
+			"activated_names": activated_names,
+			"beacon_echo_routes": Array(summary.get("beacon_echo_routes", [])).duplicate(true),
+		}
+		popup_specs.append({
+			"scene": SPECIAL_BONUS_POPUP_SCENE,
+			"completion_signal": &"closed",
+			"setup_args": [special_summary],
+		})
+	var completed_directives: Array = summary.get("completed_route_directives", [])
+	var new_directives: Array = summary.get("new_route_directives", [])
+	var route_momentum := Dictionary(summary.get("route_momentum_activated", {}))
+	if not completed_directives.is_empty() or not new_directives.is_empty() or not route_momentum.is_empty():
+		var route_summary := {
+			"completed_directives": completed_directives.duplicate(true),
+			"new_directives": new_directives.duplicate(true),
+			"reward_summary": Dictionary(summary.get("route_directive_rewards", {})).duplicate(true),
+			"route_momentum": route_momentum.duplicate(true),
+		}
+		popup_specs.append({
+			"scene": ROUTE_DIRECTIVE_POPUP_SCENE,
+			"completion_signal": &"closed",
+			"setup_args": [route_summary],
+		})
+	return popup_specs
 
 
 func _generate_patrol_paths_async() -> void:
@@ -2657,17 +2708,6 @@ func _preload_patrol_enemy_textures() -> void:
 			if not behaviors.has(behavior):
 				behaviors.append(behavior)
 	DesignedEnemyScript.preload_behavior_textures(behaviors)
-
-
-func _on_evacuation_button_pressed() -> void:
-	get_tree().paused = false
-	if RunManager.is_formal_run_active():
-		RunManager.complete_explore_room_success()
-		SceneTransition.change_scene_to_file("res://scenes/app/WorldMap.tscn")
-		return
-	GameManager.player_hp = GameManager.PLAYER_MAX_HP
-	GameManager.elapsed = 0.0
-	SceneTransition.change_scene_to_file("res://scenes/app/MainMenu.tscn")
 
 
 func _place_player_randomly() -> void:
